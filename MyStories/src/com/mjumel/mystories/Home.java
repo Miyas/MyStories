@@ -190,7 +190,7 @@ public class Home extends ActionBarActivity {
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
 			
-			Gen.writeLog("onCreateView::Starting");
+			Gen.writeLog("Home::onCreateView> Starting");
 			View rootView = inflater.inflate(R.layout.fragment_home, container, false);
 			final TextView title = (TextView) rootView.findViewById(R.id.section_label);
 			final EditText comment = (EditText) rootView.findViewById(R.id.comment);
@@ -199,14 +199,14 @@ public class Home extends ActionBarActivity {
 			
 			title.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
 			
-			Gen.writeLog("onCreateView::Preparing ImageView (step 1)");
+			Gen.writeLog("Home::onCreateView> Preparing ImageView (step 1)");
 			//final Uri mediaUri = getArguments().getParcelable(ARG_MEDIA_URI);
 			Uri mediaUriTmp = (Uri) getArguments().get(Intent.EXTRA_STREAM);
 			final Uri mediaUri = Uri.parse(ImageWorker.getRealPathFromURI(getActivity(), mediaUriTmp));
 			final String uid = getArguments().getString("uid");
 			
-			Gen.writeLog("onCreateView::mediaUri = " + mediaUri + ")");
-			Gen.writeLog("onCreateView::uid = " + uid + ")");
+			Gen.writeLog("Home::onCreateView> mediaUri = " + mediaUri + ")");
+			Gen.writeLog("Home::onCreateView> uid = " + uid + ")");
 			
 			if (mediaUri != null)
 			{
@@ -233,10 +233,10 @@ public class Home extends ActionBarActivity {
 	                                    	Toast.makeText(getActivity(), "Posting started.....", Toast.LENGTH_SHORT).show();
 	                                    }
 	                                });
-	                             Gen.writeLog("onCreateView::onClick / title = " + title.getText().toString());
-	                             Gen.writeLog("onCreateView::onClick / comment = " + comment.getText().toString());
-	                             Gen.writeLog("onCreateView::onClick / rating = " + rating.getProgress());
-	                             Gen.writeLog("onCreateView::onClick / mediaUri = " + (mediaUri == null?null:mediaUri.getPath()));
+	                             Gen.writeLog("Home::onCreateView::onClick> title = " + title.getText().toString());
+	                             Gen.writeLog("Home::onCreateView::onClick> comment = " + comment.getText().toString());
+	                             Gen.writeLog("Home::onCreateView::onClick> rating = " + rating.getProgress());
+	                             Gen.writeLog("Home::onCreateView::onClick> mediaUri = " + (mediaUri == null?null:mediaUri.getPath()));
 	                             Communication.postEvent(title.getText().toString(), comment.getText().toString(), rating.getProgress(), (mediaUri == null?null:mediaUri.getPath()));
 	                             Toast.makeText(getActivity(), "Posting done.....", Toast.LENGTH_SHORT).show();
 	                        }
@@ -246,7 +246,7 @@ public class Home extends ActionBarActivity {
 	            }
 	         });
 			
-			Gen.writeLog("onCreateView::Ending");
+			Gen.writeLog("Home::onCreateView> Ending");
 			return rootView;
 		}
 	}
