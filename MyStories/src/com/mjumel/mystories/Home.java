@@ -38,7 +38,8 @@ public class Home extends ActionBarActivity {
 	 * The {@link ViewPager} that will host the section contents.
 	 */
 	ViewPager mViewPager;
-	static Uri imageUri = null;
+	private static Uri imageUri = null;
+	private String uid = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -57,9 +58,13 @@ public class Home extends ActionBarActivity {
 		
 		Gen.writeLog("onCreate::Checking extras");
 		if (getIntent().getExtras() != null)
+		{
 			imageUri = (Uri) getIntent().getExtras().get(Intent.EXTRA_STREAM);
+			uid = getIntent().getExtras().getString("uid");
+		}
 		
 		Gen.writeLog("onCreate::Imageuri = " + imageUri);
+		Gen.writeLog("onCreate::uid = " + uid);
 	}
 	
 	public Uri getMediaUri()
@@ -105,10 +110,10 @@ public class Home extends ActionBarActivity {
 			// getItem is called to instantiate the fragment for the given page.
 			// Return a PlaceholderFragment (defined as a static inner class
 			// below).
-			if (position == 0 && getMediaUri() != null)
-				return PlaceholderFragment.newInstance(position + 1, getMediaUri());
-			else
-				return PlaceholderFragment.newInstance(position + 1);
+			//if (position == 0 && getMediaUri() != null)
+				return PlaceholderFragment.newInstance(position + 1, getIntent().getExtras());
+			//else
+				//return PlaceholderFragment.newInstance(position + 1);
 		}
 
 		@Override
@@ -166,6 +171,17 @@ public class Home extends ActionBarActivity {
 			Gen.writeLog("PlaceholderFragment::Ending");
 			return fragment;
 		}
+		
+		public static PlaceholderFragment newInstance(int sectionNumber, Bundle extras) {
+			Gen.writeLog("PlaceholderFragment::Starting");
+			PlaceholderFragment fragment = new PlaceholderFragment();
+			//Bundle args = new Bundle();
+			extras.putInt(ARG_SECTION_NUMBER, sectionNumber);
+			//args.putParcelable(ARG_MEDIA_URI, mediaUri);
+			fragment.setArguments(extras);
+			Gen.writeLog("PlaceholderFragment::Ending");
+			return fragment;
+		}
 
 		public PlaceholderFragment() {
 		}
@@ -184,8 +200,14 @@ public class Home extends ActionBarActivity {
 			title.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
 			
 			Gen.writeLog("onCreateView::Preparing ImageView (step 1)");
-			final Uri mediaUri = getArguments().getParcelable(ARG_MEDIA_URI);
-			Gen.writeLog("onCreateView::Preparing ImageView (step 2 / uri = " + mediaUri + ")");
+			//final Uri mediaUri = getArguments().getParcelable(ARG_MEDIA_URI);
+			Uri mediaUriTmp = (Uri) getArguments().get(Intent.EXTRA_STREAM);
+			final Uri mediaUri = Uri.parse(ImageWorker.getRealPathFromURI(getActivity(), mediaUriTmp));
+			final String uid = getArguments().getString("uid");
+			
+			Gen.writeLog("onCreateView::mediaUri = " + mediaUri + ")");
+			Gen.writeLog("onCreateView::uid = " + uid + ")");
+			
 			if (mediaUri != null)
 			{
 				ImageView imageView = (ImageView)rootView.findViewById(R.id.media);
@@ -215,7 +237,7 @@ public class Home extends ActionBarActivity {
 	                             Gen.writeLog("onCreateView::onClick / comment = " + comment.getText().toString());
 	                             Gen.writeLog("onCreateView::onClick / rating = " + rating.getProgress());
 	                             Gen.writeLog("onCreateView::onClick / mediaUri = " + (mediaUri == null?null:mediaUri.getPath()));
-	                             Communication.postEvent(getActivity(), title.getText().toString(), comment.getText().toString(), rating.getProgress(), (mediaUri == null?null:mediaUri.getPath()));
+	                             Communication.postEvent(title.getText().toString(), comment.getText().toString(), rating.getProgress(), (mediaUri == null?null:mediaUri.getPath()));
 	                             Toast.makeText(getActivity(), "Posting done.....", Toast.LENGTH_SHORT).show();
 	                        }
 	                      }).start();

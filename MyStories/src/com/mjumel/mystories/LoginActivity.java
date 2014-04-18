@@ -4,6 +4,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,12 +22,17 @@ import android.widget.TextView;
  * well.
  */
 public class LoginActivity extends Activity {
+	
+	private static final String MS_PREFS = "MyStoriesPrefs";
+	private static final String MS_PREFS_LOGIN = "MyStories_login";
+	private static final String MS_PREFS_PWD = "MyStories_pwd";
+	private static final String MS_PREFS_UID = "MyStories_uid";
+	
 	/**
 	 * A dummy authentication store containing known user names and passwords.
 	 * TODO: remove after connecting to a real authentication system.
 	 */
-	private static final String[] DUMMY_CREDENTIALS = new String[] {
-			"foo@example.com:hello", "bar@example.com:world" };
+	private static final String DUMMY_CREDENTIALS = "bar@example.com:world";
 
 	/**
 	 * The default email to populate the email field with.
@@ -195,37 +202,33 @@ public class LoginActivity extends Activity {
 	 * Represents an asynchronous login/registration task used to authenticate
 	 * the user.
 	 */
-	public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+	public class UserLoginTask extends AsyncTask<Void, Void, Integer> {
 		@Override
-		protected Boolean doInBackground(Void... params) {
+		protected Integer doInBackground(Void... params) {
 			// TODO: attempt authentication against a network service.
 
-			try {
-				// Simulate network access.
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				return false;
-			}
-
-			for (String credential : DUMMY_CREDENTIALS) {
-				String[] pieces = credential.split(":");
-				if (pieces[0].equals(mEmail)) {
-					// Account exists, return true if the password matches.
-					return pieces[1].equals(mPassword);
-				}
-			}
-
-			// TODO: register the new account here.
-			return true;
+			return Communication.login(mEmail, Gen.md5Encrypt(mPassword));
+			
 		}
 
 		@Override
-		protected void onPostExecute(final Boolean success) {
+		protected void onPostExecute(final Integer uid) {
 			mAuthTask = null;
 			showProgress(false);
 
-			if (success) {
-				finish();
+			if (uid > 0) {
+				SharedPreferences settings = getSharedPreferences(MS_PREFS, 0);
+				SharedPreferences.Editor editor = settings.edit();
+				editor.putString(MS_PREFS_LOGIN, mEmail);
+				editor.putString(MS_PREFS_PWD, Gen.md5Encrypt(mPassword));
+				editor.putString(MS_PREFS_UID, String.valueOf(uid));
+			    editor.commit();
+			    
+			    Intent intent = new Intent(getApplicationContext(), Home.class);
+	    		intent.putExtra("uid", uid);
+	            startActivity(intent);
+			    
+				//finish();
 			} else {
 				mPasswordView
 						.setError(getString(R.string.error_incorrect_password));

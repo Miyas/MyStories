@@ -8,5 +8,7 @@
     <string name="action_settings">Settings</string>
     <string name="button_label">Remember!</string>
     <string name="section_label">Section Label</string>
+    <string name="title_activity_splash">SplashActivity</string>
+    <string name="hello_world">Welcome to My Stories</string>
 
 </resources>
