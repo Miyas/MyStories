@@ -16,11 +16,15 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
 public class Communication {
 	
 	public static void postEvent(String userid, String comment, int rating, final String mediaUri) 
 	{
-		Gen.writeLog("postEvent2::Starting");
+		Gen.writeLog("Communication::postEvent> Starting");
 		//final ProgressDialog dialog = null;
 		int serverResponseCode = 0;
 		
@@ -47,57 +51,71 @@ public class Communication {
 	
 	        HttpResponse response = client.execute(post);
 	        serverResponseCode = response.getStatusLine().getStatusCode();
-	        Gen.writeLog("postEvent2::Response Code : " + serverResponseCode);
+	        Gen.writeLog("Communication::postEvent> Response Code : " + serverResponseCode);
 	
 	        HttpEntity httpEntity = response.getEntity();
 	        String result = EntityUtils.toString(httpEntity);
 	
-	        Gen.writeLog("postEvent2::Result" + result);
+	        Gen.writeLog("Communication::postEvent> Result" + result);
 	    }
 	    catch(Exception e)
 	    {
 	        //e.printStackTrace();
-	        Gen.writeLog("postEvent2::Exception error");
-            Gen.writeLog("postEvent2::" + e.getMessage());
+	        Gen.writeLog("Communication::postEvent> Exception error");
+            Gen.writeLog("Communication::postEvent> " + e.getMessage());
 	    }
-		Gen.writeLog("postEvent2::Ending");
+		Gen.writeLog("Communication::postEvent> Ending");
 	}
 	
 	public static int login(String login, String pwd) 
 	{
-		Gen.writeLog("login::Starting");
+		Gen.writeLog("Communication::login> Starting");
 		//final ProgressDialog dialog = null;
 		int serverResponseCode = 0;
 		
-		String upLoadServerUri = "http://anizoo.info/mystories/login.php"; 
+		String upLoadServerUri = "http://anizoo.info/mystories/include/auth.php"; 
 		try
 	    {
 	        HttpClient client = new DefaultHttpClient();
 	        HttpPost post = new HttpPost(upLoadServerUri);
 	
 	        List<NameValuePair> params = new ArrayList<NameValuePair>();
+	        params.add(new BasicNameValuePair("action", "1"));
 	        params.add(new BasicNameValuePair("l", login));
 	        params.add(new BasicNameValuePair("p", pwd));
 	        post.setEntity(new UrlEncodedFormEntity(params));
 	
 	        HttpResponse response = client.execute(post);
 	        serverResponseCode = response.getStatusLine().getStatusCode();
-	        Gen.writeLog("login::Response Code : " + serverResponseCode);
+	        Gen.writeLog("Communication::login> Response Code : " + serverResponseCode);
 	        
-	        HttpEntity httpEntity = response.getEntity();
-	        String result = EntityUtils.toString(httpEntity);
-	
-	        Gen.writeLog("login::Result" + result);
+	        if (serverResponseCode == 200)
+	        {
+	        	HttpEntity httpEntity = response.getEntity();
+	        	String result = EntityUtils.toString(httpEntity);
+	        	Gen.writeLog("Communication::login> " + result);
+	        	String[] res = result.split(":");
+	        	if (res[0] == "OK")
+	        		return -1;
+	        	else
+	        		return Integer.valueOf(res[1]);
+	        }
+	        else
+	        	return -1;
 	    }
 	    catch(Exception e)
 	    {
 	        //e.printStackTrace();
-	        Gen.writeLog("login::Exception error");
-            Gen.writeLog("login::" + e.getMessage());
+	        Gen.writeLog("Communication::login> Exception error");
+            Gen.writeLog("Communication::login> " + e.getMessage());
             return -1;
 	    }
-		
-		Gen.writeLog("login::Ending");
-		return 1;
+	}
+	
+	public static boolean checkNetState(Context c)
+	{
+		final ConnectivityManager conMgr =  (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
+		final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
+		return (activeNetwork != null && activeNetwork.isConnected());
 	}
 }

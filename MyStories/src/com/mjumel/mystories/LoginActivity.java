@@ -6,6 +6,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -99,6 +100,15 @@ public class LoginActivity extends Activity {
 		getMenuInflater().inflate(R.menu.login, menu);
 		return true;
 	}
+	
+	@Override
+	public void onBackPressed()
+	{
+		if (getIntent().getBooleanExtra("EXIT", false)) {
+			 moveTaskToBack(true); // exist app
+        }
+	}
+
 
 	/**
 	 * Attempts to sign in or register the account specified by the login form.
@@ -206,7 +216,8 @@ public class LoginActivity extends Activity {
 		@Override
 		protected Integer doInBackground(Void... params) {
 			// TODO: attempt authentication against a network service.
-
+			
+			if(!Communication.checkNetState(getApplicationContext())) return -2;
 			return Communication.login(mEmail, Gen.md5Encrypt(mPassword));
 			
 		}
@@ -226,14 +237,17 @@ public class LoginActivity extends Activity {
 			    
 			    Intent intent = new Intent(getApplicationContext(), Home.class);
 	    		intent.putExtra("uid", uid);
+	    		if (getIntent().getExtras() != null)
+	    			intent.putExtra("mediaUri", (Uri)getIntent().getExtras().get("mediaUri"));
 	            startActivity(intent);
 			    
-				//finish();
-			} else {
-				mPasswordView
-						.setError(getString(R.string.error_incorrect_password));
+			} else if (uid == -2) {
+				mPasswordView.setError(getString(R.string.error_invalid_connection));
 				mPasswordView.requestFocus();
-			}
+			} else {
+				mPasswordView.setError(getString(R.string.error_incorrect_password));
+				mPasswordView.requestFocus();
+			} 
 		}
 
 		@Override

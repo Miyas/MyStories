@@ -13,6 +13,9 @@ public class ImageWorker {
 	// And to convert the image URI to the direct file system path of the image file
 	public static String getRealPathFromURI(Activity acti, Uri contentUri) 
 	{
+		if (contentUri == null) return null;
+		
+		Gen.writeLog("ImageWorker::getRealPathFromURI> Started");
 		if (!contentUri.toString().startsWith("content"))
 			return contentUri.toString();
 		
@@ -26,12 +29,14 @@ public class ImageWorker {
         int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
         cursor.moveToFirst();
 
+        Gen.writeLog("ImageWorker::getRealPathFromURI> Ended");
         return cursor.getString(column_index);
 	}
 	
 	public static Bitmap decodeSampledBitmapFromFile(String path, 
 			int reqWidth, int reqHeight) {
 
+		Gen.writeLog("ImageWorker::decodeSampledBitmapFromFile> Started");
 	    // First decode with inJustDecodeBounds=true to check dimensions
 	    final BitmapFactory.Options options = new BitmapFactory.Options();
 	    options.inJustDecodeBounds = true;
@@ -42,12 +47,15 @@ public class ImageWorker {
 
 	    // Decode bitmap with inSampleSize set
 	    options.inJustDecodeBounds = false;
+	    
+	    Gen.writeLog("ImageWorker::decodeSampledBitmapFromFile> Ended");
 	    return BitmapFactory.decodeFile(path, options);
 	}
 	
 	public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
 	        int reqWidth, int reqHeight) {
 
+		Gen.writeLog("ImageWorker::decodeSampledBitmapFromResource> Started");
 	    // First decode with inJustDecodeBounds=true to check dimensions
 	    final BitmapFactory.Options options = new BitmapFactory.Options();
 	    options.inJustDecodeBounds = true;
@@ -58,30 +66,35 @@ public class ImageWorker {
 
 	    // Decode bitmap with inSampleSize set
 	    options.inJustDecodeBounds = false;
+	    
+	    Gen.writeLog("ImageWorker::decodeSampledBitmapFromResource> Ended");
 	    return BitmapFactory.decodeResource(res, resId, options);
 	}
 	
-	public static int calculateInSampleSize(
-            BitmapFactory.Options options, int reqWidth, int reqHeight) {
-    // Raw height and width of image
-    final int height = options.outHeight;
-    final int width = options.outWidth;
-    int inSampleSize = 1;
-
-    if (height > reqHeight || width > reqWidth) {
-
-        final int halfHeight = height / 2;
-        final int halfWidth = width / 2;
-
-        // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-        // height and width larger than the requested height and width.
-        while ((halfHeight / inSampleSize) > reqHeight
-                && (halfWidth / inSampleSize) > reqWidth) {
-            inSampleSize *= 2;
-        }
-    }
-
-    return inSampleSize;
-}
+	public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) 
+	{
+	    // Raw height and width of image
+	    final int height = options.outHeight;
+	    final int width = options.outWidth;
+	    int inSampleSize = 1;
+	
+	    Gen.writeLog("ImageWorker::calculateInSampleSize> Started");
+	    if (height > reqHeight || width > reqWidth) {
+	
+	        final int halfHeight = height / 2;
+	        final int halfWidth = width / 2;
+	
+	        // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+	        // height and width larger than the requested height and width.
+	        while ((halfHeight / inSampleSize) > reqHeight
+	                && (halfWidth / inSampleSize) > reqWidth) {
+	            inSampleSize *= 2;
+	        }
+	    }
+	
+	    Gen.writeLog("ImageWorker::calculateInSampleSize> inSampleSize = " + inSampleSize);
+	    Gen.writeLog("ImageWorker::calculateInSampleSize> Ended");
+	    return inSampleSize;
+	}
 		
 }

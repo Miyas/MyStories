@@ -46,7 +46,7 @@ public class Home extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_home);
 
-		Gen.writeLog("onCreate::Running application");
+		Gen.writeLog("Home::onCreate> Running application");
 		// Create the adapter that will return a fragment for each of the three
 		// primary sections of the activity.
 		mSectionsPagerAdapter = new SectionsPagerAdapter(
@@ -56,15 +56,15 @@ public class Home extends ActionBarActivity {
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(mSectionsPagerAdapter);
 		
-		Gen.writeLog("onCreate::Checking extras");
+		Gen.writeLog("Home::onCreate> Checking extras");
 		if (getIntent().getExtras() != null)
 		{
-			imageUri = (Uri) getIntent().getExtras().get(Intent.EXTRA_STREAM);
+			imageUri = (Uri) getIntent().getExtras().get("mediaUri");
 			uid = getIntent().getExtras().getString("uid");
 		}
 		
-		Gen.writeLog("onCreate::Imageuri = " + imageUri);
-		Gen.writeLog("onCreate::uid = " + uid);
+		Gen.writeLog("Home::onCreate> Imageuri = " + imageUri);
+		Gen.writeLog("Home::onCreate> uid = " + uid);
 	}
 	
 	public Uri getMediaUri()
@@ -94,6 +94,15 @@ public class Home extends ActionBarActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+	
+	@Override
+	public void onBackPressed()
+	{
+		if (getIntent().getBooleanExtra("EXIT", false)) {
+			 moveTaskToBack(true); // exist app
+        }
+	}
+
 
 	/**
 	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -152,34 +161,34 @@ public class Home extends ActionBarActivity {
 		 * Returns a new instance of this fragment for the given section number.
 		 */
 		public static PlaceholderFragment newInstance(int sectionNumber) {
-			Gen.writeLog("PlaceholderFragment::Starting");
+			Gen.writeLog("Home::PlaceholderFragment> Starting newInstance1");
 			PlaceholderFragment fragment = new PlaceholderFragment();
 			Bundle args = new Bundle();
 			args.putInt(ARG_SECTION_NUMBER, sectionNumber);
 			fragment.setArguments(args);
-			Gen.writeLog("PlaceholderFragment::Ending");
+			Gen.writeLog("Home::PlaceholderFragment> Ending newInstance1");
 			return fragment;
 		}
 		
 		public static PlaceholderFragment newInstance(int sectionNumber, Uri mediaUri) {
-			Gen.writeLog("PlaceholderFragment::Starting");
+			Gen.writeLog("Home::PlaceholderFragment> Starting newInstance2");
 			PlaceholderFragment fragment = new PlaceholderFragment();
 			Bundle args = new Bundle();
 			args.putInt(ARG_SECTION_NUMBER, sectionNumber);
 			args.putParcelable(ARG_MEDIA_URI, mediaUri);
 			fragment.setArguments(args);
-			Gen.writeLog("PlaceholderFragment::Ending");
+			Gen.writeLog("Home::PlaceholderFragment> Ending newInstance2");
 			return fragment;
 		}
 		
 		public static PlaceholderFragment newInstance(int sectionNumber, Bundle extras) {
-			Gen.writeLog("PlaceholderFragment::Starting");
+			Gen.writeLog("Home::PlaceholderFragment> Starting newInstance3");
 			PlaceholderFragment fragment = new PlaceholderFragment();
 			//Bundle args = new Bundle();
 			extras.putInt(ARG_SECTION_NUMBER, sectionNumber);
 			//args.putParcelable(ARG_MEDIA_URI, mediaUri);
 			fragment.setArguments(extras);
-			Gen.writeLog("PlaceholderFragment::Ending");
+			Gen.writeLog("Home::PlaceholderFragment> Ending newInstance3");
 			return fragment;
 		}
 
@@ -200,13 +209,16 @@ public class Home extends ActionBarActivity {
 			title.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
 			
 			Gen.writeLog("Home::onCreateView> Preparing ImageView (step 1)");
-			//final Uri mediaUri = getArguments().getParcelable(ARG_MEDIA_URI);
-			Uri mediaUriTmp = (Uri) getArguments().get(Intent.EXTRA_STREAM);
-			final Uri mediaUri = Uri.parse(ImageWorker.getRealPathFromURI(getActivity(), mediaUriTmp));
-			final String uid = getArguments().getString("uid");
+			Uri mediaUriTmp = (Uri) getArguments().get("mediaUri");
 			
-			Gen.writeLog("Home::onCreateView> mediaUri = " + mediaUri + ")");
-			Gen.writeLog("Home::onCreateView> uid = " + uid + ")");
+			final String uid = getArguments().getString("uid");
+			final Uri mediaUri = mediaUriTmp==null?null:Uri.parse(ImageWorker.getRealPathFromURI(getActivity(), mediaUriTmp));
+			
+			Gen.writeLog("Home::onCreateView> mediaUri = " + mediaUri);
+			Gen.writeLog("Home::onCreateView> uid = " + uid);
+			
+			if (uid != null)
+				title.setText("Welcome " + uid + "!");
 			
 			if (mediaUri != null)
 			{

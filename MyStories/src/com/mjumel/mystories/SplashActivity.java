@@ -1,17 +1,27 @@
 package com.mjumel.mystories;
 
 import android.app.Activity;
-import android.app.ActionBar;
 import android.app.Fragment;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.os.Build;
+import android.view.Window;
+import android.widget.EditText;
+import android.widget.TextView;
 
 public class SplashActivity extends Activity {
+
+	private static final String MS_PREFS = "MyStoriesPrefs";
+	private static final String MS_PREFS_LOGIN = "MyStories_login";
+	private static final String MS_PREFS_PWD = "MyStories_pwd";
+	private static final String MS_PREFS_UID = "MyStories_uid";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +54,7 @@ public class SplashActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+	
 
 	/**
 	 * A placeholder fragment containing a simple view.
@@ -56,8 +67,39 @@ public class SplashActivity extends Activity {
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_splash,
-					container, false);
+			View rootView = inflater.inflate(R.layout.fragment_splash, container, false);
+			TextView textView = (TextView) rootView.findViewById(R.id.textView1);
+			textView.setText("Checking Credentials...");
+			
+			SharedPreferences settings = this.getActivity().getSharedPreferences(MS_PREFS, 0);
+			String login = settings.getString(MS_PREFS_LOGIN, null);
+			String pwd = settings.getString(MS_PREFS_LOGIN, null);
+			String uid = settings.getString(MS_PREFS_LOGIN, null);
+			
+			Intent intent;
+			if ( login != null && pwd != null && uid != null)
+			{
+				intent = new Intent(this.getActivity().getApplicationContext(), Home.class);
+	    		intent.putExtra("uid", uid);
+			}
+			else
+			{
+				intent = new Intent(this.getActivity().getApplicationContext(), LoginActivity.class);
+			}
+			
+			intent.putExtra("EXIT", true);
+			if (this.getActivity().getIntent().getExtras() != null)
+				intent.putExtra("mediaUri", (Uri)this.getActivity().getIntent().getExtras().get(Intent.EXTRA_STREAM));
+			final Intent intentFinal = intent;
+			intent = null;
+			
+			Handler handler = new Handler(); 
+		    handler.postDelayed(new Runnable() { 
+		         public void run() { 
+		        	 startActivity(intentFinal);
+		         } 
+		    }, 1000); 
+		    
 			return rootView;
 		}
 	}
