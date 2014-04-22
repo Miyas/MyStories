@@ -33,12 +33,6 @@ public class LoginActivity extends Activity {
 	private static final String MS_PREFS_UID = "MyStories_uid";
 	
 	/**
-	 * A dummy authentication store containing known user names and passwords.
-	 * TODO: remove after connecting to a real authentication system.
-	 */
-	private static final String DUMMY_CREDENTIALS = "bar@example.com:world";
-
-	/**
 	 * The default email to populate the email field with.
 	 */
 	public static final String EXTRA_EMAIL = "com.example.android.authenticatordemo.extra.EMAIL";

@@ -2,10 +2,6 @@ package com.mjumel.mystories.adapters;
 
 import java.util.ArrayList;
 
-import com.mjumel.mystories.R;
-import com.mjumel.mystories.R.id;
-import com.mjumel.mystories.R.layout;
-
 import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -14,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.mjumel.mystories.R;
 
 public class NavDrawerListAdapter extends BaseAdapter {
 	private Context context;

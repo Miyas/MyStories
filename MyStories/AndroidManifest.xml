@@ -44,7 +44,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.mjumel.mystories.NewEventActivity"
+            android:name="com.mjumel.mystories.old.NewEventActivity"
             android:label="@string/title_activity_new_event" >
         </activity>
         <activity

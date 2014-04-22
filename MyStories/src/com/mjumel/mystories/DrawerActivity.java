@@ -25,9 +25,6 @@ public class DrawerActivity extends Activity {
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
  
-    // nav drawer title
-    private CharSequence mDrawerTitle;
- 
     // used to store app title
     private CharSequence mTitle;
  
@@ -43,7 +40,7 @@ public class DrawerActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drawer);
  
-        mTitle = mDrawerTitle = getTitle();
+        mTitle = getTitle();
  
         // load slide menu items
         navMenuTitles = getResources().getStringArray(R.array.nav_drawer_items);
@@ -58,19 +55,12 @@ public class DrawerActivity extends Activity {
         navDrawerItems = new ArrayList<NavDrawerItem>();
  
         // adding nav drawer items to array
-        // Home
         navDrawerItems.add(new NavDrawerItem(navMenuTitles[0], navMenuIcons.getResourceId(0, -1)));
-        // Find People
         navDrawerItems.add(new NavDrawerItem(navMenuTitles[1], navMenuIcons.getResourceId(1, -1)));
-        // Photos
         navDrawerItems.add(new NavDrawerItem(navMenuTitles[2], navMenuIcons.getResourceId(2, -1)));
-        // Communities, Will add a counter here
         navDrawerItems.add(new NavDrawerItem(navMenuTitles[3], navMenuIcons.getResourceId(3, -1), true, "2"));
-        // Pages
         navDrawerItems.add(new NavDrawerItem(navMenuTitles[4], navMenuIcons.getResourceId(4, -1)));
-        // What's hot, We  will add a counter here
         navDrawerItems.add(new NavDrawerItem(navMenuTitles[5], navMenuIcons.getResourceId(5, -1)));
-         
  
         // Recycle the typed array
         navMenuIcons.recycle();

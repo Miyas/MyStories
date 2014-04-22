@@ -39,7 +39,6 @@ public class EventFragment extends Fragment {
 	
     public EventFragment()
     {
-
     }
 
     @Override
@@ -48,12 +47,8 @@ public class EventFragment extends Fragment {
     	
     	Gen.writeLog("EventFragment::onCreateView> Starting");
     	
-		
-		if (this.getActivity().getIntent().getExtras() != null)
-		{
-			mediaUri = (Uri)this.getActivity().getIntent().getExtras().get("mediaUri");
-			uId = (String)this.getActivity().getIntent().getExtras().get("uid");
-		}
+		mediaUri = (Uri)getExtra("mediaUri");
+		uId = (String)getExtra("uid");
 		Gen.writeLog("EventFragment::onCreateView> mediaUri = " + mediaUri);
 		Gen.writeLog("EventFragment::onCreateView> uid = " + uId);
 		
@@ -139,5 +134,13 @@ public class EventFragment extends Fragment {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+    }
+    
+    private Object getExtra(String id)
+    {
+    	if (this.getActivity().getIntent().getExtras() != null)
+			return this.getActivity().getIntent().getExtras().get(id);
+    	else
+    		return null;
     }
 }
