@@ -17,6 +17,8 @@ import android.widget.TextView;
 
 import com.mjumel.mystories.tools.Gen;
 
+import com.mjumel.mystories.tools.Gen;
+
 public class SplashActivity extends Activity {
 
 	private static final String MS_PREFS = "MyStoriesPrefs";

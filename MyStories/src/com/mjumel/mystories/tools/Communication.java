@@ -27,6 +27,8 @@ import android.net.NetworkInfo;
 
 import com.mjumel.mystories.Event;
 
+import com.mjumel.mystories.Event;
+
 public class Communication {
 	
 	public static void postEvent(String userid, String comment, int rating, String mediaUri, int cat) 

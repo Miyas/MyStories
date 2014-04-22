@@ -49,6 +49,7 @@ public class EventFragment extends Fragment {
     	
 		mediaUri = (Uri)getExtra("mediaUri");
 		uId = (String)getExtra("uid");
+
 		Gen.appendLog("EventFragment::onCreateView> mediaUri = " + mediaUri);
 		Gen.appendLog("EventFragment::onCreateView> uid = " + uId);
 		
