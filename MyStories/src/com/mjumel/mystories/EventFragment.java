@@ -39,23 +39,18 @@ public class EventFragment extends Fragment {
 	
     public EventFragment()
     {
-
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
     	
-    	Gen.writeLog("EventFragment::onCreateView> Starting");
+    	Gen.appendLog("EventFragment::onCreateView> Starting");
     	
-		
-		if (this.getActivity().getIntent().getExtras() != null)
-		{
-			mediaUri = (Uri)this.getActivity().getIntent().getExtras().get("mediaUri");
-			uId = (String)this.getActivity().getIntent().getExtras().get("uid");
-		}
-		Gen.writeLog("EventFragment::onCreateView> mediaUri = " + mediaUri);
-		Gen.writeLog("EventFragment::onCreateView> uid = " + uId);
+		mediaUri = (Uri)getExtra("mediaUri");
+		uId = (String)getExtra("uid");
+		Gen.appendLog("EventFragment::onCreateView> mediaUri = " + mediaUri);
+		Gen.appendLog("EventFragment::onCreateView> uid = " + uId);
 		
 		userPicture = new UserPicture(mediaUri, getActivity().getContentResolver());
 
@@ -97,11 +92,11 @@ public class EventFragment extends Fragment {
             	final ProgressDialog pg = ProgressDialog.show(getActivity(), "", "Posting event...", true);
                 new Thread(new Runnable() {
                         public void run() {
-                             Gen.writeLog("EventFragment::onCreateView::onClick> uId = " + uId);
-                             Gen.writeLog("EventFragment::onCreateView::onClick> comment = " + etComment.getText().toString());
-                             Gen.writeLog("EventFragment::onCreateView::onClick> rating = " + rbRating.getProgress());
-                             Gen.writeLog("EventFragment::onCreateView::onClick> mediaUri = " + (mediaUri == null?null:userPicture.getPath()));
-                             Gen.writeLog("EventFragment::onCreateView::onClick> cat = " + spnCats.getSelectedItemPosition());
+                             Gen.appendLog("EventFragment::onCreateView::onClick> uId = " + uId);
+                             Gen.appendLog("EventFragment::onCreateView::onClick> comment = " + etComment.getText().toString());
+                             Gen.appendLog("EventFragment::onCreateView::onClick> rating = " + rbRating.getProgress());
+                             Gen.appendLog("EventFragment::onCreateView::onClick> mediaUri = " + (mediaUri == null?null:userPicture.getPath()));
+                             Gen.appendLog("EventFragment::onCreateView::onClick> cat = " + spnCats.getSelectedItemPosition());
                              Communication.postEvent(
                             		 uId, 
                             		 etComment.getText().toString(), 
@@ -119,7 +114,7 @@ public class EventFragment extends Fragment {
             }
          });
 		
-		Gen.writeLog("EventFragment::onCreateView> Ending");
+		Gen.appendLog("EventFragment::onCreateView> Ending");
 		return view;
     }
     
@@ -139,5 +134,13 @@ public class EventFragment extends Fragment {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+    }
+    
+    private Object getExtra(String id)
+    {
+    	if (this.getActivity().getIntent().getExtras() != null)
+			return this.getActivity().getIntent().getExtras().get(id);
+    	else
+    		return null;
     }
 }

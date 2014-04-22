@@ -1,4 +1,11 @@
-package com.mjumel.mystories;
+package com.mjumel.mystories.old;
+
+import com.mjumel.mystories.R;
+import com.mjumel.mystories.R.id;
+import com.mjumel.mystories.R.layout;
+import com.mjumel.mystories.R.menu;
+import com.mjumel.mystories.R.string;
+import com.mjumel.mystories.old.NavigationDrawerFragment.NavigationDrawerCallbacks;
 
 import android.app.Activity;
 import android.app.ActionBar;

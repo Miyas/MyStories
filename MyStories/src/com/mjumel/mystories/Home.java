@@ -47,7 +47,7 @@ public class Home extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_home);
 
-		Gen.writeLog("Home::onCreate> Running application");
+		Gen.appendLog("Home::onCreate> Running application");
 		// Create the adapter that will return a fragment for each of the three
 		// primary sections of the activity.
 		mSectionsPagerAdapter = new SectionsPagerAdapter(
@@ -144,34 +144,34 @@ public class Home extends ActionBarActivity {
 		 * Returns a new instance of this fragment for the given section number.
 		 */
 		public static PlaceholderFragment newInstance(int sectionNumber) {
-			Gen.writeLog("Home::PlaceholderFragment> Starting newInstance1");
+			Gen.appendLog("Home::PlaceholderFragment> Starting newInstance1");
 			PlaceholderFragment fragment = new PlaceholderFragment();
 			Bundle args = new Bundle();
 			args.putInt(ARG_SECTION_NUMBER, sectionNumber);
 			fragment.setArguments(args);
-			Gen.writeLog("Home::PlaceholderFragment> Ending newInstance1");
+			Gen.appendLog("Home::PlaceholderFragment> Ending newInstance1");
 			return fragment;
 		}
 		
 		public static PlaceholderFragment newInstance(int sectionNumber, Uri mediaUri) {
-			Gen.writeLog("Home::PlaceholderFragment> Starting newInstance2");
+			Gen.appendLog("Home::PlaceholderFragment> Starting newInstance2");
 			PlaceholderFragment fragment = new PlaceholderFragment();
 			Bundle args = new Bundle();
 			args.putInt(ARG_SECTION_NUMBER, sectionNumber);
 			args.putParcelable(ARG_MEDIA_URI, mediaUri);
 			fragment.setArguments(args);
-			Gen.writeLog("Home::PlaceholderFragment> Ending newInstance2");
+			Gen.appendLog("Home::PlaceholderFragment> Ending newInstance2");
 			return fragment;
 		}
 		
 		public static PlaceholderFragment newInstance(int sectionNumber, Bundle extras) {
-			Gen.writeLog("Home::PlaceholderFragment> Starting newInstance3");
+			Gen.appendLog("Home::PlaceholderFragment> Starting newInstance3");
 			PlaceholderFragment fragment = new PlaceholderFragment();
 			//Bundle args = new Bundle();
 			extras.putInt(ARG_SECTION_NUMBER, sectionNumber);
 			//args.putParcelable(ARG_MEDIA_URI, mediaUri);
 			fragment.setArguments(extras);
-			Gen.writeLog("Home::PlaceholderFragment> Ending newInstance3");
+			Gen.appendLog("Home::PlaceholderFragment> Ending newInstance3");
 			return fragment;
 		}
 
@@ -182,7 +182,7 @@ public class Home extends ActionBarActivity {
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
 			
-			Gen.writeLog("Home::onCreateView> Starting");
+			Gen.appendLog("Home::onCreateView> Starting");
 			View rootView = inflater.inflate(R.layout.fragment_home, container, false);
 			final TextView title = (TextView) rootView.findViewById(R.id.section_label);
 			final EditText comment = (EditText) rootView.findViewById(R.id.comment);
@@ -191,14 +191,14 @@ public class Home extends ActionBarActivity {
 			
 			title.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
 			
-			Gen.writeLog("Home::onCreateView> Preparing ImageView (step 1)");
+			Gen.appendLog("Home::onCreateView> Preparing ImageView (step 1)");
 			Uri mediaUriTmp = (Uri) getArguments().get("mediaUri");
 			
 			final String uid = getArguments().getString("uid");
 			final Uri mediaUri = mediaUriTmp==null?null:Uri.parse(ImageWorker.getRealPathFromURI(getActivity(), mediaUriTmp));
 			
-			Gen.writeLog("Home::onCreateView> mediaUri = " + mediaUri);
-			Gen.writeLog("Home::onCreateView> uid = " + uid);
+			Gen.appendLog("Home::onCreateView> mediaUri = " + mediaUri);
+			Gen.appendLog("Home::onCreateView> uid = " + uid);
 			
 			if (uid != null)
 				title.setText("Welcome " + uid + "!");
@@ -228,10 +228,10 @@ public class Home extends ActionBarActivity {
 	                                    	Toast.makeText(getActivity(), "Posting started.....", Toast.LENGTH_SHORT).show();
 	                                    }
 	                                });
-	                             Gen.writeLog("Home::onCreateView::onClick> title = " + title.getText().toString());
-	                             Gen.writeLog("Home::onCreateView::onClick> comment = " + comment.getText().toString());
-	                             Gen.writeLog("Home::onCreateView::onClick> rating = " + rating.getProgress());
-	                             Gen.writeLog("Home::onCreateView::onClick> mediaUri = " + (mediaUri == null?null:mediaUri.getPath()));
+	                             Gen.appendLog("Home::onCreateView::onClick> title = " + title.getText().toString());
+	                             Gen.appendLog("Home::onCreateView::onClick> comment = " + comment.getText().toString());
+	                             Gen.appendLog("Home::onCreateView::onClick> rating = " + rating.getProgress());
+	                             Gen.appendLog("Home::onCreateView::onClick> mediaUri = " + (mediaUri == null?null:mediaUri.getPath()));
 	                             Communication.postEvent(title.getText().toString(), comment.getText().toString(), rating.getProgress(), (mediaUri == null?null:mediaUri.getPath()), -1);
 	                             Toast.makeText(getActivity(), "Posting done.....", Toast.LENGTH_SHORT).show();
 	                        }
@@ -241,7 +241,7 @@ public class Home extends ActionBarActivity {
 	            }
 	         });
 			
-			Gen.writeLog("Home::onCreateView> Ending");
+			Gen.appendLog("Home::onCreateView> Ending");
 			return rootView;
 		}
 	}

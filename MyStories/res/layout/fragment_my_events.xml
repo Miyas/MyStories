@@ -4,7 +4,7 @@
     android:layout_height="match_parent" >
 
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/my_events_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
@@ -12,10 +12,10 @@
         android:text="Button" />
 
     <ListView
-        android:id="@+id/listView1"
+        android:id="@+id/my_events_listView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/button1"
+        android:layout_below="@+id/my_events_button"
         android:layout_centerHorizontal="true" >
     </ListView>
 
