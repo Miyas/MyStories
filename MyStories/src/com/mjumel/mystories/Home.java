@@ -2,7 +2,10 @@ package com.mjumel.mystories;
 
 import java.util.Locale;
 
-import android.content.Intent;
+import com.mjumel.mystories.tools.Communication;
+import com.mjumel.mystories.tools.Gen;
+import com.mjumel.mystories.tools.ImageWorker;
+
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -38,8 +41,6 @@ public class Home extends ActionBarActivity {
 	 * The {@link ViewPager} that will host the section contents.
 	 */
 	ViewPager mViewPager;
-	private static Uri imageUri = null;
-	private String uid = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,24 +56,6 @@ public class Home extends ActionBarActivity {
 		// Set up the ViewPager with the sections adapter.
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(mSectionsPagerAdapter);
-		
-		Gen.writeLog("Home::onCreate> Checking extras");
-		if (getIntent().getExtras() != null)
-		{
-			imageUri = (Uri) getIntent().getExtras().get("mediaUri");
-			uid = getIntent().getExtras().getString("uid");
-		}
-		
-		Gen.writeLog("Home::onCreate> Imageuri = " + imageUri);
-		Gen.writeLog("Home::onCreate> uid = " + uid);
-	}
-	
-	public Uri getMediaUri()
-	{
-		if (imageUri == null)
-			return imageUri;
-		
-		return Uri.parse(ImageWorker.getRealPathFromURI(this, imageUri));
 	}
 
 	@Override
@@ -136,11 +119,11 @@ public class Home extends ActionBarActivity {
 			Locale l = Locale.getDefault();
 			switch (position) {
 			case 0:
-				return getString(R.string.title_section1).toUpperCase(l);
+				return getString(R.string.title_section_events).toUpperCase(l);
 			case 1:
-				return getString(R.string.title_section2).toUpperCase(l);
+				return getString(R.string.title_section_stories).toUpperCase(l);
 			case 2:
-				return getString(R.string.title_section3).toUpperCase(l);
+				return getString(R.string.title_section_friends).toUpperCase(l);
 			}
 			return null;
 		}
@@ -249,7 +232,7 @@ public class Home extends ActionBarActivity {
 	                             Gen.writeLog("Home::onCreateView::onClick> comment = " + comment.getText().toString());
 	                             Gen.writeLog("Home::onCreateView::onClick> rating = " + rating.getProgress());
 	                             Gen.writeLog("Home::onCreateView::onClick> mediaUri = " + (mediaUri == null?null:mediaUri.getPath()));
-	                             Communication.postEvent(title.getText().toString(), comment.getText().toString(), rating.getProgress(), (mediaUri == null?null:mediaUri.getPath()));
+	                             Communication.postEvent(title.getText().toString(), comment.getText().toString(), rating.getProgress(), (mediaUri == null?null:mediaUri.getPath()), -1);
 	                             Toast.makeText(getActivity(), "Posting done.....", Toast.LENGTH_SHORT).show();
 	                        }
 	                      }).start();

@@ -1,4 +1,4 @@
-package com.mjumel.mystories;
+package com.mjumel.mystories.tools;
 
 import android.app.Activity;
 import android.content.res.Resources;
@@ -6,32 +6,35 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.provider.MediaStore;
+import android.provider.MediaStore.MediaColumns;
 
 public class ImageWorker {
 
 	// And to convert the image URI to the direct file system path of the image file
-	public static String getRealPathFromURI(Activity acti, Uri contentUri) 
+	public static String getRealPathFromURI(Activity acti, Uri uri) 
 	{
-		if (contentUri == null) return null;
+		String retval = null;
+		if (uri == null) return null;
 		
 		Gen.writeLog("ImageWorker::getRealPathFromURI> Started");
-		if (!contentUri.toString().startsWith("content"))
-			return contentUri.toString();
-		
-        // can post image
-        String [] proj={MediaStore.Images.Media.DATA};
-        Cursor cursor = acti.getContentResolver().query( contentUri,
-                        proj, // Which columns to return
-                        null,       // WHERE clause; which rows to return (all rows)
-                        null,       // WHERE clause selection arguments (none)
-                        null); // Order-by clause (ascending by name)
-        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
+		String[] projection = {  MediaColumns.DATA};
+	    Cursor cursor = acti.getContentResolver().query(uri, projection, null, null, null);
+	    if(cursor != null) {
+	        //HERE YOU WILL GET A NULLPOINTER IF CURSOR IS NULL
+	        //THIS CAN BE, IF YOU USED OI FILE MANAGER FOR PICKING THE MEDIA
+	        cursor.moveToFirst();
+	        int columnIndex = cursor.getColumnIndexOrThrow(MediaColumns.DATA);
+	        String filePath = cursor.getString(columnIndex);
+	        cursor.close();
+	        retval = filePath;
+	    }
+	    else 
+	    	retval = uri.getPath();
 
         Gen.writeLog("ImageWorker::getRealPathFromURI> Ended");
-        return cursor.getString(column_index);
+        return retval;
 	}
+	
 	
 	public static Bitmap decodeSampledBitmapFromFile(String path, 
 			int reqWidth, int reqHeight) {

@@ -1,5 +1,8 @@
 package com.mjumel.mystories;
 
+import com.mjumel.mystories.tools.Communication;
+import com.mjumel.mystories.tools.Gen;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;

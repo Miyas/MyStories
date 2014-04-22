@@ -1,5 +1,7 @@
 package com.mjumel.mystories;
 
+import com.mjumel.mystories.tools.Gen;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
@@ -73,13 +75,13 @@ public class SplashActivity extends Activity {
 			
 			SharedPreferences settings = this.getActivity().getSharedPreferences(MS_PREFS, 0);
 			String login = settings.getString(MS_PREFS_LOGIN, null);
-			String pwd = settings.getString(MS_PREFS_LOGIN, null);
-			String uid = settings.getString(MS_PREFS_LOGIN, null);
+			String pwd = settings.getString(MS_PREFS_PWD, null);
+			String uid = settings.getString(MS_PREFS_UID, null);
 			
 			Intent intent;
 			if ( login != null && pwd != null && uid != null)
 			{
-				intent = new Intent(this.getActivity().getApplicationContext(), Home.class);
+				intent = new Intent(this.getActivity().getApplicationContext(), DrawerActivity.class);
 	    		intent.putExtra("uid", uid);
 			}
 			else
@@ -89,9 +91,17 @@ public class SplashActivity extends Activity {
 			
 			intent.putExtra("EXIT", true);
 			if (this.getActivity().getIntent().getExtras() != null)
+			{
 				intent.putExtra("mediaUri", (Uri)this.getActivity().getIntent().getExtras().get(Intent.EXTRA_STREAM));
+				Gen.writeLog("SplashActivity::onCreateView> mediaUri = " + (Uri)this.getActivity().getIntent().getExtras().get(Intent.EXTRA_STREAM));
+			}
 			final Intent intentFinal = intent;
 			intent = null;
+			
+			
+			Gen.writeLog("SplashActivity::onCreateView> login = " + login);
+			Gen.writeLog("SplashActivity::onCreateView> pwd = " + pwd);
+			Gen.writeLog("SplashActivity::onCreateView> uid = " + uid);
 			
 			Handler handler = new Handler(); 
 		    handler.postDelayed(new Runnable() { 

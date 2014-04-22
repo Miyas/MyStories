@@ -1,4 +1,4 @@
-package com.mjumel.mystories;
+package com.mjumel.mystories.tools;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,10 +22,9 @@ import android.net.NetworkInfo;
 
 public class Communication {
 	
-	public static void postEvent(String userid, String comment, int rating, final String mediaUri) 
+	public static void postEvent(String userid, String comment, int rating, String mediaUri, int cat) 
 	{
 		Gen.writeLog("Communication::postEvent> Starting");
-		//final ProgressDialog dialog = null;
 		int serverResponseCode = 0;
 		
 		String upLoadServerUri = "http://anizoo.info/mystories/post.php"; 
@@ -40,6 +39,7 @@ public class Communication {
 	        entityBuilder.addTextBody("user_id", userid);
 	        entityBuilder.addTextBody("comment", comment);
 	        entityBuilder.addTextBody("rating", String.valueOf(rating));
+	        entityBuilder.addTextBody("cat", String.valueOf(cat));
 	
 	        if(mediaUri != null)
 	        {
