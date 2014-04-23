@@ -17,6 +17,7 @@ public class XmlParser {
     private static final String ns = null;
    
     public List<Event> parseEvents(Reader in) throws XmlPullParserException, IOException {
+    	Gen.appendLog("XmlParser::parseEvents> Starting");
         try {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
@@ -115,7 +116,7 @@ public class XmlParser {
 		    parser.require(XmlPullParser.END_TAG, ns, tag);
 	    	return Integer.valueOf(idAtt);
 	    } catch (NumberFormatException e) {
-	    	Gen.writeLog("XmlParser::readIdAtt> NumberFormatException : " + idAtt);
+	    	Gen.appendLog("XmlParser::readIdAtt> NumberFormatException : " + idAtt, "E");
 	    	return -1;
 	    }
 	}
@@ -138,7 +139,7 @@ public class XmlParser {
 		    try {
 		    	result = Integer.valueOf(parser.getText());
 		    } catch (NumberFormatException e) {
-		    	Gen.writeLog("XmlParser::readInt> NumberFormatException : " + parser.getText());
+		    	Gen.appendLog("XmlParser::readInt> NumberFormatException : " + parser.getText(), "E");
 		    }
 		    parser.nextTag();
 		}

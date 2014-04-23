@@ -49,14 +49,14 @@ public class Gen {
 	   try
 	   {
 	      //BufferedWriter for performance, true to set append to file flag
-	      BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
+	      BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, append));
 	      SimpleDateFormat formater = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.FRANCE);
 	      String sText = formater.format(new Date()) + "\t" + crit + "\t" + text;
 	      
 	      //if (append)
-	    	  buf.append(sText);
+	    //	  buf.append(sText);
 	      //else
-	    //	  buf.write(sText);
+	    	  buf.write(sText);
 	      buf.newLine();
 	      buf.close();
 	   }
@@ -86,7 +86,8 @@ public class Gen {
             }
             r.close();
             input.close();
-        } catch (Exception e) 
+        }
+		catch (Exception e) 
         {
         	Gen.appendLog( "Gen:downloadFile > Download url ERROR", "E");
         	Gen.appendLog( e.getMessage(), "E");

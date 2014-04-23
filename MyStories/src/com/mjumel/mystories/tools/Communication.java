@@ -10,6 +10,7 @@ import java.util.List;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -26,11 +27,13 @@ import android.net.NetworkInfo;
 
 import com.mjumel.mystories.Event;
 
+import com.mjumel.mystories.Event;
+
 public class Communication {
 	
 	public static void postEvent(String userid, String comment, int rating, String mediaUri, int cat) 
 	{
-		Gen.writeLog("Communication::postEvent> Starting");
+		Gen.appendLog("Communication::postEvent> Starting");
 		int serverResponseCode = 0;
 		
 		String upLoadServerUri = "http://anizoo.info/mystories/post.php"; 
@@ -57,25 +60,25 @@ public class Communication {
 	
 	        HttpResponse response = client.execute(post);
 	        serverResponseCode = response.getStatusLine().getStatusCode();
-	        Gen.writeLog("Communication::postEvent> Response Code : " + serverResponseCode);
+	        Gen.appendLog("Communication::postEvent> Response Code : " + serverResponseCode);
 	
 	        HttpEntity httpEntity = response.getEntity();
 	        String result = EntityUtils.toString(httpEntity);
 	
-	        Gen.writeLog("Communication::postEvent> Result" + result);
+	        Gen.appendLog("Communication::postEvent> Result" + result);
 	    }
 	    catch(Exception e)
 	    {
 	        //e.printStackTrace();
-	        Gen.writeLog("Communication::postEvent> Exception error");
-            Gen.writeLog("Communication::postEvent> " + e.getMessage());
+	        Gen.appendLog("Communication::postEvent> Exception error","E");
+            Gen.appendLog("Communication::postEvent> " + e.getMessage(),"E");
 	    }
-		Gen.writeLog("Communication::postEvent> Ending");
+		Gen.appendLog("Communication::postEvent> Ending");
 	}
 	
 	public static int login(String login, String pwd) 
 	{
-		Gen.writeLog("Communication::login> Starting");
+		Gen.appendLog("Communication::login> Starting");
 		
 		String upLoadServerUri = "http://anizoo.info/mystories/include/auth.php";
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -95,7 +98,7 @@ public class Communication {
 	
 	public static List<Event> getUserEvents(String userId)//, String userSession) 
 	{
-		Gen.writeLog("Communication::getUserEvents> Starting");
+		Gen.appendLog("Communication::getUserEvents> Starting");
 		
 		String upLoadServerUri = "http://anizoo.info/mystories/post/userevents.php";
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -126,10 +129,10 @@ public class Communication {
 				return (new XmlParser()).parseEvents((Reader)new StringReader(res[1]));
 			} catch (XmlPullParserException e) {
 				e.printStackTrace();
-				Gen.writeLog("Communication::getUserEvents> XmlPullParserException Error");
+				Gen.appendLog("Communication::getUserEvents> XmlPullParserException Error","E");
 			} catch (IOException e) {
 				e.printStackTrace();
-				Gen.writeLog("Communication::getUserEvents> IOException Error");
+				Gen.appendLog("Communication::getUserEvents> IOException Error","E");
 			}
         }
         return null;
@@ -137,7 +140,7 @@ public class Communication {
 	
 	private static String[] postText(String uri, List<NameValuePair> params)
 	{
-		Gen.writeLog("Communication::post> Starting for uri = " + uri);
+		Gen.appendLog("Communication::postText> Starting for uri = " + uri);
 		
 		int serverResponseCode = 0;
 		String serverRespondeMsg = "";
@@ -145,32 +148,48 @@ public class Communication {
 
 		try
 	    {
+			Gen.appendLog("Communication::postText> 1");
 	        HttpClient client = new DefaultHttpClient();
+	        Gen.appendLog("Communication::postText> 2");
 	        HttpPost post = new HttpPost(uri);
+	        Gen.appendLog("Communication::postText> 3");
 	        post.setEntity(new UrlEncodedFormEntity(params));
+	        Gen.appendLog("Communication::postText> 4");
 	
 	        HttpResponse response = client.execute(post);
+	        Gen.appendLog("Communication::postText> 5");
 	        serverResponseCode = response.getStatusLine().getStatusCode();
-	        Gen.writeLog("Communication::post> Response Code : " + serverResponseCode);
+	        Gen.appendLog("Communication::postText> Response Code : " + serverResponseCode);
 	        
-	        result[0] = String.valueOf(serverResponseCode);
-	        if (serverResponseCode == 200)
-	        {
+	        //if (serverResponseCode == 200)
+	        //{
 	        	HttpEntity httpEntity = response.getEntity();
 	        	serverRespondeMsg = EntityUtils.toString(httpEntity);
-	        }
+	        //}
 	    }
+		catch(ClientProtocolException e)
+		{
+			Gen.appendLog("Communication::postText> ClientProtocolException error","E");
+            Gen.appendLog("Communication::postText> " + e.getMessage(),"E");
+            serverRespondeMsg = e.getMessage();
+		}
+		catch(IOException e)
+		{
+			Gen.appendLog("Communication::postText> IOException error","E");
+            Gen.appendLog("Communication::postText> " + e.getMessage(),"E");
+            serverRespondeMsg = e.getMessage();
+		}
 	    catch(Exception e)
 	    {
-	        Gen.writeLog("Communication::post> Exception error");
-            Gen.writeLog("Communication::post> " + e.getMessage());
+	        Gen.appendLog("Communication::postText> Exception error","E");
+            Gen.appendLog("Communication::postText> " + e.getMessage(),"E");
             serverRespondeMsg = e.getMessage();
 	    }
 		
 		result[0] = String.valueOf(serverResponseCode);
 		result[1] = serverRespondeMsg;
 		
-		Gen.writeLog("Communication::post> Ending");
+		Gen.appendLog("Communication::postText> Ending");
 		return result;
 	}
 	

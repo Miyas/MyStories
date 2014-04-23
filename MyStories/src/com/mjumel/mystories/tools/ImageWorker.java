@@ -16,7 +16,7 @@ public class ImageWorker {
 		String retval = null;
 		if (uri == null) return null;
 		
-		Gen.writeLog("ImageWorker::getRealPathFromURI> Started");
+		Gen.appendLog("ImageWorker::getRealPathFromURI> Started");
 		String[] projection = {  MediaColumns.DATA};
 	    Cursor cursor = acti.getContentResolver().query(uri, projection, null, null, null);
 	    if(cursor != null) {
@@ -31,7 +31,7 @@ public class ImageWorker {
 	    else 
 	    	retval = uri.getPath();
 
-        Gen.writeLog("ImageWorker::getRealPathFromURI> Ended");
+        Gen.appendLog("ImageWorker::getRealPathFromURI> Ended");
         return retval;
 	}
 	
@@ -39,7 +39,7 @@ public class ImageWorker {
 	public static Bitmap decodeSampledBitmapFromFile(String path, 
 			int reqWidth, int reqHeight) {
 
-		Gen.writeLog("ImageWorker::decodeSampledBitmapFromFile> Started");
+		Gen.appendLog("ImageWorker::decodeSampledBitmapFromFile> Started");
 	    // First decode with inJustDecodeBounds=true to check dimensions
 	    final BitmapFactory.Options options = new BitmapFactory.Options();
 	    options.inJustDecodeBounds = true;
@@ -51,14 +51,14 @@ public class ImageWorker {
 	    // Decode bitmap with inSampleSize set
 	    options.inJustDecodeBounds = false;
 	    
-	    Gen.writeLog("ImageWorker::decodeSampledBitmapFromFile> Ended");
+	    Gen.appendLog("ImageWorker::decodeSampledBitmapFromFile> Ended");
 	    return BitmapFactory.decodeFile(path, options);
 	}
 	
 	public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
 	        int reqWidth, int reqHeight) {
 
-		Gen.writeLog("ImageWorker::decodeSampledBitmapFromResource> Started");
+		Gen.appendLog("ImageWorker::decodeSampledBitmapFromResource> Started");
 	    // First decode with inJustDecodeBounds=true to check dimensions
 	    final BitmapFactory.Options options = new BitmapFactory.Options();
 	    options.inJustDecodeBounds = true;
@@ -70,7 +70,7 @@ public class ImageWorker {
 	    // Decode bitmap with inSampleSize set
 	    options.inJustDecodeBounds = false;
 	    
-	    Gen.writeLog("ImageWorker::decodeSampledBitmapFromResource> Ended");
+	    Gen.appendLog("ImageWorker::decodeSampledBitmapFromResource> Ended");
 	    return BitmapFactory.decodeResource(res, resId, options);
 	}
 	
@@ -81,7 +81,7 @@ public class ImageWorker {
 	    final int width = options.outWidth;
 	    int inSampleSize = 1;
 	
-	    Gen.writeLog("ImageWorker::calculateInSampleSize> Started");
+	    Gen.appendLog("ImageWorker::calculateInSampleSize> Started");
 	    if (height > reqHeight || width > reqWidth) {
 	
 	        final int halfHeight = height / 2;
@@ -95,8 +95,8 @@ public class ImageWorker {
 	        }
 	    }
 	
-	    Gen.writeLog("ImageWorker::calculateInSampleSize> inSampleSize = " + inSampleSize);
-	    Gen.writeLog("ImageWorker::calculateInSampleSize> Ended");
+	    Gen.appendLog("ImageWorker::calculateInSampleSize> inSampleSize = " + inSampleSize);
+	    Gen.appendLog("ImageWorker::calculateInSampleSize> Ended");
 	    return inSampleSize;
 	}
 		

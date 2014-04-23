@@ -39,7 +39,7 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 		View rowView = convertView;
 		ViewHolder holder = new ViewHolder();
 		
-		Gen.writeLog("EventListAdapter::getView> Starting");
+		Gen.appendLog("EventListAdapter::getView> Starting");
 		
 		if ( rowView == null ) {
 			rowView = inflater.inflate(R.layout.event_list_item, null);
@@ -55,18 +55,25 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 		
 		Event event = this.getItem(position);
 		holder.comment.setText(event.GetComment());
-		holder.rating.setProgress(event.GetRating());
 		
-    	UserPicture userPicture = new UserPicture(Uri.parse(event.GetThumbMediaPath()), context.getContentResolver());
-        try {
-        	holder.image.setImageBitmap(userPicture.getBitmap());
-		} catch (IOException e) {
-			e.printStackTrace();
-			Gen.writeLog("EventListAdapter::getView> IOException Error");
+		if (event.GetRating() < 0)
+			holder.rating.setVisibility(RatingBar.INVISIBLE);
+		else
+			holder.rating.setProgress(event.GetRating());
+		
+		if (event.GetThumbMediaPath() != null)
+		{
+	    	UserPicture userPicture = new UserPicture(Uri.parse(event.GetThumbMediaPath()), context.getContentResolver());
+	        try {
+	        	holder.image.setImageBitmap(userPicture.getBitmap());
+			} catch (IOException e) {
+				e.printStackTrace();
+				Gen.appendLog("EventListAdapter::getView> IOException Error");
+			}
+	        userPicture = null;
 		}
-        userPicture = null;
 
-        Gen.writeLog("EventListAdapter::getView> Ending");
+        Gen.appendLog("EventListAdapter::getView> Ending");
 		return rowView;
 	}
 }

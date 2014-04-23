@@ -17,6 +17,8 @@ import android.widget.TextView;
 
 import com.mjumel.mystories.tools.Gen;
 
+import com.mjumel.mystories.tools.Gen;
+
 public class SplashActivity extends Activity {
 
 	private static final String MS_PREFS = "MyStoriesPrefs";
@@ -68,6 +70,9 @@ public class SplashActivity extends Activity {
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
+			
+			Gen.appendLog("EventListFragment::onCreateView> Starting");
+			
 			View rootView = inflater.inflate(R.layout.fragment_splash, container, false);
 			TextView textView = (TextView) rootView.findViewById(R.id.textView1);
 			textView.setText("Checking Credentials...");
@@ -92,15 +97,15 @@ public class SplashActivity extends Activity {
 			if (this.getActivity().getIntent().getExtras() != null)
 			{
 				intent.putExtra("mediaUri", (Uri)this.getActivity().getIntent().getExtras().get(Intent.EXTRA_STREAM));
-				Gen.writeLog("SplashActivity::onCreateView> mediaUri = " + (Uri)this.getActivity().getIntent().getExtras().get(Intent.EXTRA_STREAM));
+				Gen.appendLog("SplashActivity::onCreateView> mediaUri = " + (Uri)this.getActivity().getIntent().getExtras().get(Intent.EXTRA_STREAM));
 			}
 			final Intent intentFinal = intent;
 			intent = null;
 			
 			
-			Gen.writeLog("SplashActivity::onCreateView> login = " + login);
-			Gen.writeLog("SplashActivity::onCreateView> pwd = " + pwd);
-			Gen.writeLog("SplashActivity::onCreateView> uid = " + uid);
+			Gen.appendLog("SplashActivity::onCreateView> login = " + login);
+			Gen.appendLog("SplashActivity::onCreateView> pwd = " + pwd);
+			Gen.appendLog("SplashActivity::onCreateView> uid = " + uid);
 			
 			Handler handler = new Handler(); 
 		    handler.postDelayed(new Runnable() { 

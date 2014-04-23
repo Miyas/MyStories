@@ -1,8 +1,11 @@
 package com.mjumel.mystories;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Fragment;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +19,8 @@ import com.mjumel.mystories.tools.Gen;
 public class EventListFragment extends Fragment {
 
 	private ListView lv;
-	private List<Event> eventList;
+	private List<Event> eventList = null;
+	private ProgressDialog pg;
 	
     public EventListFragment()
     {
@@ -27,19 +31,17 @@ public class EventListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
     	
-    	Gen.writeLog("EventListFragment::onCreateView> Starting");
+    	Gen.appendLog("EventListFragment::onCreateView> Starting");
     	
 		View view = inflater.inflate(R.layout.fragment_my_events,container, false);
 		lv = (ListView) view.findViewById(R.id.my_events_listView);
 		
 		String uId = (String)getExtra("uid");
-		if (uId != null)
-			eventList = Communication.getUserEvents(uId);
+		Gen.appendLog("EventListFragment::onCreateView> uId=" + uId);
+		if (uId != null && eventList == null)
+			new DownloadEventsTask().execute(uId);
 		
-		EventListAdapter adapter = new EventListAdapter(this.getActivity(), eventList);
-    	lv.setAdapter(adapter);
-		
-		Gen.writeLog("EventListFragment::onCreateView> Ending");
+		Gen.appendLog("EventListFragment::onCreateView> Ending");
 		return view;
     }
     
@@ -50,4 +52,34 @@ public class EventListFragment extends Fragment {
     	else
     		return null;
     }
+    
+    
+    class DownloadEventsTask extends AsyncTask<String, Integer, List<Event>>
+    {
+          protected void onPreExecute()
+          {     super.onPreExecute();
+          		pg = ProgressDialog.show(getActivity(), "", "Loading events...", true);
+          } 
+
+          protected List<Event> doInBackground(String ...params)
+          {  
+                return Communication.getUserEvents(params[0]);
+          } 
+
+          protected void onPostExecute(List<Event> result)
+          {     
+                super.onPostExecute(result);
+                if(result == null)
+                {
+                	result = new ArrayList<Event>();
+                	Event event = new Event();
+                	event.SetComment("No event available");
+	                result.add(event);
+                }
+                eventList = result;
+                EventListAdapter adapter = new EventListAdapter(getActivity(), result);
+            	lv.setAdapter(adapter);                	
+            	pg.dismiss();
+          }
+     }
 }

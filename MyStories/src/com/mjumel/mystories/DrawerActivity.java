@@ -156,6 +156,9 @@ public class DrawerActivity extends Activity {
         case 0:
             fragment = new EventFragment();
             break;
+        case 1:
+            fragment = new EventListFragment();
+            break;
         default:
         	fragment = new GenFragment();
             break;
