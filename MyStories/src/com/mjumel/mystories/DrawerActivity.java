@@ -34,10 +34,13 @@ public class DrawerActivity extends Activity {
  
     private ArrayList<NavDrawerItem> navDrawerItems;
     private NavDrawerListAdapter adapter;
+    
+    private int drawerPosition;
  
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
         setContentView(R.layout.activity_drawer);
  
         mTitle = getTitle();
@@ -152,27 +155,33 @@ public class DrawerActivity extends Activity {
     private void displayView(int position) {
         // update the main content by replacing fragments
         Fragment fragment = null;
+        drawerPosition = position;
         switch (position) {
         case 0:
-            fragment = new EventFragment();
-            break;
-        case 1:
             fragment = new EventListFragment();
             break;
+        /*case 1:
+            fragment = new EventListFragment();
+            break;*/
         default:
         	fragment = new GenFragment();
             break;
         }
  
-        if (fragment != null) {
+        changeFragment(fragment);
+    }
+    
+    public void changeFragment(Fragment fragment)
+    {
+    	if (fragment != null) {
             FragmentManager fragmentManager = getFragmentManager();
             fragmentManager.beginTransaction()
                     .replace(R.id.frame_container, fragment).commit();
  
             // update selected item and title, then close the drawer
-            mDrawerList.setItemChecked(position, true);
-            mDrawerList.setSelection(position);
-            setTitle(navMenuTitles[position]);
+            mDrawerList.setItemChecked(drawerPosition, true);
+            mDrawerList.setSelection(drawerPosition);
+            setTitle(navMenuTitles[drawerPosition]);
             mDrawerLayout.closeDrawer(mDrawerList);
         } else {
             // error in creating fragment
@@ -205,11 +214,11 @@ public class DrawerActivity extends Activity {
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
     
-    @Override
+    /*@Override
 	public void onBackPressed()
 	{
 		if (getIntent().getBooleanExtra("EXIT", false)) {
 			 moveTaskToBack(true);
         }
-	}
+	}*/
 }

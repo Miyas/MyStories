@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.mjumel.mystories.adapters.EventListAdapter;
@@ -19,8 +21,10 @@ import com.mjumel.mystories.tools.Gen;
 public class EventListFragment extends Fragment {
 
 	private ListView lv;
-	private List<Event> eventList = null;
+	private Button btnAddEvent;
 	private ProgressDialog pg;
+	
+	private List<Event> eventList = null;
 	
     public EventListFragment()
     {
@@ -35,11 +39,20 @@ public class EventListFragment extends Fragment {
     	
 		View view = inflater.inflate(R.layout.fragment_my_events,container, false);
 		lv = (ListView) view.findViewById(R.id.my_events_listView);
+		btnAddEvent = (Button) view.findViewById(R.id.my_events_button);
 		
 		String uId = (String)getExtra("uid");
 		Gen.appendLog("EventListFragment::onCreateView> uId=" + uId);
 		if (uId != null && eventList == null)
 			new DownloadEventsTask().execute(uId);
+		
+		btnAddEvent.setOnClickListener(new OnClickListener() {           
+            @Override
+            public void onClick(View v) {
+	             Gen.appendLog("EventListFragment::onCreateView> Display new event fragment");
+	             ((DrawerActivity)getActivity()).changeFragment(new EventFragment());
+            }
+         });
 		
 		Gen.appendLog("EventListFragment::onCreateView> Ending");
 		return view;
@@ -73,7 +86,7 @@ public class EventListFragment extends Fragment {
                 {
                 	result = new ArrayList<Event>();
                 	Event event = new Event();
-                	event.SetComment("No event available");
+                	event.setComment("No event available");
 	                result.add(event);
                 }
                 eventList = result;

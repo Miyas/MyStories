@@ -4,9 +4,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,8 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
-
-import com.mjumel.mystories.tools.Gen;
 
 import com.mjumel.mystories.tools.Gen;
 
@@ -71,13 +67,13 @@ public class SplashActivity extends Activity {
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
 			
-			Gen.appendLog("EventListFragment::onCreateView> Starting");
+			Gen.writeLog("SplashActivity::onCreateView> Starting");
 			
 			View rootView = inflater.inflate(R.layout.fragment_splash, container, false);
 			TextView textView = (TextView) rootView.findViewById(R.id.textView1);
 			textView.setText("Checking Credentials...");
 			
-			SharedPreferences settings = this.getActivity().getSharedPreferences(MS_PREFS, 0);
+			SharedPreferences settings = getActivity().getSharedPreferences(MS_PREFS, 0);
 			String login = settings.getString(MS_PREFS_LOGIN, null);
 			String pwd = settings.getString(MS_PREFS_PWD, null);
 			String uid = settings.getString(MS_PREFS_UID, null);
@@ -85,34 +81,24 @@ public class SplashActivity extends Activity {
 			Intent intent;
 			if ( login != null && pwd != null && uid != null)
 			{
-				intent = new Intent(this.getActivity().getApplicationContext(), DrawerActivity.class);
+				intent = new Intent(getActivity().getApplicationContext(), DrawerActivity.class);
 	    		intent.putExtra("uid", uid);
 			}
 			else
 			{
-				intent = new Intent(this.getActivity().getApplicationContext(), LoginActivity.class);
+				intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
 			}
 			
-			intent.putExtra("EXIT", true);
-			if (this.getActivity().getIntent().getExtras() != null)
-			{
-				intent.putExtra("mediaUri", (Uri)this.getActivity().getIntent().getExtras().get(Intent.EXTRA_STREAM));
-				Gen.appendLog("SplashActivity::onCreateView> mediaUri = " + (Uri)this.getActivity().getIntent().getExtras().get(Intent.EXTRA_STREAM));
-			}
-			final Intent intentFinal = intent;
-			intent = null;
+			intent.putExtras(getActivity().getIntent());
 			
+			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+			intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 			
 			Gen.appendLog("SplashActivity::onCreateView> login = " + login);
 			Gen.appendLog("SplashActivity::onCreateView> pwd = " + pwd);
 			Gen.appendLog("SplashActivity::onCreateView> uid = " + uid);
-			
-			Handler handler = new Handler(); 
-		    handler.postDelayed(new Runnable() { 
-		         public void run() { 
-		        	 startActivity(intentFinal);
-		         } 
-		    }, 1000); 
+			startActivity(intent);
+			getActivity().finish();
 		    
 			return rootView;
 		}

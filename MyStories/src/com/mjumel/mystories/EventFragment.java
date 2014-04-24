@@ -46,8 +46,8 @@ public class EventFragment extends Fragment {
                 Bundle savedInstanceState) {
     	
     	Gen.appendLog("EventFragment::onCreateView> Starting");
-    	
-		mediaUri = (Uri)getExtra("mediaUri");
+
+    	mediaUri = (Uri)getExtra(Intent.EXTRA_STREAM);
 		uId = (String)getExtra("uid");
 
 		Gen.appendLog("EventFragment::onCreateView> mediaUri = " + mediaUri);
@@ -119,7 +119,8 @@ public class EventFragment extends Fragment {
 		return view;
     }
     
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    @SuppressWarnings("static-access")
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == getActivity().RESULT_OK && requestCode == SELECT_PICTURE) {
             setImage(data.getData());
         }

@@ -27,8 +27,6 @@ import android.net.NetworkInfo;
 
 import com.mjumel.mystories.Event;
 
-import com.mjumel.mystories.Event;
-
 public class Communication {
 	
 	public static void postEvent(String userid, String comment, int rating, String mediaUri, int cat) 
@@ -69,7 +67,6 @@ public class Communication {
 	    }
 	    catch(Exception e)
 	    {
-	        //e.printStackTrace();
 	        Gen.appendLog("Communication::postEvent> Exception error","E");
             Gen.appendLog("Communication::postEvent> " + e.getMessage(),"E");
 	    }
@@ -106,25 +103,10 @@ public class Communication {
         params.add(new BasicNameValuePair("ui", userId));
         //params.add(new BasicNameValuePair("us", userSession));
         
-		/*<feed>
-		 * <uid id="5">
-		 *  <story id="-1">
-		 *   <event id="14">
-		 * 	  <comment>COMMENT</comment>
-		 *     <rating>4</rating>
-		 *     <category id="">CAT 1</category>
-		 *     <mediapath>
-		 *   	<thumb>http://...</thumb>
-		 *   	<resized>http://...</resized>
-		 *     </mediapath>
-		 *   </event>
-		 *  </story>
-		 * </uid>
-		 *</feed>
-		 */
         String[] res = postText(upLoadServerUri, params);
 		if (res[0].equals("200"))
 		{
+			//Gen.appendLog("Communication::getUserEvents> Response = \n" + res[1] + "\n");
        		try {
 				return (new XmlParser()).parseEvents((Reader)new StringReader(res[1]));
 			} catch (XmlPullParserException e) {
@@ -148,16 +130,10 @@ public class Communication {
 
 		try
 	    {
-			Gen.appendLog("Communication::postText> 1");
 	        HttpClient client = new DefaultHttpClient();
-	        Gen.appendLog("Communication::postText> 2");
 	        HttpPost post = new HttpPost(uri);
-	        Gen.appendLog("Communication::postText> 3");
 	        post.setEntity(new UrlEncodedFormEntity(params));
-	        Gen.appendLog("Communication::postText> 4");
-	
 	        HttpResponse response = client.execute(post);
-	        Gen.appendLog("Communication::postText> 5");
 	        serverResponseCode = response.getStatusLine().getStatusCode();
 	        Gen.appendLog("Communication::postText> Response Code : " + serverResponseCode);
 	        

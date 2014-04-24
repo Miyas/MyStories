@@ -1,5 +1,7 @@
 package com.mjumel.mystories;
 
+import com.mjumel.mystories.tools.Gen;
+
 public class Event {
 	
 	private int eventId = -1;
@@ -10,13 +12,16 @@ public class Event {
 	private int uId = -1;
 	private int storyId = -1;
 	
-	public Event() 
+	private final String baseUrl = "http://anizoo.info/mystories/"; 
+	
+	public Event()
     {
     }
 	
 	public Event(String comment, int rating, int category, 
 			String[] mediaPath, int uId, int storyId, int eventId) 
     {
+		Gen.appendLog("Event::Event> Creating new event");
 		this.comment = comment;
 		this.rating = rating;
 		this.category = category;
@@ -24,32 +29,44 @@ public class Event {
 		this.uId = uId;
 		this.storyId = storyId;
 		this.eventId = eventId;
+		printEvent();
     }
 	
-	public String GetComment() { return comment; }
-    public void SetComment(String value) { comment = value; }
+	public void printEvent()
+	{
+		Gen.appendLog("Event::printEvent> comment = " + comment);
+		Gen.appendLog("Event::printEvent> rating = " + rating);
+		Gen.appendLog("Event::printEvent> category = " + category);
+		Gen.appendLog("Event::printEvent> mediaPath = " + mediaPath);
+		Gen.appendLog("Event::printEvent> uId = " + uId);
+		Gen.appendLog("Event::printEvent> storyId = " + storyId);
+		Gen.appendLog("Event::printEvent> eventId = " + eventId);
+	}
+	
+	public String getComment() { return comment; }
+    public void setComment(String value) { comment = value; }
     
-    public String GetThumbMediaPath() { return mediaPath[0]; }
-    public void SetThumbMediaPath(String value) { mediaPath[0] = value; }
+    public String getThumbMediaPath() { return mediaPath[0]==null?null:baseUrl+mediaPath[0]; }
+    public void setThumbMediaPath(String value) { mediaPath[0] = value; }
     
-    public String GetResizedMediaPath() { return mediaPath[1]; }
-    public void SetResizedMediaPath(String value) { mediaPath[1] = value; }
+    public String getResizedMediaPath() { return mediaPath[1]==null?null:baseUrl+mediaPath[1]; }
+    public void setResizedMediaPath(String value) { mediaPath[1] = value; }
     
-    public String GetOriginalMediaPath() { return mediaPath[2]; }
-    public void SetOriginalMediaPath(String value) { mediaPath[2] = value; }
+    public String getOriginalMediaPath() { return mediaPath[2]==null?null:baseUrl+mediaPath[2]; }
+    public void setOriginalMediaPath(String value) { mediaPath[2] = value; }
     
-    public int GetRating() { return rating; }
-    public void SetRating(int value) { rating = value; }
+    public int getRating() { return rating; }
+    public void setRating(int value) { rating = value; }
     
-    public int GetCategoryId() { return category; }
-    public void SetCategoryId(int value) { category = value; }
+    public int getCategoryId() { return category; }
+    public void setCategoryId(int value) { category = value; }
     
-    public int GetUserId() { return uId; }
-    public void SetUserId(int value) { uId = value; }
+    public int getUserId() { return uId; }
+    public void setUserId(int value) { uId = value; }
     
-    public int GetStoryId() { return storyId; }
-    public void SetStoryId(int value) { storyId = value; }
+    public int getStoryId() { return storyId; }
+    public void setStoryId(int value) { storyId = value; }
     
-    public int GetEventId() { return eventId; }
-    public void SetEventId(int value) { eventId = value; }
+    public int getEventId() { return eventId; }
+    public void setEventId(int value) { eventId = value; }
 }

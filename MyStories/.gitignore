@@ -1,6 +1,8 @@
+/assets
+/target
 /libs
-/project.properties
 /bin
 /gen
-/.classpath
-/.project
+.classpath
+.project
+project.properties

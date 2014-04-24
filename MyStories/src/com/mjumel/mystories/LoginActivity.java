@@ -33,11 +33,6 @@ public class LoginActivity extends Activity {
 	private static final String MS_PREFS_UID = "MyStories_uid";
 	
 	/**
-	 * The default email to populate the email field with.
-	 */
-	public static final String EXTRA_EMAIL = "com.example.android.authenticatordemo.extra.EMAIL";
-
-	/**
 	 * Keep track of the login task to ensure we can cancel it if requested.
 	 */
 	private UserLoginTask mAuthTask = null;
@@ -56,13 +51,11 @@ public class LoginActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		
 		setContentView(R.layout.activity_login);
 
 		// Set up the login form.
-		mEmail = getIntent().getStringExtra(EXTRA_EMAIL);
 		mEmailView = (EditText) findViewById(R.id.email);
-		mEmailView.setText(mEmail);
 
 		mPasswordView = (EditText) findViewById(R.id.password);
 		mPasswordView
@@ -97,16 +90,8 @@ public class LoginActivity extends Activity {
 		getMenuInflater().inflate(R.menu.login, menu);
 		return true;
 	}
+
 	
-	@Override
-	public void onBackPressed()
-	{
-		if (getIntent().getBooleanExtra("EXIT", false)) {
-			 moveTaskToBack(true); // exist app
-        }
-	}
-
-
 	/**
 	 * Attempts to sign in or register the account specified by the login form.
 	 * If there are form errors (invalid email, missing fields, etc.), the
@@ -232,7 +217,7 @@ public class LoginActivity extends Activity {
 				editor.putString(MS_PREFS_UID, String.valueOf(uid));
 			    editor.commit();
 			    
-			    Intent intent = new Intent(getApplicationContext(), Home.class);
+			    Intent intent = new Intent(getApplicationContext(), DrawerActivity.class);
 	    		intent.putExtra("uid", uid);
 	    		if (getIntent().getExtras() != null)
 	    			intent.putExtra("mediaUri", (Uri)getIntent().getExtras().get("mediaUri"));

@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.MessageDigest;
@@ -32,38 +33,25 @@ public class Gen {
 	private static void doWrite(String text, String crit, boolean append)
 	{
 	   File logFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/log.txt");
-	   if (!logFile.exists())
-	   {
-	      try
-	      {
+	   if (!logFile.exists()) {
+	      try {
 	         logFile.createNewFile();
-	      } 
-	      catch (IOException e)
-	      {
-	         // TODO Auto-generated catch block
+	      } catch (IOException e) {
 	    	  Log.e("MAX", "Error while creating log file");
 	    	  e.printStackTrace();
 	    	  Log.e("MAX", e.getMessage());
 	      }
 	   }
-	   try
-	   {
-	      //BufferedWriter for performance, true to set append to file flag
+		   
+	   try {
 	      BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, append));
 	      SimpleDateFormat formater = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.FRANCE);
 	      String sText = formater.format(new Date()) + "\t" + crit + "\t" + text;
-	      
-	      //if (append)
-	    //	  buf.append(sText);
-	      //else
-	    	  buf.write(sText);
+	      buf.write(sText);
 	      buf.newLine();
 	      buf.close();
-	   }
-	   catch (IOException e)
-	   {
-	      // TODO Auto-generated catch block
-		   Log.e("MAX", "Error while writing in log file");
+	   } catch (IOException e) {
+		  Log.e("MAX", "Error while writing in log file");
 	      e.printStackTrace();
 	   }
 	}
@@ -73,9 +61,8 @@ public class Gen {
 		StringBuilder sBuilder = new StringBuilder();
 		
 		try {
-        	Gen.appendLog( "Gen:downloadFile > Url: " + string_url);
+        	Gen.appendLog( "Gen::downloadFile > Url: " + string_url);
             URL url = new URL(string_url);
-            //if (p != null) p.SetHost("http://" + url.getHost());
             URLConnection conexion = url.openConnection(); 
             conexion.connect();
             InputStream input = new BufferedInputStream(url.openStream());
@@ -89,7 +76,7 @@ public class Gen {
         }
 		catch (Exception e) 
         {
-        	Gen.appendLog( "Gen:downloadFile > Download url ERROR", "E");
+        	Gen.appendLog( "Gen::downloadFile > Download url ERROR", "E");
         	Gen.appendLog( e.getMessage(), "E");
         }
 		
@@ -122,10 +109,32 @@ public class Gen {
 	        valEncrypted = sb.toString();
 	 
     	} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+    		Gen.appendLog( "Gen::md5Encrypt > NoSuchAlgorithmException ERROR", "E");
+        	Gen.appendLog( e.getMessage(), "E");
 		}
     	
     	return valEncrypted;
+    }
+	
+	public static void CopyStream(InputStream is, OutputStream os)
+    {
+        final int buffer_size=1024;
+        try
+        {
+             
+            byte[] bytes=new byte[buffer_size];
+            for(;;)
+            {
+              //Read byte from input stream
+                 
+              int count=is.read(bytes, 0, buffer_size);
+              if(count==-1)
+                  break;
+               
+              //Write byte from output stream
+              os.write(bytes, 0, count);
+            }
+        }
+        catch(Exception ex){}
     }
 }

@@ -16,11 +16,13 @@ import android.widget.TextView;
 import com.mjumel.mystories.Event;
 import com.mjumel.mystories.R;
 import com.mjumel.mystories.tools.Gen;
+import com.mjumel.mystories.tools.ImageLoader;
 import com.mjumel.mystories.tools.UserPicture;
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 	private LayoutInflater inflater;
 	private Activity context;
+	private ImageLoader imageLoader; 
 	
 	static class ViewHolder {
 		TextView comment;
@@ -28,21 +30,26 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 		ImageView image;
 	}
 
-	public EventListAdapter(Activity context, List<Event> nodes) {
-		super(context, R.layout.event_list_item, nodes);
+	public EventListAdapter(Activity context, List<Event> events) {
+		super(context, R.layout.fragment_my_events_item, events);
 		this.context = context;
 		this.inflater = LayoutInflater.from(context);
+		
+		// Create ImageLoader object to download and show image in list
+        // Call ImageLoader constructor to initialize FileCache
+        imageLoader = new ImageLoader(this.context.getApplicationContext());
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View rowView = convertView;
-		ViewHolder holder = new ViewHolder();
+		ViewHolder holder;
 		
-		Gen.appendLog("EventListAdapter::getView> Starting");
+		Gen.appendLog("EventListAdapter::getView> Starting event#"+position);
 		
 		if ( rowView == null ) {
-			rowView = inflater.inflate(R.layout.event_list_item, null);
+			rowView = inflater.inflate(R.layout.fragment_my_events_item, null);
+			holder = new ViewHolder();
             holder.comment = (TextView) rowView.findViewById(R.id.event_item_textView);
             holder.rating = (RatingBar) rowView.findViewById(R.id.event_item_ratingBar);
             holder.image = (ImageView) rowView.findViewById(R.id.event_item_imageView);
@@ -51,29 +58,38 @@ public class EventListAdapter extends ArrayAdapter<Event> {
             holder = (ViewHolder) rowView.getTag();
         }
 		
-		rowView.setTag(holder);
-		
 		Event event = this.getItem(position);
-		holder.comment.setText(event.GetComment());
+		Gen.appendLog("EventListAdapter::getView> event#" + position + " / eventid#" + event.getEventId());
 		
-		if (event.GetRating() < 0)
+		holder.comment.setText(event.getComment());
+		
+		if (event.getRating() < 0)
 			holder.rating.setVisibility(RatingBar.INVISIBLE);
 		else
-			holder.rating.setProgress(event.GetRating());
-		
-		if (event.GetThumbMediaPath() != null)
 		{
-	    	UserPicture userPicture = new UserPicture(Uri.parse(event.GetThumbMediaPath()), context.getContentResolver());
+			holder.rating.setVisibility(RatingBar.VISIBLE);
+			holder.rating.setProgress(event.getRating());
+		}
+		
+		holder.image.setImageBitmap(null);
+		if (event.getThumbMediaPath() != null)
+		{
+			Gen.appendLog("EventListAdapter::getView> Image loading for event#" + position + " (" + event.getThumbMediaPath() + ")");
+			imageLoader.DisplayImage(event.getThumbMediaPath(), holder.image);
+			holder.image.setVisibility(ImageView.VISIBLE);
+	    	/*UserPicture userPicture = new UserPicture(Uri.parse(event.getThumbMediaPath()), context.getContentResolver());
 	        try {
 	        	holder.image.setImageBitmap(userPicture.getBitmap());
 			} catch (IOException e) {
 				e.printStackTrace();
-				Gen.appendLog("EventListAdapter::getView> IOException Error");
+				Gen.appendLog("EventListAdapter::getView> IOException Error ("+event.getThumbMediaPath()+")");
 			}
-	        userPicture = null;
+	        userPicture = null;*/
 		}
+		else
+			holder.image.setVisibility(ImageView.INVISIBLE);
 
-        Gen.appendLog("EventListAdapter::getView> Ending");
+        Gen.appendLog("EventListAdapter::getView> Ending event#"+position);
 		return rowView;
 	}
 }
