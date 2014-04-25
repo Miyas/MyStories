@@ -1,8 +1,11 @@
 package com.mjumel.mystories;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.mjumel.mystories.tools.Gen;
 
-public class Event {
+public class Event implements Parcelable {
 	
 	private int eventId = -1;
 	private String comment = null;
@@ -17,6 +20,16 @@ public class Event {
 	public Event()
     {
     }
+	
+	public Event(Parcel in) {
+		this.comment = in.readString();
+		this.mediaPath = (String[])in.readArray(String.class.getClassLoader());
+		this.eventId = in.readInt();
+		this.rating = in.readInt();
+		this.category = in.readInt();
+		this.uId = in.readInt();
+		this.storyId = in.readInt();
+	}
 	
 	public Event(String comment, int rating, int category, 
 			String[] mediaPath, int uId, int storyId, int eventId) 
@@ -69,4 +82,34 @@ public class Event {
     
     public int getEventId() { return eventId; }
     public void setEventId(int value) { eventId = value; }
+
+	@Override
+	public int describeContents() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeString(comment);
+		dest.writeArray(mediaPath);
+		dest.writeInt(eventId);
+		dest.writeInt(rating);
+		dest.writeInt(category);
+		dest.writeInt(uId);
+		dest.writeInt(storyId);
+	}
+	
+	public static final Parcelable.Creator<Event> CREATOR = new Parcelable.Creator<Event>()
+	{
+	    @Override
+	    public Event createFromParcel(Parcel source) {
+	        return new Event(source);
+	    }
+
+	    @Override
+	    public Event[] newArray(int size) {
+	    	return new Event[size];
+	    }
+	};
 }

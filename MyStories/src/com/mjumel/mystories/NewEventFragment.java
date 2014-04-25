@@ -23,7 +23,7 @@ import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
 import com.mjumel.mystories.tools.UserPicture;
 
-public class EventFragment extends Fragment {
+public class NewEventFragment extends Fragment {
 
 	private Spinner spnCats;
 	private Button btnRemember;
@@ -37,7 +37,7 @@ public class EventFragment extends Fragment {
 	private static int SELECT_PICTURE = 1;
 	private UserPicture userPicture;
 	
-    public EventFragment()
+    public NewEventFragment()
     {
     }
 
@@ -133,8 +133,8 @@ public class EventFragment extends Fragment {
         try {
 			ivImage.setImageBitmap(userPicture.getBitmap());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Gen.appendLog("ViewEventFragment::setImage> IOException error", "E");
+			Gen.appendLog("ViewEventFragment::setImage> " + e.getLocalizedMessage(), "E");
 		}
     }
     

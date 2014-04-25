@@ -23,5 +23,13 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:padding">16dp</item>
     </style>
+    
+    <style name="MSRatingBar" parent="@android:style/Widget.RatingBar">
+        <item name="android:progressDrawable">@drawable/star_full_48</item>
+        <item name="android:minHeight">48dip</item>
+        <item name="android:maxHeight">48dip</item>
+    </style>
+    
+
 
 </resources>

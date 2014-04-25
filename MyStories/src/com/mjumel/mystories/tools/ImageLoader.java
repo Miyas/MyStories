@@ -54,6 +54,8 @@ public class ImageLoader {
      
     public void DisplayImage(String url, ImageView imageView)
     {
+    	Gen.appendLog("ImageLoader::DisplayImage> Starting with url=" + url);
+    	
         //Store image and url in Map
         imageViews.put(imageView, url);
          

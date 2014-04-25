@@ -2,23 +2,23 @@ package com.mjumel.mystories;
 
 import java.util.ArrayList;
 
-import com.mjumel.mystories.adapters.NavDrawerItem;
-import com.mjumel.mystories.adapters.NavDrawerListAdapter;
-
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+
+import com.mjumel.mystories.adapters.NavDrawerItem;
+import com.mjumel.mystories.adapters.NavDrawerListAdapter;
+import com.mjumel.mystories.tools.Gen;
 
 public class DrawerActivity extends Activity {
 	private DrawerLayout mDrawerLayout;
@@ -168,24 +168,28 @@ public class DrawerActivity extends Activity {
             break;
         }
  
-        changeFragment(fragment);
+        changeFragment(fragment, null);
     }
     
-    public void changeFragment(Fragment fragment)
+    public void changeFragment(Fragment fragment, Bundle bundle)
     {
+    	Gen.appendLog("DrawerActivity::changeFragment> Starting");
     	if (fragment != null) {
-            FragmentManager fragmentManager = getFragmentManager();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.frame_container, fragment).commit();
+    		if (bundle != null) fragment.setArguments(bundle);
+    		//Gen.appendLog("DrawerActivity::changeFragment> event#" + ((Event)bundle.getParcelable(position)).getEventId());
+    		FragmentTransaction transaction = getFragmentManager().beginTransaction();
+    		transaction.replace(R.id.frame_container, fragment);
+    		transaction.addToBackStack(null);
+    		transaction.commit();
  
-            // update selected item and title, then close the drawer
+            // Update selected item and title, then close the drawer
             mDrawerList.setItemChecked(drawerPosition, true);
             mDrawerList.setSelection(drawerPosition);
             setTitle(navMenuTitles[drawerPosition]);
             mDrawerLayout.closeDrawer(mDrawerList);
         } else {
-            // error in creating fragment
-            Log.e("MainActivity", "Error in creating fragment");
+            // Error in creating fragment
+        	Gen.appendLog("DrawerActivity::changeFragment> Error in creating fragment", "E");
         }
     }
  

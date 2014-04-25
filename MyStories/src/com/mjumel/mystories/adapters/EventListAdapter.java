@@ -1,10 +1,8 @@
 package com.mjumel.mystories.adapters;
 
-import java.io.IOException;
 import java.util.List;
 
 import android.app.Activity;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +15,6 @@ import com.mjumel.mystories.Event;
 import com.mjumel.mystories.R;
 import com.mjumel.mystories.tools.Gen;
 import com.mjumel.mystories.tools.ImageLoader;
-import com.mjumel.mystories.tools.UserPicture;
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 	private LayoutInflater inflater;
@@ -45,7 +42,7 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 		View rowView = convertView;
 		ViewHolder holder;
 		
-		Gen.appendLog("EventListAdapter::getView> Starting event#"+position);
+		//Gen.appendLog("EventListAdapter::getView> Starting event#"+position);
 		
 		if ( rowView == null ) {
 			rowView = inflater.inflate(R.layout.fragment_my_events_item, null);
@@ -59,7 +56,7 @@ public class EventListAdapter extends ArrayAdapter<Event> {
         }
 		
 		Event event = this.getItem(position);
-		Gen.appendLog("EventListAdapter::getView> event#" + position + " / eventid#" + event.getEventId());
+		//Gen.appendLog("EventListAdapter::getView> event#" + position + " / eventid#" + event.getEventId());
 		
 		holder.comment.setText(event.getComment());
 		
@@ -71,13 +68,28 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 			holder.rating.setProgress(event.getRating());
 		}
 		
-		holder.image.setImageBitmap(null);
 		if (event.getThumbMediaPath() != null)
 		{
 			Gen.appendLog("EventListAdapter::getView> Image loading for event#" + position + " (" + event.getThumbMediaPath() + ")");
-			imageLoader.DisplayImage(event.getThumbMediaPath(), holder.image);
 			holder.image.setVisibility(ImageView.VISIBLE);
-	    	/*UserPicture userPicture = new UserPicture(Uri.parse(event.getThumbMediaPath()), context.getContentResolver());
+			imageLoader.DisplayImage(event.getThumbMediaPath(), holder.image);
+			
+			// Change layout display in function of the position of the view in the list
+			/*LayoutParams lpImage = new LayoutParams(80,80);
+			LayoutParams lpText = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+			if (position%2 == 0) {
+				lpImage.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, -1);
+				lpText.addRule(RelativeLayout.LEFT_OF, R.id.event_item_imageView);
+			} else {
+				lpImage.addRule(RelativeLayout.ALIGN_PARENT_LEFT, -1);
+				lpText.addRule(RelativeLayout.RIGHT_OF, R.id.event_item_imageView);
+			}
+			holder.image.setLayoutParams(lpImage);
+			holder.comment.setLayoutParams(lpText);
+			//holder.rating.setLayoutParams(lpText);
+			 */
+			
+			/*UserPicture userPicture = new UserPicture(Uri.parse(event.getThumbMediaPath()), context.getContentResolver());
 	        try {
 	        	holder.image.setImageBitmap(userPicture.getBitmap());
 			} catch (IOException e) {
@@ -87,9 +99,12 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 	        userPicture = null;*/
 		}
 		else
+		{
+			holder.image.setImageBitmap(null);
 			holder.image.setVisibility(ImageView.INVISIBLE);
+		}
 
-        Gen.appendLog("EventListAdapter::getView> Ending event#"+position);
+        //Gen.appendLog("EventListAdapter::getView> Ending event#"+position);
 		return rowView;
 	}
 }

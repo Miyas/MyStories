@@ -9,8 +9,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 
@@ -23,6 +25,7 @@ public class EventListFragment extends Fragment {
 	private ListView lv;
 	private Button btnAddEvent;
 	private ProgressDialog pg;
+	private EventListAdapter adapter;
 	
 	private List<Event> eventList = null;
 	
@@ -46,28 +49,67 @@ public class EventListFragment extends Fragment {
 		if (uId != null && eventList == null)
 			new DownloadEventsTask().execute(uId);
 		
-		btnAddEvent.setOnClickListener(new OnClickListener() {           
-            @Override
-            public void onClick(View v) {
-	             Gen.appendLog("EventListFragment::onCreateView> Display new event fragment");
-	             ((DrawerActivity)getActivity()).changeFragment(new EventFragment());
-            }
-         });
+		btnAddEvent.setOnClickListener(addNewEvent);
+		lv.setOnItemClickListener(viewEvent);
 		
 		Gen.appendLog("EventListFragment::onCreateView> Ending");
 		return view;
     }
     
-    private Object getExtra(String id)
+    @Override
+    public void onResume()
+    {
+    	super.onResume();
+    	Gen.appendLog("EventListFragment::onResume> Starting");
+    	lv.setAdapter(adapter);
+    	Gen.appendLog("EventListFragment::onResume> Ending");
+    }
+    
+    
+    /***************************************************************************************
+	 *
+	 *                                Event-based functions
+	 * 
+	 ***************************************************************************************/
+	private OnClickListener addNewEvent = new OnClickListener() {
+    	@Override
+        public void onClick(View v) {
+             Gen.appendLog("EventListFragment::addNewEvent> Display new event fragment");
+             ((DrawerActivity)getActivity()).changeFragment(new NewEventFragment(), null);
+        }
+	};
+    
+    private OnItemClickListener viewEvent = new OnItemClickListener() {
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Gen.appendLog("EventListFragment::viewEvent> Display event#" + ((Event)parent.getItemAtPosition(position)).getEventId());
+            Bundle bundle = new Bundle();
+            bundle.putParcelable("event", (Event)parent.getItemAtPosition(position));
+            ((DrawerActivity)getActivity()).changeFragment(new ViewEventFragment(), bundle);
+		}
+	};
+	
+    
+	/***************************************************************************************
+	 *
+	 *                                Misc functions
+	 * 
+	 ***************************************************************************************/
+	private Object getExtra(String id)
     {
     	if (this.getActivity().getIntent().getExtras() != null)
 			return this.getActivity().getIntent().getExtras().get(id);
     	else
     		return null;
-    }
+    }    
     
     
-    class DownloadEventsTask extends AsyncTask<String, Integer, List<Event>>
+	/***************************************************************************************
+	 *
+	 *                                DownloadEventsTask Class
+	 * 
+	 ***************************************************************************************/
+	class DownloadEventsTask extends AsyncTask<String, Integer, List<Event>>
     {
           protected void onPreExecute()
           {     super.onPreExecute();
@@ -90,7 +132,7 @@ public class EventListFragment extends Fragment {
 	                result.add(event);
                 }
                 eventList = result;
-                EventListAdapter adapter = new EventListAdapter(getActivity(), result);
+                adapter = new EventListAdapter(getActivity(), result);
             	lv.setAdapter(adapter);                	
             	pg.dismiss();
           }
