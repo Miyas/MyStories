@@ -1,0 +1,26 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    >
+
+    <item
+        android:id="@+id/new_event_link"
+        android:showAsAction="ifRoom"
+        android:title="Add new event"
+        android:icon="@drawable/ic_action_share"/>
+    <item
+        android:id="@+id/new_event_retake"
+        android:showAsAction="ifRoom"
+        android:title="Retake picture"
+        android:icon="@drawable/ic_action_camera"/>
+    
+    <item
+        android:id="@+id/new_event_full_screen"
+        android:orderInCategory="100"
+        android:showAsAction="withText|ifRoom|collapseActionView"
+        android:title="Full Screen"/>
+    <item
+        android:id="@+id/new_event_hide_media"
+        android:orderInCategory="110"
+        android:showAsAction="withText|ifRoom|collapseActionView"
+        android:title="Hide Media"/>
+</menu>

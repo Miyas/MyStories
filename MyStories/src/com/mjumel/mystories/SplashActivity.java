@@ -3,7 +3,7 @@ package com.mjumel.mystories;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -13,11 +13,12 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
 
+import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
+import com.mjumel.mystories.tools.Prefs;
 
 public class SplashActivity extends Activity {
 
-	private static final String MS_PREFS = "MyStoriesPrefs";
 	private static final String MS_PREFS_LOGIN = "MyStories_login";
 	private static final String MS_PREFS_PWD = "MyStories_pwd";
 	private static final String MS_PREFS_UID = "MyStories_uid";
@@ -60,6 +61,8 @@ public class SplashActivity extends Activity {
 	 */
 	public static class PlaceholderFragment extends Fragment {
 
+		private TextView textView;
+		
 		public PlaceholderFragment() {
 		}
 
@@ -70,38 +73,89 @@ public class SplashActivity extends Activity {
 			Gen.writeLog("SplashActivity::onCreateView> Starting");
 			
 			View rootView = inflater.inflate(R.layout.fragment_splash, container, false);
-			TextView textView = (TextView) rootView.findViewById(R.id.textView1);
+			textView = (TextView) rootView.findViewById(R.id.textView1);
 			textView.setText("Checking Credentials...");
 			
-			SharedPreferences settings = getActivity().getSharedPreferences(MS_PREFS, 0);
-			String login = settings.getString(MS_PREFS_LOGIN, null);
-			String pwd = settings.getString(MS_PREFS_PWD, null);
-			String uid = settings.getString(MS_PREFS_UID, null);
+			String login = Prefs.getString(getActivity(), MS_PREFS_LOGIN);
+			String pwd = Prefs.getString(getActivity(), MS_PREFS_PWD);
+			String uid = Prefs.getString(getActivity(), MS_PREFS_UID);
 			
-			Intent intent;
-			if ( login != null && pwd != null && uid != null)
-			{
-				intent = new Intent(getActivity().getApplicationContext(), DrawerActivity.class);
-	    		intent.putExtra("uid", uid);
+			if ( login != null && pwd != null && uid != null) {
+	    		(new UserLoginTask()).execute(new String[] { login, pwd, uid });
+			} else {
+				Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
+				intent.putExtras(getActivity().getIntent());
+				intent.putExtra("origin", "splash");
+				
+				//intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+				//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+				
+				Gen.appendLog("SplashActivity::onCreateView> login = " + login);
+				Gen.appendLog("SplashActivity::onCreateView> pwd = " + pwd);
+				Gen.appendLog("SplashActivity::onCreateView> uid = " + uid);
+				startActivity(intent);
+				getActivity().finish();
 			}
-			else
-			{
-				intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
-			}
-			
-			intent.putExtras(getActivity().getIntent());
-			
-			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-			intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-			
-			Gen.appendLog("SplashActivity::onCreateView> login = " + login);
-			Gen.appendLog("SplashActivity::onCreateView> pwd = " + pwd);
-			Gen.appendLog("SplashActivity::onCreateView> uid = " + uid);
-			startActivity(intent);
-			getActivity().finish();
 		    
 			return rootView;
 		}
-	}
+		
+		/**
+		 * Represents an asynchronous login/registration task used to authenticate
+		 * the user.
+		 */
+		public class UserLoginTask extends AsyncTask<String, Void, Integer> {
+			@Override
+			protected void onPreExecute() {
+				textView.setText("Login in...");
+			}
+			
+			@Override
+			protected Integer doInBackground(String... params) {
+				if(!Communication.checkNetState(getActivity())) return -2;
+				return Communication.login(params[0], params[1]);
+			}
 
+			@Override
+			protected void onPostExecute(final Integer uid) {
+				if (uid > 0) {
+					textView.setText("Login successful");
+					Prefs.putString(getActivity(), MS_PREFS_UID, String.valueOf(uid));
+				    
+				    Intent intent = new Intent(getActivity(), DrawerActivity.class);
+		    		intent.putExtra("uid", String.valueOf(uid));
+		    		intent.putExtra("origin", "splash");
+		    		
+		    		intent.putExtras(getActivity().getIntent());
+					
+					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+					//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+					
+					Gen.appendLog("SplashActivity::UserLoginTask> uid = " + uid);
+					startActivity(intent);
+					getActivity().finish();				    
+				} else if (uid == -2) {
+					textView.setText("Communication error, check your internet connexion");
+					Gen.appendLog("SplashActivity::UserLoginTask> Communication error, check your internet connexion");
+				} else {
+					textView.setText("Error while login, redirecting to login screen");
+					Gen.appendLog("SplashActivity::UserLoginTask> Error while login, redirecting to login screen");
+					
+					Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
+					intent.putExtras(getActivity().getIntent());
+					intent.putExtra("origin", "splash");
+					
+					//intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+					//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+					
+					startActivity(intent);
+					getActivity().finish();
+				} 
+			}
+
+			@Override
+			protected void onCancelled() {
+			}
+		}
+	}
 }

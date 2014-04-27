@@ -1,15 +1,10 @@
 package com.mjumel.mystories;
 
-import com.mjumel.mystories.tools.Communication;
-import com.mjumel.mystories.tools.Gen;
-
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,13 +16,16 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.mjumel.mystories.tools.Communication;
+import com.mjumel.mystories.tools.Gen;
+import com.mjumel.mystories.tools.Prefs;
+
 /**
  * Activity which displays a login screen to the user, offering registration as
  * well.
  */
 public class LoginActivity extends Activity {
 	
-	private static final String MS_PREFS = "MyStoriesPrefs";
 	private static final String MS_PREFS_LOGIN = "MyStories_login";
 	private static final String MS_PREFS_PWD = "MyStories_pwd";
 	private static final String MS_PREFS_UID = "MyStories_uid";
@@ -210,18 +208,20 @@ public class LoginActivity extends Activity {
 			showProgress(false);
 
 			if (uid > 0) {
-				SharedPreferences settings = getSharedPreferences(MS_PREFS, 0);
-				SharedPreferences.Editor editor = settings.edit();
-				editor.putString(MS_PREFS_LOGIN, mEmail);
-				editor.putString(MS_PREFS_PWD, Gen.md5Encrypt(mPassword));
-				editor.putString(MS_PREFS_UID, String.valueOf(uid));
-			    editor.commit();
+				Prefs.putString(getApplicationContext(), MS_PREFS_LOGIN, mEmail);
+				Prefs.putString(getApplicationContext(), MS_PREFS_PWD, Gen.md5Encrypt(mPassword));
+				Prefs.putString(getApplicationContext(), MS_PREFS_UID, String.valueOf(uid));
 			    
 			    Intent intent = new Intent(getApplicationContext(), DrawerActivity.class);
-	    		intent.putExtra("uid", uid);
-	    		if (getIntent().getExtras() != null)
-	    			intent.putExtra("mediaUri", (Uri)getIntent().getExtras().get("mediaUri"));
-	            startActivity(intent);
+	    		intent.putExtra("uid", String.valueOf(uid));
+	    		intent.putExtra("origin", "login");
+	    		intent.putExtras(getIntent());
+	    		
+	    		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+				intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+				
+				startActivity(intent);
+				finish();
 			    
 			} else if (uid == -2) {
 				mPasswordView.setError(getString(R.string.error_invalid_connection));

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.os.Bundle;
@@ -39,6 +40,7 @@ public class DrawerActivity extends Activity {
  
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+    	Gen.appendLog("DrawerActivity::onCreate> Starting");
         super.onCreate(savedInstanceState);
         
         setContentView(R.layout.activity_drawer);
@@ -103,6 +105,12 @@ public class DrawerActivity extends Activity {
             displayView(0);
         }
     }
+    
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    	Gen.appendLog("DrawerActivity::onActivityResult> Starting");
+        super.onActivityResult(requestCode, resultCode, data);
+    }
  
     /**
      * Slide menu item click listener
@@ -117,11 +125,11 @@ public class DrawerActivity extends Activity {
         }
     }
  
-    @Override
+    /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.new_event, menu);
+        getMenuInflater().inflate(R.menu.fragment_new_event, menu);
         return true;
-    }
+    }*/
  
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -144,8 +152,8 @@ public class DrawerActivity extends Activity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         // if nav drawer is opened, hide the action items
-        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
-        menu.findItem(R.id.action_settings).setVisible(!drawerOpen);
+        //boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
+        //menu.findItem(R.id.action_settings).setVisible(!drawerOpen);
         return super.onPrepareOptionsMenu(menu);
     }
  
@@ -153,11 +161,22 @@ public class DrawerActivity extends Activity {
      * Diplaying fragment view for selected nav drawer list item
      * */
     private void displayView(int position) {
-        // update the main content by replacing fragments
+    	Gen.appendLog("DrawerActivity::displayView> Starting with position#" + position);
+
         Fragment fragment = null;
+        Bundle bundle = new Bundle(); 
         drawerPosition = position;
         switch (position) {
         case 0:
+        	
+        	if (getIntent().getExtras() != null) {
+        		bundle = getIntent().getExtras(); 
+        		if (bundle.get(Intent.EXTRA_STREAM) != null)
+        		{
+        			fragment = new NewEventFragment();
+        			break;
+        		}
+        	}
             fragment = new EventListFragment();
             break;
         /*case 1:
@@ -168,7 +187,8 @@ public class DrawerActivity extends Activity {
             break;
         }
  
-        changeFragment(fragment, null);
+        bundle.putString("origin", "DrawerActivity");
+        changeFragment(fragment, bundle);
     }
     
     public void changeFragment(Fragment fragment, Bundle bundle)
@@ -176,7 +196,6 @@ public class DrawerActivity extends Activity {
     	Gen.appendLog("DrawerActivity::changeFragment> Starting");
     	if (fragment != null) {
     		if (bundle != null) fragment.setArguments(bundle);
-    		//Gen.appendLog("DrawerActivity::changeFragment> event#" + ((Event)bundle.getParcelable(position)).getEventId());
     		FragmentTransaction transaction = getFragmentManager().beginTransaction();
     		transaction.replace(R.id.frame_container, fragment);
     		transaction.addToBackStack(null);
@@ -213,16 +232,61 @@ public class DrawerActivity extends Activity {
  
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
+    	Gen.appendLog("DrawerActivity::onConfigurationChanged> Starting");
         super.onConfigurationChanged(newConfig);
         // Pass any configuration change to the drawer toggls
         mDrawerToggle.onConfigurationChanged(newConfig);
+        Gen.appendLog("DrawerActivity::onConfigurationChanged> Ending");
     }
     
-    /*@Override
-	public void onBackPressed()
-	{
-		if (getIntent().getBooleanExtra("EXIT", false)) {
-			 moveTaskToBack(true);
-        }
-	}*/
+    @Override
+    protected void onStart() {
+    	Gen.appendLog("DrawerActivity::onStart> Starting");
+        super.onStart();
+        // The activity is about to become visible.
+        Gen.appendLog("DrawerActivity::onStart> Ending");
+    }
+    @Override
+    protected void onResume() {
+    	Gen.appendLog("DrawerActivity::onResume> Starting");
+        super.onResume();
+        // The activity has become visible (it is now "resumed").
+        Gen.appendLog("DrawerActivity::onResume> Ending");
+    }
+    @Override
+    protected void onPause() {
+    	Gen.appendLog("DrawerActivity::onPause> Starting");
+        super.onPause();
+        // Another activity is taking focus (this activity is about to be "paused").
+        Gen.appendLog("DrawerActivity::onPause> Ending");
+    }
+    @Override
+    protected void onStop() {
+    	Gen.appendLog("DrawerActivity::onStop> Starting");
+        super.onStop();
+        // The activity is no longer visible (it is now "stopped")
+        Gen.appendLog("DrawerActivity::onStop> Ending");
+    }
+    @Override
+    protected void onRestart() {
+    	Gen.appendLog("DrawerActivity::onRestart> Starting");
+        super.onRestart();
+        // The activity has become visible (it is now "resumed").
+        Gen.appendLog("DrawerActivity::onRestart> Ending");
+    }
+    @Override
+    protected void onDestroy() {
+    	Gen.appendLog("DrawerActivity::onDestroy> Starting");
+        super.onDestroy();
+        // The activity is about to be destroyed.
+        Gen.appendLog("DrawerActivity::onDestroy> Ending");
+    }
+    @Override
+    protected void onSaveInstanceState(Bundle bundle) {
+    	Gen.appendLog("DrawerActivity::onSaveInstanceState> Starting");
+    }
+    @Override
+    protected void onRestoreInstanceState (Bundle bundle) {
+    	Gen.appendLog("DrawerActivity::onRestoreInstanceState> Starting");
+    }
 }

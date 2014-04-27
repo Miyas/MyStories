@@ -32,6 +32,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:isIndicator="true" />
+        android:isIndicator="true"
+        android:max="5"
+        android:numStars="5"
+        android:stepSize="1" />
 
 </RelativeLayout>

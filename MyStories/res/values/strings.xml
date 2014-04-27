@@ -54,4 +54,7 @@
     
     <string name="desc_list_item_icon">Item Icon</string>
     
+    <string name="alert1_gallery">Gallery</string>
+    <string name="alert1_camera">Camera</string>
+    
 </resources>

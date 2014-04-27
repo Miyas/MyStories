@@ -8,12 +8,13 @@ import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.ListView;
 
 import com.mjumel.mystories.adapters.EventListAdapter;
@@ -23,7 +24,6 @@ import com.mjumel.mystories.tools.Gen;
 public class EventListFragment extends Fragment {
 
 	private ListView lv;
-	private Button btnAddEvent;
 	private ProgressDialog pg;
 	private EventListAdapter adapter;
 	
@@ -33,6 +33,12 @@ public class EventListFragment extends Fragment {
     {
 
     }
+    
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+    	super.onCreate(savedInstanceState);
+    	setHasOptionsMenu(true);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -40,20 +46,40 @@ public class EventListFragment extends Fragment {
     	
     	Gen.appendLog("EventListFragment::onCreateView> Starting");
     	
+    	
+    	
 		View view = inflater.inflate(R.layout.fragment_my_events,container, false);
 		lv = (ListView) view.findViewById(R.id.my_events_listView);
-		btnAddEvent = (Button) view.findViewById(R.id.my_events_button);
 		
 		String uId = (String)getExtra("uid");
 		Gen.appendLog("EventListFragment::onCreateView> uId=" + uId);
 		if (uId != null && eventList == null)
 			new DownloadEventsTask().execute(uId);
 		
-		btnAddEvent.setOnClickListener(addNewEvent);
 		lv.setOnItemClickListener(viewEvent);
 		
 		Gen.appendLog("EventListFragment::onCreateView> Ending");
 		return view;
+    }
+    
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // TODO Add your menu entries here
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_list_events, menu);
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar actions click
+        switch (item.getItemId()) {
+        case R.id.list_add_event:
+        	Gen.appendLog("EventListFragment::onOptionsItemSelected> Display new event fragment");
+            ((DrawerActivity)getActivity()).changeFragment(new NewEventFragment(), null);
+            return true;
+        default:
+            return super.onOptionsItemSelected(item);
+        }
     }
     
     @Override
@@ -71,14 +97,6 @@ public class EventListFragment extends Fragment {
 	 *                                Event-based functions
 	 * 
 	 ***************************************************************************************/
-	private OnClickListener addNewEvent = new OnClickListener() {
-    	@Override
-        public void onClick(View v) {
-             Gen.appendLog("EventListFragment::addNewEvent> Display new event fragment");
-             ((DrawerActivity)getActivity()).changeFragment(new NewEventFragment(), null);
-        }
-	};
-    
     private OnItemClickListener viewEvent = new OnItemClickListener() {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -136,5 +154,10 @@ public class EventListFragment extends Fragment {
             	lv.setAdapter(adapter);                	
             	pg.dismiss();
           }
+          
+          @Override
+  		protected void onCancelled() {
+        	  pg.dismiss();
+  		}
      }
 }

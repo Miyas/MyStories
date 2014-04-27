@@ -63,19 +63,24 @@ public class UserPicture {
     /* Support for gallery apps and remote ("picasa") images */
     private boolean getInformationFromMediaDatabase() {
         String[] fields = { Media.DATA, ImageColumns.ORIENTATION };
-        Cursor cursor = resolver.query(uri, fields, null, null, null);
+        
+        try {
+        	Cursor cursor = resolver.query(uri, fields, null, null, null);
+        	if (cursor == null)
+                return false;
 
-        if (cursor == null)
-            return false;
+            cursor.moveToFirst();
+            path = cursor.getString(cursor.getColumnIndex(Media.DATA));
+            int orientation = cursor.getInt(cursor.getColumnIndex(ImageColumns.ORIENTATION));
+            this.orientation = new Matrix();
+            this.orientation.setRotate(orientation);
+            cursor.close();
 
-        cursor.moveToFirst();
-        path = cursor.getString(cursor.getColumnIndex(Media.DATA));
-        int orientation = cursor.getInt(cursor.getColumnIndex(ImageColumns.ORIENTATION));
-        this.orientation = new Matrix();
-        this.orientation.setRotate(orientation);
-        cursor.close();
-
-        return true;
+            return true;
+        } catch (Exception e) {
+        	Gen.appendLog("UserPicture::getInformationFromMediaDatabase> Exception " + e.toString(), "E");
+        	return false;
+        }
     }
 
     /* Support for file managers and dropbox */
