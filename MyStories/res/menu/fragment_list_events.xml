@@ -3,6 +3,12 @@
      >
 
     <item
+        android:id="@+id/list_search"
+        android:showAsAction="ifRoom"
+        android:title="Search event"
+        android:icon="@drawable/ic_action_search"
+        android:actionViewClass="android.support.v7.widget.SearchView"/>
+    <item
         android:id="@+id/list_add_event"
         android:showAsAction="ifRoom"
         android:title="Add new event"
