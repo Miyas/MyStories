@@ -36,6 +36,8 @@ public class EventListFragment extends Fragment {
 	private String uId = null;
 	private List<Event> eventList = null;
 	
+	private boolean firstRun = false;
+	
     public EventListFragment()
     {
     }
@@ -44,6 +46,14 @@ public class EventListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	setHasOptionsMenu(true);
+    	
+    	eventList = new ArrayList<Event>();
+		adapter = new EventListAdapter(getActivity(), eventList);
+		uId = (String)getExtra("uid");
+		firstRun = ((String)getExtra("origin")).equals("splash");
+		
+		Gen.appendLog("EventListFragment::onCreate> uId=" + uId);
+		Gen.appendLog("EventListFragment::onCreate> origin=" + (String)getExtra("origin"));
     }
 
     @Override
@@ -54,27 +64,18 @@ public class EventListFragment extends Fragment {
     	
     	View view = inflater.inflate(R.layout.fragment_my_events_pull,container, false);
     	
-    	// Now find the PullToRefreshLayout to setup
         mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.ptr_layout);
-
-        // Now setup the PullToRefreshLayout
         ActionBarPullToRefresh.from(getActivity())
-                // Mark All Children as pullable
                 .allChildrenArePullable()
-                // Set a OnRefreshListener
                 .listener(refreshEvent)
-                // Finally commit the setup to our PullToRefreshLayout
                 .setup(mPullToRefreshLayout);
-    	
 		
 		lv = (ListView) view.findViewById(R.id.my_events_listView_pull);
-		
-		uId = (String)getExtra("uid");
-		Gen.appendLog("EventListFragment::onCreateView> uId=" + uId);
-		if (uId != null && eventList == null)
-			new DownloadEventsTask().execute(uId);
-		
+		lv.setAdapter(adapter);
 		lv.setOnItemClickListener(viewEvent);
+		
+		if (uId != null && firstRun)
+			new DownloadEventsTask().execute(uId);
 		
 		Gen.appendLog("EventListFragment::onCreateView> Ending");
 		return view;
@@ -82,7 +83,6 @@ public class EventListFragment extends Fragment {
     
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        // TODO Add your menu entries here
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_list_events, menu);
         menu.findItem(R.id.list_search).getActionView();
@@ -90,7 +90,6 @@ public class EventListFragment extends Fragment {
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar actions click
         switch (item.getItemId()) {
         case R.id.list_add_event:
         	Gen.appendLog("EventListFragment::onOptionsItemSelected> Display new event fragment");
@@ -177,14 +176,18 @@ public class EventListFragment extends Fragment {
                 	event.setComment("No event available");
 	                result.add(event);
                 }
-                eventList = result;
-                adapter = new EventListAdapter(getActivity(), result);
-            	lv.setAdapter(adapter);                	
+                eventList.clear();
+                eventList.addAll(result);
+            	adapter.notifyDataSetChanged();
+            	mPullToRefreshLayout.setRefreshComplete();
+            	firstRun = false;
             	pg.dismiss();
+            	Gen.appendLog("EventListFragment::DownloadEventsTask::onPostExecute> Nb of events downloaded : " + eventList.size());
           }
           
           @Override
   		protected void onCancelled() {
+        	  mPullToRefreshLayout.setRefreshComplete();
         	  pg.dismiss();
   		}
      }

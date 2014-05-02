@@ -25,10 +25,42 @@ import android.util.Log;
 
 public class Gen {
 	public static void writeLog(String text) { doWrite(text, "D", false); }
+	public static void writeLog(String text, StackTraceElement trace) { 
+		doWrite(trace.getClassName()
+                	+ "::"
+                	+ trace.getMethodName()
+                	+ "> " + text, 
+                "D", 
+                false);
+	}
 	public static void writeLog(String text, String crit) { doWrite(text, crit, false); }
+	public static void writeLog(String text, String crit, StackTraceElement trace) { 
+		doWrite(trace.getClassName()
+            	+ "::"
+            	+ trace.getMethodName()
+            	+ "> " + text, 
+            crit, 
+            false); 
+	}
 	
 	public static void appendLog(String text) { doWrite(text, "D", true); }
+	public static void appendLog(String text, StackTraceElement trace) { 
+		doWrite(trace.getClassName()
+                	+ "::"
+                	+ trace.getMethodName()
+                	+ "> " + text, 
+                "D", 
+                true);
+	}
 	public static void appendLog(String text, String crit) { doWrite(text, crit, true); }
+	public static void appendLog(String text, String crit, StackTraceElement trace) { 
+		doWrite(trace.getClassName()
+            	+ "::"
+            	+ trace.getMethodName()
+            	+ "> " + text, 
+            crit, 
+            true); 
+	}
 	
 	private static void doWrite(String text, String crit, boolean append)
 	{
@@ -45,7 +77,7 @@ public class Gen {
 		   
 	   try {
 	      BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, append));
-	      SimpleDateFormat formater = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.FRANCE);
+	      SimpleDateFormat formater = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ", Locale.FRANCE);
 	      String sText = formater.format(new Date()) + "\t" + crit + "\t" + text;
 	      buf.write(sText);
 	      buf.newLine();

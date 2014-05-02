@@ -15,6 +15,13 @@ public class Event implements Parcelable {
 	private int uId = -1;
 	private int storyId = -1;
 	
+	// Display variables
+	private boolean isSelected = false;
+	private boolean showStars = true;
+	private boolean showText = true;
+	private boolean showMedia = true;
+	private boolean showCategory = true;
+	
 	private final String baseUrl = "http://anizoo.info/mystories/"; 
 	
 	public Event()
@@ -42,10 +49,10 @@ public class Event implements Parcelable {
 		this.uId = uId;
 		this.storyId = storyId;
 		this.eventId = eventId;
-		printEvent();
+		print();
     }
 	
-	public void printEvent()
+	public void print()
 	{
 		Gen.appendLog("Event::printEvent> comment = " + comment);
 		Gen.appendLog("Event::printEvent> rating = " + rating);
@@ -82,6 +89,27 @@ public class Event implements Parcelable {
     
     public int getEventId() { return eventId; }
     public void setEventId(int value) { eventId = value; }
+    
+    public boolean isSelected() { return isSelected; }
+    public void setSelected(boolean value) { isSelected = value; }
+    
+    public boolean shownStars() { return showStars; }
+    public void showStars() { showStars = true; }
+    public void hideStars() { showStars = false; }
+    
+    public boolean shownText() { return showText; }
+    public void showText() { showText = true; }
+    public void hideText() { showText = false; }
+    
+    public boolean shownMedia() { return showMedia; }
+    public void showMedia() { showMedia = true; }
+    public void hideMedia() { showMedia = false; }
+    
+    public boolean shownCategory() { return showCategory; }
+    public void showCategory() { showCategory = true; }
+    public void hideCategory() { showCategory = false; }
+    
+    
 
 	@Override
 	public int describeContents() {

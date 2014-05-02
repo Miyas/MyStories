@@ -22,4 +22,13 @@ public class Prefs {
 	    editor = null;
 	    settings = null;
 	}
+	
+	public static void remove(Context context, String key) {
+		SharedPreferences settings = context.getSharedPreferences(MS_PREFS, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.remove(key);
+	    editor.commit();
+	    editor = null;
+	    settings = null;
+	}
 }

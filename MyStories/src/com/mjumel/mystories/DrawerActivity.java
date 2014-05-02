@@ -3,8 +3,10 @@ package com.mjumel.mystories;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
@@ -20,6 +22,7 @@ import android.widget.ListView;
 import com.mjumel.mystories.adapters.NavDrawerItem;
 import com.mjumel.mystories.adapters.NavDrawerListAdapter;
 import com.mjumel.mystories.tools.Gen;
+import com.mjumel.mystories.tools.Prefs;
 
 public class DrawerActivity extends Activity {
 	private DrawerLayout mDrawerLayout;
@@ -51,8 +54,7 @@ public class DrawerActivity extends Activity {
         navMenuTitles = getResources().getStringArray(R.array.nav_drawer_items);
  
         // nav drawer icons from resources
-        navMenuIcons = getResources()
-                .obtainTypedArray(R.array.nav_drawer_icons);
+        navMenuIcons = getResources().obtainTypedArray(R.array.nav_drawer_icons);
  
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.list_slidermenu);
@@ -101,8 +103,9 @@ public class DrawerActivity extends Activity {
         mDrawerLayout.setDrawerListener(mDrawerToggle);
  
         if (savedInstanceState == null) {
-            // on first time display view for first nav item
-            displayView(0);
+        	// TODO
+        	// Don't forget to change this value to 0 when debug is done
+            displayView(1);
         }
     }
     
@@ -110,6 +113,7 @@ public class DrawerActivity extends Activity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
     	Gen.appendLog("DrawerActivity::onActivityResult> Starting");
         super.onActivityResult(requestCode, resultCode, data);
+        Gen.appendLog("DrawerActivity::onActivityResult> Ending");
     }
  
     /**
@@ -130,8 +134,8 @@ public class DrawerActivity extends Activity {
         getMenuInflater().inflate(R.menu.fragment_new_event, menu);
         return true;
     }*/
- 
-    @Override
+
+	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // toggle nav drawer on selecting action bar app icon/title
         if (mDrawerToggle.onOptionsItemSelected(item)) {
@@ -164,11 +168,11 @@ public class DrawerActivity extends Activity {
     	Gen.appendLog("DrawerActivity::displayView> Starting with position#" + position);
 
         Fragment fragment = null;
-        Bundle bundle = new Bundle(); 
+        Bundle bundle = new Bundle();
+        bundle.putString("origin", "DrawerActivity");
         drawerPosition = position;
         switch (position) {
         case 0:
-        	
         	if (getIntent().getExtras() != null) {
         		bundle = getIntent().getExtras(); 
         		if (bundle.get(Intent.EXTRA_STREAM) != null)
@@ -178,22 +182,26 @@ public class DrawerActivity extends Activity {
         		}
         	}
             fragment = new EventListFragment();
+            changeFragment(fragment, bundle);
             break;
-        /*case 1:
-            fragment = new EventListFragment();
-            break;*/
+        case 1:
+            fragment = new NewStoryFragment();
+            changeFragment(fragment, bundle);
+            break;
+        case 5:
+        	discoDialog();
+        	break;
         default:
         	fragment = new GenFragment();
+        	changeFragment(fragment, bundle);
             break;
         }
- 
-        bundle.putString("origin", "DrawerActivity");
-        changeFragment(fragment, bundle);
     }
     
     public void changeFragment(Fragment fragment, Bundle bundle)
     {
     	Gen.appendLog("DrawerActivity::changeFragment> Starting");
+    	Gen.appendLog("DrawerActivity::changeFragment> drawerPosition = " + drawerPosition);
     	if (fragment != null) {
     		if (bundle != null) fragment.setArguments(bundle);
     		FragmentTransaction transaction = getFragmentManager().beginTransaction();
@@ -205,6 +213,7 @@ public class DrawerActivity extends Activity {
             mDrawerList.setItemChecked(drawerPosition, true);
             mDrawerList.setSelection(drawerPosition);
             setTitle(navMenuTitles[drawerPosition]);
+            getActionBar().setIcon(navMenuIcons.getResourceId(drawerPosition, -1));
             mDrawerLayout.closeDrawer(mDrawerList);
         } else {
             // Error in creating fragment
@@ -237,6 +246,38 @@ public class DrawerActivity extends Activity {
         // Pass any configuration change to the drawer toggls
         mDrawerToggle.onConfigurationChanged(newConfig);
         Gen.appendLog("DrawerActivity::onConfigurationChanged> Ending");
+    }
+    
+    private static final String MS_PREFS_LOGIN = "MyStories_login";
+	private static final String MS_PREFS_PWD = "MyStories_pwd";
+	private static final String MS_PREFS_UID = "MyStories_uid";
+    private void discoDialog() {
+    	Gen.appendLog("DrawerActivity::discoDialog> Starting");
+        AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(this);
+        myAlertDialog.setTitle("Disconnect");
+        myAlertDialog.setMessage("Do you really want to disconnect ?");
+
+        myAlertDialog.setPositiveButton("OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Prefs.remove(getApplicationContext(), MS_PREFS_LOGIN);
+                        Prefs.remove(getApplicationContext(), MS_PREFS_PWD);
+                        Prefs.remove(getApplicationContext(), MS_PREFS_UID);
+                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+    		    		intent.putExtra("origin", "DrawerActivity");
+    					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+    					startActivity(intent);
+    					finish();
+                    }
+                });
+
+        myAlertDialog.setNegativeButton("Cancel",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    	return;
+                    }
+                });
+        myAlertDialog.show();
     }
     
     @Override

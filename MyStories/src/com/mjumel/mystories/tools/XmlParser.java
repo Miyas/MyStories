@@ -53,6 +53,7 @@ public class XmlParser {
                     else if (name.equals("event")){
                     	//Gen.appendLog("XmlParser::parseEvents> Creating new event");
                     	currentEvent = new Event();
+                    	currentEvent.setEventId(readIntIdAtt(parser));
                     } else if (currentEvent != null){
                         if (name.equals("comment")){
                         	currentEvent.setComment(parser.nextText());

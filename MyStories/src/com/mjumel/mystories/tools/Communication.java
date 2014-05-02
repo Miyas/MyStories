@@ -120,6 +120,39 @@ public class Communication {
         return null;
 	}
 	
+	public static int saveStory(String userId, List<Event> events) 
+	{
+		Gen.appendLog("Communication::saveStory> Starting");
+		
+		String upLoadServerUri = "http://anizoo.info/mystories/post/userevents.php";
+		
+		String sEvents = null;
+		for (Event event : events) {
+			if (sEvents == null)
+				sEvents = String.valueOf(event.getEventId());
+			else
+				sEvents += ":" + String.valueOf(event.getEventId());
+		}
+			
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("action", "2"));
+        params.add(new BasicNameValuePair("ui", userId));
+        params.add(new BasicNameValuePair("events", sEvents));
+        
+        String[] res = postText(upLoadServerUri, params);
+		if (res[0].equals("200"))
+		{
+			//Gen.appendLog("Communication::getUserEvents> Response = \n" + res[1] + "\n");
+			try {
+				return Integer.parseInt(res[1]);
+			} catch(NumberFormatException e) {
+				Gen.appendLog("Communication::saveStory> NumberFormatException Exception", "E");
+				Gen.appendLog("Communication::saveStory> " + e.getLocalizedMessage(), "E");
+       		}
+        }
+        return -1;
+	}
+	
 	private static String[] postText(String uri, List<NameValuePair> params)
 	{
 		Gen.appendLog("Communication::postText> Starting for uri = " + uri);

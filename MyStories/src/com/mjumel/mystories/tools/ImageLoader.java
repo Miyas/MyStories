@@ -38,6 +38,9 @@ public class ImageLoader {
      
     //handler to display images in UI thread
     Handler handler = new Handler();
+    
+ // default image show in list (Before online image download)
+    int stub_id = R.drawable.ic_launcher;
      
     public ImageLoader(Context context){
          
@@ -48,9 +51,15 @@ public class ImageLoader {
         executorService = Executors.newFixedThreadPool(5);
          
     }
+    
+    public ImageLoader(Context context, int dummyImage){
+        
+        fileCache = new FileCache(context);
+        executorService = Executors.newFixedThreadPool(5);
+        stub_id = dummyImage;
+    }
      
-    // default image show in list (Before online image download)
-    final int stub_id = R.drawable.ic_launcher;
+    
      
     public void DisplayImage(String url, ImageView imageView)
     {
@@ -74,6 +83,31 @@ public class ImageLoader {
              
             //Before downloading image show default image
             imageView.setImageResource(stub_id);
+        }
+    }
+    
+    public void DisplayImage(String url, ImageView imageView, int dummyImage)
+    {
+    	Gen.appendLog("ImageLoader::DisplayImage> Starting with url=" + url);
+    	
+        //Store image and url in Map
+        imageViews.put(imageView, url);
+         
+        //Check image is stored in MemoryCache Map or not (see MemoryCache.java)
+        Bitmap bitmap = memoryCache.get(url);
+         
+        if(bitmap!=null){
+            // if image is stored in MemoryCache Map then
+            // Show image in listview row
+            imageView.setImageBitmap(bitmap);
+        }
+        else
+        {
+            //queue Photo to download from url
+            queuePhoto(url, imageView);
+             
+            //Before downloading image show default image
+            imageView.setImageResource(dummyImage);
         }
     }
          

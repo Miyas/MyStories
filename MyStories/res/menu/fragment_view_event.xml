@@ -1,0 +1,54 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" >
+
+    <item
+        android:id="@+id/view_event_back"
+        android:showAsAction="ifRoom"
+        android:title="Back"
+        android:icon="@drawable/ic_action_back"
+        android:visible="false"/>
+    
+    <item
+        android:id="@+id/edit_event_cancel"
+        android:showAsAction="ifRoom"
+        android:title="Cancel"
+        android:icon="@drawable/ic_action_cancel"
+        android:visible="false"/>
+    <item
+        android:id="@+id/edit_event_save"
+        android:showAsAction="ifRoom"
+        android:title="Save"
+        android:icon="@drawable/ic_action_accept"
+        android:visible="false"/>
+    
+    <item
+        android:id="@+id/view_event_link"
+        android:showAsAction="ifRoom"
+        android:title="Add new event"
+        android:icon="@drawable/ic_action_share"/>
+    <item
+        android:id="@+id/view_event_edit"
+        android:showAsAction="ifRoom"
+        android:title="Edit"
+        android:icon="@drawable/ic_action_edit"/>
+    
+    <item
+        android:id="@+id/view_event_menu_overflow"
+        android:icon="@drawable/ic_drawer"
+        android:orderInCategory="11111"
+        android:showAsAction="always">
+        <menu>
+            <item
+		        android:id="@+id/view_event_full_screen"
+		        android:orderInCategory="100"
+		        android:showAsAction="withText|ifRoom|collapseActionView"
+		        android:title="Full Screen"/>
+		    <item
+		        android:id="@+id/view_event_hide_media"
+		        android:orderInCategory="110"
+		        android:showAsAction="withText|ifRoom|collapseActionView"
+		        android:title="Hide Media"/>
+        </menu>
+    </item>
+
+</menu>

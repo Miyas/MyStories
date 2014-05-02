@@ -87,7 +87,7 @@ public class SplashActivity extends Activity {
 				intent.putExtras(getActivity().getIntent());
 				intent.putExtra("origin", "splash");
 				
-				//intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 				//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 				
 				Gen.appendLog("SplashActivity::onCreateView> login = " + login);
@@ -145,7 +145,7 @@ public class SplashActivity extends Activity {
 					intent.putExtras(getActivity().getIntent());
 					intent.putExtra("origin", "splash");
 					
-					//intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 					//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 					
 					startActivity(intent);
