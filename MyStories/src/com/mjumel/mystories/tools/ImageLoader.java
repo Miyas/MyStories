@@ -1,5 +1,6 @@
 package com.mjumel.mystories.tools;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -18,6 +19,7 @@ import java.util.concurrent.Executors;
 import com.mjumel.mystories.R;
  
  
+
 import android.os.Handler;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -153,6 +155,9 @@ public class ImageLoader {
                  
                 // set image data in Memory Cache
                 memoryCache.put(photoToLoad.url, bmp);
+                
+                // set image data in Disk Cache
+                fileCache.put(photoToLoad.url, bmp);
                  
                 if(imageViewReused(photoToLoad))
                     return;
@@ -173,11 +178,9 @@ public class ImageLoader {
      
     private Bitmap getBitmap(String url)
     {
-        File f=fileCache.getFile(url);
-         
         //from SD cache
         //CHECK : if trying to decode file which not exist in cache return null
-        Bitmap b = decodeFile(f);
+        Bitmap b = fileCache.getBitmap(url);
         if(b!=null) {
         	Gen.appendLog("ImageLoader::getBitmap> Image retrieved from file cache (" + url + ")");
             return b;
@@ -185,7 +188,7 @@ public class ImageLoader {
          
         // Download image file from web
         try {
-             
+            //File f = null;
             Bitmap bitmap=null;
             URL imageUrl = new URL(url);
             HttpURLConnection conn = (HttpURLConnection)imageUrl.openConnection();
@@ -196,19 +199,20 @@ public class ImageLoader {
              
             // Constructs a new FileOutputStream that writes to file
             // if file not exist then it will create file
-            OutputStream os = new FileOutputStream(f);
+            //OutputStream os = new FileOutputStream(f);
              
             // See Utils class CopyStream method
             // It will each pixel from input stream and
             // write pixels to output stream (file)
-            Gen.CopyStream(is, os);
+            //Gen.CopyStream(is, os);
              
-            os.close();
+            //os.close();
             conn.disconnect();
              
             //Now file created and going to resize file with defined height
             // Decodes image and scales it to reduce memory consumption
-            bitmap = decodeFile(f);
+            //bitmap = decodeFile(f);
+            bitmap = decodeFile(is);
              
             return bitmap;
              
@@ -262,6 +266,48 @@ public class ImageLoader {
         }
         return null;
     }
+    
+    private Bitmap decodeFile(InputStream is){
+        
+        try {
+             
+            //Decode image size
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+            BufferedInputStream stream1 = new BufferedInputStream(is);
+            BitmapFactory.decodeStream(stream1,null,o);
+            stream1.close();
+             
+          //Find the correct scale value. It should be the power of 2.
+          
+            // Set width/height of recreated image
+            final int REQUIRED_SIZE=85;
+             
+            int width_tmp=o.outWidth, height_tmp=o.outHeight;
+            int scale=1;
+            while(true){
+                if(width_tmp/2 < REQUIRED_SIZE || height_tmp/2 < REQUIRED_SIZE)
+                    break;
+                width_tmp/=2;
+                height_tmp/=2;
+                scale*=2;
+            }
+             
+            //decode with current scale values
+            BitmapFactory.Options o2 = new BitmapFactory.Options();
+            o2.inSampleSize=scale;
+            BufferedInputStream stream2 = new BufferedInputStream(is);
+            Bitmap bitmap=BitmapFactory.decodeStream(stream2, null, o2);
+            stream2.close();
+            return bitmap;
+             
+        } catch (FileNotFoundException e) {
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
      
     boolean imageViewReused(PhotoToLoad photoToLoad){
          
@@ -294,7 +340,7 @@ public class ImageLoader {
     public void clearCache() {
         //Clear cache directory downloaded images and stored data in maps
         memoryCache.clear();
-        fileCache.clear();
+        fileCache.clearCache();
     }
  
 }

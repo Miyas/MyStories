@@ -17,6 +17,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import android.content.Context;
+import android.os.Build;
 import android.os.Environment;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -24,43 +26,16 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 
 public class Gen {
+	
+	public static final int IO_BUFFER_SIZE = 8 * 1024;
+	
 	public static void writeLog(String text) { doWrite(text, "D", false); }
-	public static void writeLog(String text, StackTraceElement trace) { 
-		doWrite(trace.getClassName()
-                	+ "::"
-                	+ trace.getMethodName()
-                	+ "> " + text, 
-                "D", 
-                false);
-	}
 	public static void writeLog(String text, String crit) { doWrite(text, crit, false); }
-	public static void writeLog(String text, String crit, StackTraceElement trace) { 
-		doWrite(trace.getClassName()
-            	+ "::"
-            	+ trace.getMethodName()
-            	+ "> " + text, 
-            crit, 
-            false); 
-	}
 	
 	public static void appendLog(String text) { doWrite(text, "D", true); }
-	public static void appendLog(String text, StackTraceElement trace) { 
-		doWrite(trace.getClassName()
-                	+ "::"
-                	+ trace.getMethodName()
-                	+ "> " + text, 
-                "D", 
-                true);
-	}
 	public static void appendLog(String text, String crit) { doWrite(text, crit, true); }
-	public static void appendLog(String text, String crit, StackTraceElement trace) { 
-		doWrite(trace.getClassName()
-            	+ "::"
-            	+ trace.getMethodName()
-            	+ "> " + text, 
-            crit, 
-            true); 
-	}
+	
+	public static void appendError(String text) { doWrite(text, "E", true); }
 	
 	private static void doWrite(String text, String crit, boolean append)
 	{
@@ -108,8 +83,8 @@ public class Gen {
         }
 		catch (Exception e) 
         {
-        	Gen.appendLog( "Gen::downloadFile > Download url ERROR", "E");
-        	Gen.appendLog( e.getMessage(), "E");
+        	Gen.appendError( "Gen::downloadFile > Download url ERROR");
+        	Gen.appendError( e.getMessage());
         }
 		
 		return sBuilder.toString();
@@ -168,5 +143,26 @@ public class Gen {
             }
         }
         catch(Exception ex){}
+    }
+	
+	public static boolean isExternalStorageRemovable() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+            return Environment.isExternalStorageRemovable();
+        }
+        return true;
+    }
+
+    public static File getExternalCacheDir(Context context) {
+        if (hasExternalCacheDir()) {
+            return context.getExternalCacheDir();
+        }
+
+        // Before Froyo we need to construct the external cache dir ourselves
+        final String cacheDir = "/Android/data/" + context.getPackageName() + "/cache/";
+        return new File(Environment.getExternalStorageDirectory().getPath() + cacheDir);
+    }
+
+    public static boolean hasExternalCacheDir() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO;
     }
 }

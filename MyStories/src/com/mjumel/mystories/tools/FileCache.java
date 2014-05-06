@@ -1,168 +1,178 @@
 package com.mjumel.mystories.tools;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import com.jakewharton.disklrucache.DiskLruCache;
-
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.os.AsyncTask;
-import android.os.Build;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
 import android.os.Environment;
-import android.os.Build.VERSION_CODES;
+
+import com.jakewharton.disklrucache.DiskLruCache;
+import com.mjumel.mystories.BuildConfig;
  
 public class FileCache {
-     
-    //private File cacheDir;
-    private DiskLruCache mDiskLruCache;
-    private final Object mDiskCacheLock = new Object();
-    private boolean mDiskCacheStarting = true;
-    private static final int DISK_CACHE_SIZE = 1024 * 1024 * 10; // 10MB
-    private static final int APP_VERSION = 1; // 10MB
-    private static final int FILES_PER_CACHE = 1; // 10MB
-    private static final String DISK_CACHE_SUBDIR = "thumbnails";
 
-     
-    public FileCache(Context context) {
-    	new InitDiskCacheTask().execute(cacheDir);
-    }
-     
-    public File getFile(String url){
-        //Identify images by hashcode or encode by URLEncoder.encode.
-        String filename=String.valueOf(url.hashCode());
-         
-        File f = new File(cacheDir, filename);
-        return f;
-         
-    }
-     
-    public void clear(){
-        // list all files inside cache directory
-        File[] files=cacheDir.listFiles();
-        if(files==null)
-            return;
-        //delete all cache directory files
-        for(File f:files)
-            f.delete();
+    private DiskLruCache mDiskCache;
+    private CompressFormat mCompressFormat = CompressFormat.JPEG;
+    private int mCompressQuality = 70;
+    private int mDiskCacheSize = 50;
+    private String mUniqueName = ".mystories";
+    private static final int APP_VERSION = 1;
+    private static final int VALUE_COUNT = 1;
+
+    public FileCache( Context context ) {
+        try {
+            final File diskCacheDir = getDiskCacheDir(context, mUniqueName );
+            mDiskCache = DiskLruCache.open( diskCacheDir, APP_VERSION, VALUE_COUNT, mDiskCacheSize );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
-    class InitDiskCacheTask extends AsyncTask<File, Void, Void> {
-        @Override
-        protected Void doInBackground(File... params) {
-            synchronized (mDiskCacheLock) {
-                File cacheDir = params[0];
-                try {
-					mDiskLruCache = DiskLruCache.open(cacheDir, APP_VERSION, FILES_PER_CACHE, DISK_CACHE_SIZE);
-				} catch (IOException e) {
-					Gen.appendLog("FileCache$InitDiskCacheTask::doInBackground> Error", "E");
-					Gen.appendLog("FileCache$InitDiskCacheTask::doInBackground> " + e.getLocalizedMessage(), "E");
-					e.printStackTrace();
-				}
-                mDiskCacheStarting = false; // Finished initialization
-                mDiskCacheLock.notifyAll(); // Wake any waiting threads
-            }
-            return null;
+    public FileCache( Context context, String uniqueName, int diskCacheSize,
+        CompressFormat compressFormat, int quality ) {
+        try {
+            final File diskCacheDir = getDiskCacheDir(context, uniqueName );
+            mDiskCache = DiskLruCache.open( diskCacheDir, APP_VERSION, VALUE_COUNT, diskCacheSize );
+            mCompressFormat = compressFormat;
+            mCompressQuality = quality;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
-        
-        // Decode image in background.
-        @Override
-        protected Bitmap doInBackground(Integer... params) {
-            final String imageKey = String.valueOf(params[0]);
-
-            // Check disk cache in background thread
-            Bitmap bitmap = getBitmapFromDiskCache(imageKey);
-
-            if (bitmap == null) { // Not found in disk cache
-                // Process as normal
-                final Bitmap bitmap = decodeSampledBitmapFromResource(
-                        getResources(), params[0], 100, 100));
-            }
-
-            // Add final bitmap to caches
-            addBitmapToMemoryCache(String.valueOf(params[0]), bitmap);
-            addBitmapToCache(imageKey, bitmap);
-
-            return bitmap;
-        }
-        
-    }
-
-    public void addBitmapToCache(String key, Bitmap bitmap) {
-        // Add to memory cache as before
-        if (getBitmapFromMemCache(key) == null) {
-            mMemoryCache.put(key, bitmap);
-        }
-
-        // Also add to disk cache
-        synchronized (mDiskCacheLock) {
-            if (mDiskLruCache != null && mDiskLruCache.get(key) == null) {
-                mDiskLruCache.put(key, bitmap);
+    private boolean writeBitmapToFile( Bitmap bitmap, DiskLruCache.Editor editor )
+        throws IOException, FileNotFoundException {
+        OutputStream out = null;
+        try {
+            out = new BufferedOutputStream( editor.newOutputStream( 0 ), Gen.IO_BUFFER_SIZE );
+            return bitmap.compress( mCompressFormat, mCompressQuality, out );
+        } finally {
+            if ( out != null ) {
+                out.close();
             }
         }
     }
 
-    public Bitmap getBitmapFromDiskCache(String key) {
-        synchronized (mDiskCacheLock) {
-            // Wait while disk cache is started from background thread
-            while (mDiskCacheStarting) {
-                try {
-                    mDiskCacheLock.wait();
-                } catch (InterruptedException e) {}
-            }
-            if (mDiskLruCache != null) {
-                return mDiskLruCache.get(key);
-            }
-        }
-        return null;
-    }
+    private File getDiskCacheDir(Context context, String uniqueName) {
 
-    // Creates a unique subdirectory of the designated app cache directory. Tries to use external
-    // but if not mounted, falls back on internal storage.
-    public static File getDiskCacheDir(Context context, String uniqueName) {
-        // Check if media is mounted or storage is built-in, if so, try and use external cache dir
-        // otherwise use internal cache dir
+    // Check if media is mounted or storage is built-in, if so, try and use external cache dir
+    // otherwise use internal cache dir
         final String cachePath =
-                Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ||
-                        !isExternalStorageRemovable() ? getExternalCacheDir(context).getPath() :
-                                context.getCacheDir().getPath();
+            Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ||
+                    !Gen.isExternalStorageRemovable() ?
+                    		Gen.getExternalCacheDir(context).getPath() :
+                    context.getCacheDir().getPath();
 
         return new File(cachePath + File.separator + uniqueName);
     }
-    
-    /**
-     * Check if external storage is built-in or removable.
-     *
-     * @return True if external storage is removable (like an SD card), false
-     *         otherwise.
-     */
-    @TargetApi(VERSION_CODES.GINGERBREAD)
-    public static boolean isExternalStorageRemovable() {
-    	if (Build.VERSION.SDK_INT >= VERSION_CODES.GINGERBREAD)
-    		return Environment.isExternalStorageRemovable();
-    	else
-    		return true;
+
+    public void put( String key, Bitmap data ) {
+
+        DiskLruCache.Editor editor = null;
+        try {
+            editor = mDiskCache.edit( key );
+            if ( editor == null ) {
+                return;
+            }
+
+            if( writeBitmapToFile( data, editor ) ) {               
+                mDiskCache.flush();
+                editor.commit();
+                if ( BuildConfig.DEBUG ) {
+                	Gen.appendError( "FileCache::getBitmap > ERROR on: image put on disk cache " + key);
+                }
+            } else {
+                editor.abort();
+                if ( BuildConfig.DEBUG ) {
+                    Gen.appendError( "FileCache::getBitmap > ERROR on: image put on disk cache " + key);
+                }
+            }   
+        } catch (IOException e) {
+            if ( BuildConfig.DEBUG ) {
+                Gen.appendError( "FileCache::getBitmap > ERROR on: image put on disk cache " + key);
+            }
+            try {
+                if ( editor != null ) {
+                    editor.abort();
+                }
+            } catch (IOException ignored) {
+            }           
+        }
+
     }
-    
-    /**
-     * Get the external app cache directory.
-     *
-     * @param context The context to use
-     * @return The external cache dir
-     */
-    @TargetApi(VERSION_CODES.FROYO)
-    public static File getExternalCacheDir(Context context) {
-    	if (Build.VERSION.SDK_INT >= VERSION_CODES.GINGERBREAD)
-            return context.getExternalCacheDir();
-    	else {
-	        // Before Froyo we need to construct the external cache dir ourselves
-	        final String cacheDir = "/Android/data/" + context.getPackageName() + "/cache/";
-	        return new File(Environment.getExternalStorageDirectory().getPath() + cacheDir);
-    	}
+
+    public Bitmap getBitmap( String key ) {
+
+        Bitmap bitmap = null;
+        DiskLruCache.Snapshot snapshot = null;
+        try {
+
+            snapshot = mDiskCache.get( key );
+            if ( snapshot == null ) {
+                return null;
+            }
+            final InputStream in = snapshot.getInputStream( 0 );
+            if ( in != null ) {
+                final BufferedInputStream buffIn = new BufferedInputStream( in, Gen.IO_BUFFER_SIZE );
+                bitmap = BitmapFactory.decodeStream( buffIn );              
+            }   
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        } finally {
+            if ( snapshot != null ) {
+                snapshot.close();
+            }
+        }
+
+        if ( BuildConfig.DEBUG ) {
+            Gen.appendLog( "FileCache::getBitmap > " + bitmap == null ? "" : "image read from disk " + key);
+        }
+
+        return bitmap;
+
     }
+
+    public boolean containsKey( String key ) {
+
+        boolean contained = false;
+        DiskLruCache.Snapshot snapshot = null;
+        try {
+            snapshot = mDiskCache.get( key );
+            contained = snapshot != null;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if ( snapshot != null ) {
+                snapshot.close();
+            }
+        }
+
+        return contained;
+
+    }
+
+    public void clearCache() {
+        if ( BuildConfig.DEBUG ) {
+            Gen.appendLog( "FileCache::clearCache > Disk cache CLEARED");
+        }
+        try {
+            mDiskCache.delete();
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+    }
+
+    public File getCacheFolder() {
+        return mDiskCache.getDirectory();
+    }
+
  
 }
