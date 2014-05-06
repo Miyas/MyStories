@@ -26,6 +26,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 import com.mjumel.mystories.Event;
+import com.mjumel.mystories.Story;
 
 public class Communication {
 	
@@ -120,23 +121,24 @@ public class Communication {
         return null;
 	}
 	
-	public static int saveStory(String userId, List<Event> events) 
+	public static int addStory(Story story) 
 	{
 		Gen.appendLog("Communication::saveStory> Starting");
 		
 		String upLoadServerUri = "http://anizoo.info/mystories/post/userevents.php";
 		
 		String sEvents = null;
-		for (Event event : events) {
+		for (Event event : story.getEvents()) {
 			if (sEvents == null)
-				sEvents = String.valueOf(event.getEventId());
+				sEvents = event.getEventId();
 			else
-				sEvents += ":" + String.valueOf(event.getEventId());
+				sEvents += ":" + event.getEventId();
 		}
 			
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("action", "2"));
-        params.add(new BasicNameValuePair("ui", userId));
+        params.add(new BasicNameValuePair("ui", story.getUserId()));
+        params.add(new BasicNameValuePair("title", story.getTitle()));
         params.add(new BasicNameValuePair("events", sEvents));
         
         String[] res = postText(upLoadServerUri, params);

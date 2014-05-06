@@ -7,13 +7,13 @@ import com.mjumel.mystories.tools.Gen;
 
 public class Event implements Parcelable {
 	
-	private int eventId = -1;
+	private String eventId = null;
 	private String comment = null;
 	private int rating = -1;
 	private int category = -1;
 	private String[] mediaPath = new String[3];
-	private int uId = -1;
-	private int storyId = -1;
+	private String uId = null;
+	private String storyId = null;
 	
 	// Display variables
 	private boolean isSelected = false;
@@ -31,15 +31,15 @@ public class Event implements Parcelable {
 	public Event(Parcel in) {
 		this.comment = in.readString();
 		this.mediaPath = (String[])in.readArray(String.class.getClassLoader());
-		this.eventId = in.readInt();
+		this.eventId = in.readString();
 		this.rating = in.readInt();
 		this.category = in.readInt();
-		this.uId = in.readInt();
-		this.storyId = in.readInt();
+		this.uId = in.readString();
+		this.storyId = in.readString();
 	}
 	
 	public Event(String comment, int rating, int category, 
-			String[] mediaPath, int uId, int storyId, int eventId) 
+			String[] mediaPath, String uId, String storyId, String eventId) 
     {
 		Gen.appendLog("Event::Event> Creating new event");
 		this.comment = comment;
@@ -81,14 +81,14 @@ public class Event implements Parcelable {
     public int getCategoryId() { return category; }
     public void setCategoryId(int value) { category = value; }
     
-    public int getUserId() { return uId; }
-    public void setUserId(int value) { uId = value; }
+    public String getUserId() { return uId; }
+    public void setUserId(String value) { uId = value; }
     
-    public int getStoryId() { return storyId; }
-    public void setStoryId(int value) { storyId = value; }
+    public String getStoryId() { return storyId; }
+    public void setStoryId(String value) { storyId = value; }
     
-    public int getEventId() { return eventId; }
-    public void setEventId(int value) { eventId = value; }
+    public String getEventId() { return eventId; }
+    public void setEventId(String value) { eventId = value; }
     
     public boolean isSelected() { return isSelected; }
     public void setSelected(boolean value) { isSelected = value; }
@@ -121,11 +121,11 @@ public class Event implements Parcelable {
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(comment);
 		dest.writeArray(mediaPath);
-		dest.writeInt(eventId);
+		dest.writeString(eventId);
 		dest.writeInt(rating);
 		dest.writeInt(category);
-		dest.writeInt(uId);
-		dest.writeInt(storyId);
+		dest.writeString(uId);
+		dest.writeString(storyId);
 	}
 	
 	public static final Parcelable.Creator<Event> CREATOR = new Parcelable.Creator<Event>()

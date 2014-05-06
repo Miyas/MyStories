@@ -260,7 +260,7 @@ public class NewStoryFragment extends Fragment {
         	else if (te.getText().length() <= 0)
         		return -3;
         	else
-        		return Communication.saveStory(userId, events);
+        		return Communication.addStory(new Story(te.getText().toString(), userId, selEvents));
         } 
 
         protected void onPostExecute(Integer result) {

@@ -32,8 +32,8 @@ public class XmlParser {
 		ArrayList<Event> events = null;
         int eventType = parser.getEventType();
         Event currentEvent = null;
-        int storyId = -1;
-        int userId = -1;
+        String storyId = null;
+        String userId = null;
 
         //Gen.appendLog("XmlParser::parseEvents> Private Starting");
         while (eventType != XmlPullParser.END_DOCUMENT){
@@ -47,13 +47,13 @@ public class XmlParser {
                     name = parser.getName();
                     //Gen.appendLog("XmlParser::parseEvents> START_TAG = " + name);
                     if (name.equals("uid"))
-                    	userId = readIntIdAtt(parser);
+                    	userId = parser.getAttributeValue(null, "id");
                     else if (name.equals("story"))
-                    	storyId = readIntIdAtt(parser);
+                    	storyId = parser.getAttributeValue(null, "id");
                     else if (name.equals("event")){
                     	//Gen.appendLog("XmlParser::parseEvents> Creating new event");
                     	currentEvent = new Event();
-                    	currentEvent.setEventId(readIntIdAtt(parser));
+                    	currentEvent.setEventId(parser.getAttributeValue(null, "id"));
                     } else if (currentEvent != null){
                         if (name.equals("comment")){
                         	currentEvent.setComment(parser.nextText());

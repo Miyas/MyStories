@@ -99,6 +99,7 @@ public class ImageLoader {
         if(bitmap!=null){
             // if image is stored in MemoryCache Map then
             // Show image in listview row
+        	Gen.appendLog("ImageLoader::DisplayImage> Image retrieved from memory (" + url + ")");
             imageView.setImageBitmap(bitmap);
         }
         else
@@ -177,8 +178,10 @@ public class ImageLoader {
         //from SD cache
         //CHECK : if trying to decode file which not exist in cache return null
         Bitmap b = decodeFile(f);
-        if(b!=null)
+        if(b!=null) {
+        	Gen.appendLog("ImageLoader::getBitmap> Image retrieved from file cache (" + url + ")");
             return b;
+        }
          
         // Download image file from web
         try {
