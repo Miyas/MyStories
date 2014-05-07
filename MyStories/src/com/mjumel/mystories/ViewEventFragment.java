@@ -1,7 +1,5 @@
 package com.mjumel.mystories;
 
-import java.util.ArrayList;
-
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -20,11 +18,10 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.Spinner;
 
-import com.mjumel.mystories.adapters.EventListAdapter;
 import com.mjumel.mystories.adapters.NothingSelectedSpinnerAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
-import com.mjumel.mystories.tools.ImageLoader;
+import com.squareup.picasso.Picasso;
 
 public class ViewEventFragment extends Fragment {
 
@@ -40,7 +37,6 @@ public class ViewEventFragment extends Fragment {
 	private String uId;
 	
 	private static int SELECT_PICTURE = 1;
-	private ImageLoader imageLoader;
 	
 	private Menu mMenu = null;
 	private boolean editMode = false;
@@ -60,8 +56,6 @@ public class ViewEventFragment extends Fragment {
 
 		Gen.appendLog("ViewEventFragment::onCreate> mediaPath = " + mediaPath);
 		Gen.appendLog("ViewEventFragment::onCreate> uid = " + uId);
-		
-		imageLoader = new ImageLoader(getActivity().getApplicationContext());
     }
 
     @Override
@@ -89,7 +83,13 @@ public class ViewEventFragment extends Fragment {
 		        this.getActivity()));
 		
 		if (mediaPath != null) { 
-			imageLoader.DisplayImage(mediaPath, ivImage);
+			Picasso.with(getActivity().getApplicationContext())
+	        	.load(mediaPath)
+	        	.fit().centerCrop()
+	        	.error(R.drawable.ic_action_cancel)
+	        	.placeholder(R.drawable.ic_action_refresh)
+	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
+	        	.into(ivImage);
 		}
 		etComment.setText(event.getComment());
 		rbRating.setProgress(event.getRating());
@@ -145,7 +145,13 @@ public class ViewEventFragment extends Fragment {
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == getActivity().RESULT_OK && requestCode == SELECT_PICTURE) {
         	mediaPath = data.getData().toString();
-        	imageLoader.DisplayImage(mediaPath, ivImage);
+        	Picasso.with(getActivity().getApplicationContext())
+	        	.load(mediaPath)
+	        	.fit().centerCrop()
+	        	.error(R.drawable.ic_action_cancel)
+	        	.placeholder(R.drawable.ic_action_refresh)
+	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
+	        	.into(ivImage);
         }
     }
     
@@ -228,6 +234,14 @@ public class ViewEventFragment extends Fragment {
     		etComment.setVisibility(RatingBar.GONE);
     		btnRemember.setVisibility(RatingBar.GONE);
     		
+    		Picasso.with(getActivity().getApplicationContext())
+	        	.load(mediaPath)
+	        	.fit().centerCrop()
+	        	.error(R.drawable.ic_action_cancel)
+	        	.placeholder(R.drawable.ic_action_refresh)
+	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
+	        	.into(ivImage);
+    		
     		fullScreenMode = true;
     	} else {
     		if (mMenu != null) {
@@ -243,7 +257,15 @@ public class ViewEventFragment extends Fragment {
     		spnCats.setVisibility(RatingBar.VISIBLE);
     		etComment.setVisibility(RatingBar.VISIBLE);
     		btnRemember.setVisibility(RatingBar.VISIBLE);
-    	    		
+    	    
+    		Picasso.with(getActivity().getApplicationContext())
+	        	.load(mediaPath)
+	        	.fit().centerCrop()
+	        	.error(R.drawable.ic_action_cancel)
+	        	.placeholder(R.drawable.ic_action_refresh)
+	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
+	        	.into(ivImage);
+    		
     		fullScreenMode = false;
     	}
     	rbRatingMini.setVisibility(RatingBar.VISIBLE);

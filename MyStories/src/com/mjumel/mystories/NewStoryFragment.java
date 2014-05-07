@@ -223,7 +223,7 @@ public class NewStoryFragment extends Fragment {
 	
 	/***************************************************************************************
 	 *
-	 *                                DownloadEventsTask Class
+	 *                                SaveStoryTask Class
 	 * 
 	 ***************************************************************************************/
 	class SaveStoryTask extends AsyncTask<List<Event>, Integer, Integer> {
@@ -239,7 +239,7 @@ public class NewStoryFragment extends Fragment {
 			pg.setTitle("Saving Story");
 			pg.setMessage("Please wait...");
 			pg.setCancelable(true);
-			pg.setButton(ProgressDialog.BUTTON_NEGATIVE, "Cancel", 
+			pg.setButton(ProgressDialog.BUTTON_NEUTRAL, "Cancel", 
 					new OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
@@ -265,12 +265,13 @@ public class NewStoryFragment extends Fragment {
 
         protected void onPostExecute(Integer result) {
         	pg.setButton(ProgressDialog.BUTTON_NEUTRAL, "OK", 
-        			new OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							pg.dismiss();
-							
-				}});
+    			new OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						pg.dismiss();
+						
+			}});
+        	pg.getButton(ProgressDialog.BUTTON_NEUTRAL).invalidate();
 			switch (result) {
 				case -3:
 					pg.setMessage("Your story must have a title");
