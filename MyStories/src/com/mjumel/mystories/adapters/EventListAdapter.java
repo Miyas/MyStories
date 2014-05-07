@@ -15,12 +15,11 @@ import android.widget.TextView;
 import com.mjumel.mystories.Event;
 import com.mjumel.mystories.R;
 import com.mjumel.mystories.tools.Gen;
-import com.mjumel.mystories.tools.ImageLoader;
+import com.squareup.picasso.Picasso;
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 	private LayoutInflater inflater;
 	private Activity context;
-	private ImageLoader imageLoader; 
 	
 	static class ViewHolder {
 		TextView comment;
@@ -32,10 +31,6 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 		super(context, R.layout.fragment_my_events_item, events);
 		this.context = context;
 		this.inflater = LayoutInflater.from(context);
-		
-		// Create ImageLoader object to download and show image in list
-        // Call ImageLoader constructor to initialize FileCache
-        imageLoader = new ImageLoader(this.context.getApplicationContext());
 	}
 
 	@Override
@@ -79,7 +74,16 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 		{
 			Gen.appendLog("EventListAdapter::getView> Image loading for event#" + position + " (" + event.getThumbMediaPath() + ")");
 			holder.image.setVisibility(ImageView.VISIBLE);
-			imageLoader.DisplayImage(event.getThumbMediaPath(), holder.image);
+			
+			Picasso.with(context)
+	        	.load(event.getThumbMediaPath())
+	        	.centerCrop()
+	        	.error(R.drawable.ic_action_cancel)
+	        	.placeholder(R.drawable.ic_action_refresh)
+	        	.resize(80, 80)
+	        	.into(holder.image);
+			
+			//imageLoader.DisplayImage(event.getThumbMediaPath(), holder.image);
 			
 			// Change layout display in function of the position of the view in the list
 			/*LayoutParams lpImage = new LayoutParams(80,80);

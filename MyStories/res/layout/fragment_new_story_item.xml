@@ -6,7 +6,7 @@
     android:layout_height="80dp"
     android:background="@drawable/new_story_list_item_selector">
 
-    <ImageView
+    <ImageView 
         android:id="@+id/event_item_imageView"
         android:layout_width="80dp"
         android:layout_height="80dp"

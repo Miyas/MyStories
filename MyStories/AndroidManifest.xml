@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
+        android:name=".MyStoriesApp"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
@@ -43,6 +44,6 @@
             android:configChanges="orientation|keyboardHidden"
     		android:screenOrientation="portrait" >
         </activity>
-        </application>
+    </application>
 
 </manifest>
