@@ -70,8 +70,8 @@ public class UserPicture {
                 return false;
 
             cursor.moveToFirst();
-            path = cursor.getString(cursor.getColumnIndex(Media.DATA));
-            int orientation = cursor.getInt(cursor.getColumnIndex(ImageColumns.ORIENTATION));
+            path = cursor.getString(cursor.getColumnIndexOrThrow(Media.DATA));
+            int orientation = cursor.getInt(cursor.getColumnIndexOrThrow(ImageColumns.ORIENTATION));
             this.orientation = new Matrix();
             this.orientation.setRotate(orientation);
             cursor.close();

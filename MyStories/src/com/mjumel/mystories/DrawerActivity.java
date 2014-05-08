@@ -40,6 +40,7 @@ public class DrawerActivity extends Activity {
     private NavDrawerListAdapter adapter;
     
     private int drawerPosition;
+    private boolean isFirstCall = false;
  
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +106,8 @@ public class DrawerActivity extends Activity {
         if (savedInstanceState == null) {
         	// TODO
         	// Don't forget to change this value to 0 when debug is done
-            displayView(1);
+            displayView(0);
+            isFirstCall = true;
         }
     }
     
@@ -178,6 +180,7 @@ public class DrawerActivity extends Activity {
         		if (bundle.get(Intent.EXTRA_STREAM) != null)
         		{
         			fragment = new NewEventFragment();
+        			changeFragment(fragment, bundle);
         			break;
         		}
         	}
@@ -205,8 +208,11 @@ public class DrawerActivity extends Activity {
     	if (fragment != null) {
     		if (bundle != null) fragment.setArguments(bundle);
     		FragmentTransaction transaction = getFragmentManager().beginTransaction();
-    		transaction.replace(R.id.frame_container, fragment);
-    		transaction.addToBackStack(null);
+    		transaction.replace(R.id.frame_container, fragment, navMenuTitles[drawerPosition]);
+    		if (isFirstCall) {
+    			transaction.addToBackStack(navMenuTitles[drawerPosition]);
+    			isFirstCall = false;
+    		}
     		transaction.commit();
  
             // Update selected item and title, then close the drawer

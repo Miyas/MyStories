@@ -21,6 +21,7 @@ import android.widget.Spinner;
 import com.mjumel.mystories.adapters.NothingSelectedSpinnerAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
+import com.nostra13.universalimageloader.core.ImageLoader;
 import com.squareup.picasso.Picasso;
 
 public class ViewEventFragment extends Fragment {
@@ -83,13 +84,14 @@ public class ViewEventFragment extends Fragment {
 		        this.getActivity()));
 		
 		if (mediaPath != null) { 
-			Picasso.with(getActivity().getApplicationContext())
+			/*MyStoriesApp.getPicasso()
 	        	.load(mediaPath)
 	        	.fit().centerCrop()
 	        	.error(R.drawable.ic_action_cancel)
 	        	.placeholder(R.drawable.ic_action_refresh)
 	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);
+	        	.into(ivImage);*/
+			ImageLoader.getInstance().displayImage(mediaPath, ivImage);
 		}
 		etComment.setText(event.getComment());
 		rbRating.setProgress(event.getRating());
@@ -145,13 +147,14 @@ public class ViewEventFragment extends Fragment {
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == getActivity().RESULT_OK && requestCode == SELECT_PICTURE) {
         	mediaPath = data.getData().toString();
-        	Picasso.with(getActivity().getApplicationContext())
+        	/*MyStoriesApp.getPicasso()
 	        	.load(mediaPath)
 	        	.fit().centerCrop()
 	        	.error(R.drawable.ic_action_cancel)
 	        	.placeholder(R.drawable.ic_action_refresh)
 	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);
+	        	.into(ivImage);*/
+        	ImageLoader.getInstance().displayImage(mediaPath, ivImage);
         }
     }
     
@@ -234,13 +237,14 @@ public class ViewEventFragment extends Fragment {
     		etComment.setVisibility(RatingBar.GONE);
     		btnRemember.setVisibility(RatingBar.GONE);
     		
-    		Picasso.with(getActivity().getApplicationContext())
+    		/*MyStoriesApp.getPicasso()
 	        	.load(mediaPath)
 	        	.fit().centerCrop()
 	        	.error(R.drawable.ic_action_cancel)
 	        	.placeholder(R.drawable.ic_action_refresh)
 	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);
+	        	.into(ivImage);*/
+    		//ImageLoader.getInstance().displayImage(mediaPath, ivImage);
     		
     		fullScreenMode = true;
     	} else {
@@ -258,18 +262,20 @@ public class ViewEventFragment extends Fragment {
     		etComment.setVisibility(RatingBar.VISIBLE);
     		btnRemember.setVisibility(RatingBar.VISIBLE);
     	    
-    		Picasso.with(getActivity().getApplicationContext())
+    		/*MyStoriesApp.getPicasso()
 	        	.load(mediaPath)
 	        	.fit().centerCrop()
 	        	.error(R.drawable.ic_action_cancel)
 	        	.placeholder(R.drawable.ic_action_refresh)
 	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);
+	        	.into(ivImage);*/
+    		//ImageLoader.getInstance().displayImage(mediaPath, ivImage);
     		
     		fullScreenMode = false;
     	}
     	rbRatingMini.setVisibility(RatingBar.VISIBLE);
     	rbRating.setVisibility(RatingBar.GONE);
     	//ivImage.setClickable(false);
+    	ivImage.invalidate();
     }
 }

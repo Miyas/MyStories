@@ -1,6 +1,7 @@
 package com.mjumel.mystories;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import android.app.AlertDialog;
@@ -32,7 +33,10 @@ import android.widget.Toast;
 import com.mjumel.mystories.adapters.NothingSelectedSpinnerAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
+import com.mjumel.mystories.tools.ImageWorker;
 import com.mjumel.mystories.tools.UserPicture;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.squareup.picasso.Picasso;
 
 public class NewEventFragment extends Fragment {
 
@@ -45,6 +49,7 @@ public class NewEventFragment extends Fragment {
 	private Uri mediaUri;
 	private Uri mImageCaptureUri;
 	private String uId;
+	private String mediaLocalPath;
 	
 	private Intent pictureActionIntent = null;
 	protected static final int CAMERA_REQUEST = 0;
@@ -115,13 +120,14 @@ public class NewEventFragment extends Fragment {
                              Gen.appendLog("NewEventFragment::onCreateView::onClick> uId = " + uId);
                              Gen.appendLog("NewEventFragment::onCreateView::onClick> comment = " + etComment.getText().toString());
                              Gen.appendLog("NewEventFragment::onCreateView::onClick> rating = " + rbRating.getProgress());
-                             Gen.appendLog("NewEventFragment::onCreateView::onClick> mediaUri = " + (mediaUri == null?null:userPicture.getPath()));
+                             Gen.appendLog("NewEventFragment::onCreateView::onClick> mediaPath = " + mediaUri==null?null:ImageWorker.getPath(getActivity(), mediaUri));
                              Gen.appendLog("NewEventFragment::onCreateView::onClick> cat = " + spnCats.getSelectedItemPosition());
+                            
                              Communication.postEvent(
                             		 uId, 
                             		 etComment.getText().toString(), 
                             		 rbRating.getProgress(), 
-                            		 (mediaUri == null?null:userPicture.getPath()),
+                            		 mediaUri==null?null:ImageWorker.getPath(getActivity(), mediaUri),
                             		 spnCats.getSelectedItemPosition()
                              );
                              getActivity().runOnUiThread(new Runnable() {
@@ -130,7 +136,7 @@ public class NewEventFragment extends Fragment {
                                  }
                              });
                         }
-                      }).start();                
+                      }).start();
             }
          });
 		
@@ -156,6 +162,7 @@ public class NewEventFragment extends Fragment {
     	}
     	
     	mediaUri = null;
+    	mediaLocalPath = null;
     	switch(requestCode) {
 	    	case(SELECT_PICTURE):
 	    		Gen.appendLog("NewEventFragment::onActivityResult> Case SELECT_PICTURE");
@@ -164,6 +171,8 @@ public class NewEventFragment extends Fragment {
 	    	case(GALLERY_PICTURE):
 	    		Gen.appendLog("NewEventFragment::onActivityResult> Case GALLERY_PICTURE");
                 if (data != null) {
+                	Gen.appendLog("NewEventFragment::onActivityResult> Url = " + data.getData());
+                	//mediaLocalPath = ImageWorker.getPath(getActivity(), data.getData());
                 	mediaUri = data.getData();
                 }
 	    		break;
@@ -174,12 +183,12 @@ public class NewEventFragment extends Fragment {
                 // Final Code As Below
                 //try {
                 	if (data != null) {
-                		Gen.appendLog("inside Classical Phones");
+                		Gen.appendLog("NewEventFragment::onActivityResult> inside Classical Phones");
                     	mediaUri = data.getData();
                     	break;
                     }
                 	
-                	Gen.appendLog("inside Samsung Phones");
+                	Gen.appendLog("NewEventFragment::onActivityResult> inside Samsung Phones");
                     String[] projection = {
                             MediaStore.Images.Thumbnails._ID, // The columns we want
                             MediaStore.Images.Thumbnails.IMAGE_ID,
@@ -267,8 +276,10 @@ public class NewEventFragment extends Fragment {
     	}
     	if (mediaUri != null)
     		setImage(mediaUri);
-    	else
+    	else {
     		Toast.makeText(getActivity(), "Problem getting back the image", Toast.LENGTH_SHORT).show();
+    		Gen.appendError("NewEventFragment::onActivityResult> Problem getting back the image");
+    	}
     }
     
     private void startDialog() {
@@ -330,13 +341,26 @@ public class NewEventFragment extends Fragment {
     {
     	Gen.appendLog("NewEventFragment::setImage> Starting with uri=" + uri.toString());
     	mediaUri = uri;
-    	userPicture.setUri(mediaUri);
+    	/*MyStoriesApp.getPicasso()
+	    	.load(mediaUri)
+	    	.fit().centerCrop()
+	    	.error(R.drawable.ic_action_cancel)
+	    	.placeholder(R.drawable.ic_action_refresh)
+	    	//.resize(80, 80)
+	    	.into(ivImage);*/
+    	
+    	ImageLoader.getInstance().displayImage(mediaUri.toString(), ivImage);
+    	Gen.appendLog("NewEventFragment::setImage>Loading uri=" + ImageLoader.getInstance().getLoadingUriForView(ivImage));
+    	
+	    	
+    	
+    	/*userPicture.setUri(mediaUri);
         try {
 			ivImage.setImageBitmap(userPicture.getBitmap());
 		} catch (IOException e) {
 			Gen.appendLog("NewEventFragment::setImage> IOException error", "E");
 			Gen.appendLog("NewEventFragment::setImage> " + e.getLocalizedMessage(), "E");
-		}
+		}*/
     }
     
     private Object getExtra(String id)
