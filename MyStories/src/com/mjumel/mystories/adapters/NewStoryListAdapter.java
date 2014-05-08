@@ -13,9 +13,10 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.mjumel.mystories.Event;
+import com.mjumel.mystories.MyStoriesApp;
 import com.mjumel.mystories.R;
 import com.mjumel.mystories.tools.Gen;
-import com.squareup.picasso.Picasso;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class NewStoryListAdapter extends ArrayAdapter<Event> {
 	private LayoutInflater inflater;
@@ -91,13 +92,15 @@ public class NewStoryListAdapter extends ArrayAdapter<Event> {
 			Gen.appendLog("EventListAdapter::getView> Image loading for event#" + position + " (" + event.getThumbMediaPath() + ")");
 			holder.image.setVisibility(ImageView.VISIBLE);
 			
-	        Picasso.with(context)
+			/*MyStoriesApp.getPicasso()
 	        	.load(event.getThumbMediaPath())
 	        	.centerCrop()
 	        	.error(R.drawable.ic_action_cancel)
 	        	.placeholder(R.drawable.ic_action_refresh)
 	        	.resize(80, 80)
-	        	.into(holder.image);
+	        	.into(holder.image);*/
+			
+			ImageLoader.getInstance().displayImage(event.getThumbMediaPath(), holder.image);
 	        
 			// Change layout display in function of the position of the view in the list
 			/*LayoutParams lpImage = new LayoutParams(80,80);

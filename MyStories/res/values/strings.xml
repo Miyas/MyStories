@@ -13,6 +13,8 @@
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
     <string name="action_example" translatable="false">Example action</string>
 
+    <string name="log_filename" translatable="false">mystories.log</string>
+    
     <string name="title_section_events" translatable="false">My Events</string>
     <string name="title_section_stories" translatable="false">My Stories</string>
     <string name="title_section_friends" translatable="false">My Friends</string>

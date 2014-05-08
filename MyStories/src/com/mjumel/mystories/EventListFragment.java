@@ -41,7 +41,7 @@ public class EventListFragment extends Fragment {
     public EventListFragment()
     {
     }
-    
+    	
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
@@ -146,7 +146,7 @@ public class EventListFragment extends Fragment {
 			return this.getActivity().getIntent().getExtras().get(id);
     	else
     		return null;
-    }    
+    }
     
     
 	/***************************************************************************************
