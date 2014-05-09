@@ -21,9 +21,9 @@ import android.widget.Spinner;
 import com.mjumel.mystories.adapters.NothingSelectedSpinnerAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
-import com.squareup.picasso.Picasso;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
-public class ViewEventFragment extends Fragment {
+public class EventViewFragment extends Fragment {
 
 	private View view;
 	private Spinner spnCats;
@@ -42,7 +42,7 @@ public class ViewEventFragment extends Fragment {
 	private boolean editMode = false;
 	private boolean fullScreenMode = false;
 	
-    public ViewEventFragment()
+    public EventViewFragment()
     {
     }
     
@@ -83,13 +83,14 @@ public class ViewEventFragment extends Fragment {
 		        this.getActivity()));
 		
 		if (mediaPath != null) { 
-			Picasso.with(getActivity().getApplicationContext())
+			/*MyStoriesApp.getPicasso()
 	        	.load(mediaPath)
 	        	.fit().centerCrop()
 	        	.error(R.drawable.ic_action_cancel)
 	        	.placeholder(R.drawable.ic_action_refresh)
 	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);
+	        	.into(ivImage);*/
+			ImageLoader.getInstance().displayImage(mediaPath, ivImage);
 		}
 		etComment.setText(event.getComment());
 		rbRating.setProgress(event.getRating());
@@ -145,13 +146,14 @@ public class ViewEventFragment extends Fragment {
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == getActivity().RESULT_OK && requestCode == SELECT_PICTURE) {
         	mediaPath = data.getData().toString();
-        	Picasso.with(getActivity().getApplicationContext())
+        	/*MyStoriesApp.getPicasso()
 	        	.load(mediaPath)
 	        	.fit().centerCrop()
 	        	.error(R.drawable.ic_action_cancel)
 	        	.placeholder(R.drawable.ic_action_refresh)
 	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);
+	        	.into(ivImage);*/
+        	ImageLoader.getInstance().displayImage(mediaPath, ivImage);
         }
     }
     
@@ -229,18 +231,19 @@ public class ViewEventFragment extends Fragment {
 	    		mMenu.findItem(R.id.view_event_back).setVisible(true);
     		}
     		
-    		view.setPadding(0, 0, 0, 0);
+    		//view.setPadding(0, 0, 0, 0);
     		spnCats.setVisibility(RatingBar.GONE);
     		etComment.setVisibility(RatingBar.GONE);
     		btnRemember.setVisibility(RatingBar.GONE);
     		
-    		Picasso.with(getActivity().getApplicationContext())
+    		/*MyStoriesApp.getPicasso()
 	        	.load(mediaPath)
 	        	.fit().centerCrop()
 	        	.error(R.drawable.ic_action_cancel)
 	        	.placeholder(R.drawable.ic_action_refresh)
 	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);
+	        	.into(ivImage);*/
+    		//ImageLoader.getInstance().displayImage(mediaPath, ivImage);
     		
     		fullScreenMode = true;
     	} else {
@@ -251,25 +254,27 @@ public class ViewEventFragment extends Fragment {
 	    		mMenu.findItem(R.id.view_event_back).setVisible(false);
     		}
 
-    		int padV = R.dimen.activity_vertical_margin;
-    		int padH = R.dimen.activity_horizontal_margin;
+    		//int padV = R.dimen.activity_vertical_margin;
+    		//int padH = R.dimen.activity_horizontal_margin;
     		//view.setPadding(padH, padV, padH, padV);
     		spnCats.setVisibility(RatingBar.VISIBLE);
     		etComment.setVisibility(RatingBar.VISIBLE);
     		btnRemember.setVisibility(RatingBar.VISIBLE);
     	    
-    		Picasso.with(getActivity().getApplicationContext())
+    		/*MyStoriesApp.getPicasso()
 	        	.load(mediaPath)
 	        	.fit().centerCrop()
 	        	.error(R.drawable.ic_action_cancel)
 	        	.placeholder(R.drawable.ic_action_refresh)
 	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);
+	        	.into(ivImage);*/
+    		//ImageLoader.getInstance().displayImage(mediaPath, ivImage);
     		
     		fullScreenMode = false;
     	}
     	rbRatingMini.setVisibility(RatingBar.VISIBLE);
     	rbRating.setVisibility(RatingBar.GONE);
     	//ivImage.setClickable(false);
+    	ivImage.invalidate();
     }
 }

@@ -68,8 +68,8 @@ public class Communication {
 	    }
 	    catch(Exception e)
 	    {
-	        Gen.appendLog("Communication::postEvent> Exception error","E");
-            Gen.appendLog("Communication::postEvent> " + e.getMessage(),"E");
+	        Gen.appendError("Communication::postEvent> Exception error");
+            Gen.appendError("Communication::postEvent> " + e.getMessage());
 	    }
 		Gen.appendLog("Communication::postEvent> Ending");
 	}
@@ -112,10 +112,37 @@ public class Communication {
 				return (new XmlParser()).parseEvents((Reader)new StringReader(res[1]));
 			} catch (XmlPullParserException e) {
 				e.printStackTrace();
-				Gen.appendLog("Communication::getUserEvents> XmlPullParserException Error","E");
+				Gen.appendError("Communication::getUserEvents> XmlPullParserException Error");
 			} catch (IOException e) {
 				e.printStackTrace();
-				Gen.appendLog("Communication::getUserEvents> IOException Error","E");
+				Gen.appendError("Communication::getUserEvents> IOException Error");
+			}
+        }
+        return null;
+	}
+	
+	public static List<Story> getUserStories(String userId)//, String userSession) 
+	{
+		Gen.appendLog("Communication::getUserStories> Starting");
+		
+		String upLoadServerUri = "http://anizoo.info/mystories/post/userevents.php";
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("action", "5"));
+        params.add(new BasicNameValuePair("ui", userId));
+        //params.add(new BasicNameValuePair("us", userSession));
+        
+        String[] res = postText(upLoadServerUri, params);
+		if (res[0].equals("200"))
+		{
+			Gen.appendLog("Communication::getUserStories> Response = \n" + res[1] + "\n");
+       		try {
+				return (new XmlParser()).parseStories((Reader)new StringReader(res[1]));
+			} catch (XmlPullParserException e) {
+				e.printStackTrace();
+				Gen.appendError("Communication::getUserStories> XmlPullParserException Error");
+			} catch (IOException e) {
+				e.printStackTrace();
+				Gen.appendError("Communication::getUserStories> IOException Error");
 			}
         }
         return null;
@@ -148,8 +175,8 @@ public class Communication {
 			try {
 				return Integer.parseInt(res[1]);
 			} catch(NumberFormatException e) {
-				Gen.appendLog("Communication::saveStory> NumberFormatException Exception", "E");
-				Gen.appendLog("Communication::saveStory> " + e.getLocalizedMessage(), "E");
+				Gen.appendError("Communication::saveStory> NumberFormatException Exception");
+				Gen.appendError("Communication::saveStory> " + e.getLocalizedMessage());
        		}
         }
         return -1;
@@ -180,20 +207,20 @@ public class Communication {
 	    }
 		catch(ClientProtocolException e)
 		{
-			Gen.appendLog("Communication::postText> ClientProtocolException error","E");
-            Gen.appendLog("Communication::postText> " + e.getMessage(),"E");
+			Gen.appendError("Communication::postText> ClientProtocolException error");
+            Gen.appendError("Communication::postText> " + e.getMessage());
             serverRespondeMsg = e.getMessage();
 		}
 		catch(IOException e)
 		{
-			Gen.appendLog("Communication::postText> IOException error","E");
-            Gen.appendLog("Communication::postText> " + e.getMessage(),"E");
+			Gen.appendError("Communication::postText> IOException error");
+            Gen.appendError("Communication::postText> " + e.getMessage());
             serverRespondeMsg = e.getMessage();
 		}
 	    catch(Exception e)
 	    {
-	        Gen.appendLog("Communication::postText> Exception error","E");
-            Gen.appendLog("Communication::postText> " + e.getMessage(),"E");
+	        Gen.appendError("Communication::postText> Exception error");
+            Gen.appendError("Communication::postText> " + e.getMessage());
             serverRespondeMsg = e.getMessage();
 	    }
 		

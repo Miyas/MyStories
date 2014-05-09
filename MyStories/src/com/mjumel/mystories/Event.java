@@ -54,13 +54,15 @@ public class Event implements Parcelable {
 	
 	public void print()
 	{
+		Gen.appendLog("Event::printEvent> eventId = " + eventId);
+		Gen.appendLog("Event::printEvent> storyId = " + storyId);
+		Gen.appendLog("Event::printEvent> uId = " + uId);
 		Gen.appendLog("Event::printEvent> comment = " + comment);
 		Gen.appendLog("Event::printEvent> rating = " + rating);
 		Gen.appendLog("Event::printEvent> category = " + category);
-		Gen.appendLog("Event::printEvent> mediaPath = " + mediaPath);
-		Gen.appendLog("Event::printEvent> uId = " + uId);
-		Gen.appendLog("Event::printEvent> storyId = " + storyId);
-		Gen.appendLog("Event::printEvent> eventId = " + eventId);
+		Gen.appendLog("Event::printEvent> ThumbMediaPath = " + getThumbMediaPath());
+		Gen.appendLog("Event::printEvent> ResizedMediaPath = " + getResizedMediaPath());
+		Gen.appendLog("Event::printEvent> OriginalMediaPath = " + getOriginalMediaPath());
 	}
 	
 	public String getComment() { return comment; }

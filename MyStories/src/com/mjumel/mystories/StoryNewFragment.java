@@ -25,7 +25,7 @@ import com.mjumel.mystories.adapters.NewStoryListAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
 
-public class NewStoryFragment extends Fragment {
+public class StoryNewFragment extends Fragment {
 
 	private ListView lv;
 	private EditText te;
@@ -40,7 +40,7 @@ public class NewStoryFragment extends Fragment {
 	
 	private boolean firstRun = false;
 	
-    public NewStoryFragment()
+    public StoryNewFragment()
     {
     }
     
@@ -261,7 +261,7 @@ public class NewStoryFragment extends Fragment {
         		return -3;
         	else
         		return Communication.addStory(new Story(te.getText().toString(), userId, selEvents));
-        } 
+        }
 
         protected void onPostExecute(Integer result) {
         	pg.setButton(ProgressDialog.BUTTON_NEUTRAL, "OK", 

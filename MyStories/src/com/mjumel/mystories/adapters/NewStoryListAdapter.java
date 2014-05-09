@@ -15,7 +15,7 @@ import android.widget.TextView;
 import com.mjumel.mystories.Event;
 import com.mjumel.mystories.R;
 import com.mjumel.mystories.tools.Gen;
-import com.squareup.picasso.Picasso;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class NewStoryListAdapter extends ArrayAdapter<Event> {
 	private LayoutInflater inflater;
@@ -44,8 +44,8 @@ public class NewStoryListAdapter extends ArrayAdapter<Event> {
 		if ( rowView == null ) {
 			rowView = inflater.inflate(R.layout.fragment_new_story_item, null);
 			holder = new ViewHolder();
-            holder.comment = (TextView) rowView.findViewById(R.id.event_item_textView);
-            holder.rating = (RatingBar) rowView.findViewById(R.id.event_item_ratingBar);
+            holder.comment = (TextView) rowView.findViewById(R.id.my_stories_item_title);
+            holder.rating = (RatingBar) rowView.findViewById(R.id.my_stories_item_ratingBar);
             holder.image = (ImageView) rowView.findViewById(R.id.event_item_imageView);
             rowView.setTag(holder);
         } else {
@@ -91,13 +91,7 @@ public class NewStoryListAdapter extends ArrayAdapter<Event> {
 			Gen.appendLog("EventListAdapter::getView> Image loading for event#" + position + " (" + event.getThumbMediaPath() + ")");
 			holder.image.setVisibility(ImageView.VISIBLE);
 			
-	        Picasso.with(context)
-	        	.load(event.getThumbMediaPath())
-	        	.centerCrop()
-	        	.error(R.drawable.ic_action_cancel)
-	        	.placeholder(R.drawable.ic_action_refresh)
-	        	.resize(80, 80)
-	        	.into(holder.image);
+			ImageLoader.getInstance().displayImage(event.getThumbMediaPath(), holder.image);
 	        
 			// Change layout display in function of the position of the view in the list
 			/*LayoutParams lpImage = new LayoutParams(80,80);

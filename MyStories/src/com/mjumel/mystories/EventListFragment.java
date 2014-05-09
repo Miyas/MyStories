@@ -41,7 +41,7 @@ public class EventListFragment extends Fragment {
     public EventListFragment()
     {
     }
-    
+    	
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
@@ -84,7 +84,7 @@ public class EventListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_list_events, menu);
+        inflater.inflate(R.menu.fragment_my_events, menu);
         menu.findItem(R.id.list_search).getActionView();
     }
     
@@ -93,7 +93,7 @@ public class EventListFragment extends Fragment {
         switch (item.getItemId()) {
         case R.id.list_add_event:
         	Gen.appendLog("EventListFragment::onOptionsItemSelected> Display new event fragment");
-            ((DrawerActivity)getActivity()).changeFragment(new NewEventFragment(), null);
+            ((DrawerActivity)getActivity()).changeFragment(new EventNewFragment(), null);
             return true;
         default:
             return super.onOptionsItemSelected(item);
@@ -121,7 +121,7 @@ public class EventListFragment extends Fragment {
             Gen.appendLog("EventListFragment::viewEvent> Display event#" + ((Event)parent.getItemAtPosition(position)).getEventId());
             Bundle bundle = new Bundle();
             bundle.putParcelable("event", (Event)parent.getItemAtPosition(position));
-            ((DrawerActivity)getActivity()).changeFragment(new ViewEventFragment(), bundle);
+            ((DrawerActivity)getActivity()).changeFragment(new EventViewFragment(), bundle);
 		}
 	};
 	
@@ -146,7 +146,7 @@ public class EventListFragment extends Fragment {
 			return this.getActivity().getIntent().getExtras().get(id);
     	else
     		return null;
-    }    
+    }
     
     
 	/***************************************************************************************
@@ -157,8 +157,9 @@ public class EventListFragment extends Fragment {
 	class DownloadEventsTask extends AsyncTask<String, Integer, List<Event>>
     {
           protected void onPreExecute()
-          {     super.onPreExecute();
-          		pg = ProgressDialog.show(getActivity(), "", "Loading events...", true);
+          {     
+        	  //super.onPreExecute();
+          	  pg = ProgressDialog.show(getActivity(), "", "Loading events...", true);
           } 
 
           protected List<Event> doInBackground(String ...params)
@@ -168,7 +169,7 @@ public class EventListFragment extends Fragment {
 
           protected void onPostExecute(List<Event> result)
           {     
-                super.onPostExecute(result);
+                //super.onPostExecute(result);
                 if(result == null)
                 {
                 	result = new ArrayList<Event>();
