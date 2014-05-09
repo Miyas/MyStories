@@ -208,11 +208,12 @@ public class DrawerActivity extends Activity {
     	if (fragment != null) {
     		if (bundle != null) fragment.setArguments(bundle);
     		FragmentTransaction transaction = getFragmentManager().beginTransaction();
-    		transaction.replace(R.id.frame_container, fragment, navMenuTitles[drawerPosition]);
+    		transaction.add(R.id.frame_container, fragment, navMenuTitles[drawerPosition]);
     		if (isFirstCall) {
     			isFirstCall = false;
-    		} else
     			transaction.addToBackStack(navMenuTitles[drawerPosition]);
+    		}
+    			
     		transaction.commit();
  
             // Update selected item and title, then close the drawer
