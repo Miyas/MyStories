@@ -23,7 +23,7 @@ import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-public class ViewEventFragment extends Fragment {
+public class EventViewFragment extends Fragment {
 
 	private View view;
 	private Spinner spnCats;
@@ -42,7 +42,7 @@ public class ViewEventFragment extends Fragment {
 	private boolean editMode = false;
 	private boolean fullScreenMode = false;
 	
-    public ViewEventFragment()
+    public EventViewFragment()
     {
     }
     
@@ -231,7 +231,7 @@ public class ViewEventFragment extends Fragment {
 	    		mMenu.findItem(R.id.view_event_back).setVisible(true);
     		}
     		
-    		view.setPadding(0, 0, 0, 0);
+    		//view.setPadding(0, 0, 0, 0);
     		spnCats.setVisibility(RatingBar.GONE);
     		etComment.setVisibility(RatingBar.GONE);
     		btnRemember.setVisibility(RatingBar.GONE);
@@ -254,8 +254,8 @@ public class ViewEventFragment extends Fragment {
 	    		mMenu.findItem(R.id.view_event_back).setVisible(false);
     		}
 
-    		int padV = R.dimen.activity_vertical_margin;
-    		int padH = R.dimen.activity_horizontal_margin;
+    		//int padV = R.dimen.activity_vertical_margin;
+    		//int padH = R.dimen.activity_horizontal_margin;
     		//view.setPadding(padH, padV, padH, padV);
     		spnCats.setVisibility(RatingBar.VISIBLE);
     		etComment.setVisibility(RatingBar.VISIBLE);

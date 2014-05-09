@@ -1,22 +1,17 @@
 package com.mjumel.mystories;
 
+import android.app.Application;
+
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.squareup.picasso.Picasso;
-
-import android.app.Application;
 
 public class MyStoriesApp extends Application {
-	private static Picasso picasso;
 	public static String LOG_FILENAME;
 	
     @Override
     public void onCreate() {
         super.onCreate();
-        
-        picasso = Picasso.with(this);
-        picasso.setDebugging(true);
         
         DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
 	        .cacheInMemory(true)
@@ -33,9 +28,5 @@ public class MyStoriesApp extends Application {
         ImageLoader.getInstance().init(config);
         
         LOG_FILENAME = getString(R.string.log_filename);
-    }
-    
-    public static Picasso getPicasso() {
-    	return picasso;
     }
 }

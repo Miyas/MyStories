@@ -16,8 +16,10 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.mjumel.mystories.adapters.EventListAdapter;
+import com.mjumel.mystories.adapters.StoryListAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
 
@@ -25,20 +27,20 @@ import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
-public class EventListFragment extends Fragment {
+public class StoryListFragment extends Fragment {
 
 	private ListView lv;
 	private ProgressDialog pg;
-	private EventListAdapter adapter;
+	private StoryListAdapter adapter;
 	
 	private PullToRefreshLayout mPullToRefreshLayout;
 	
 	private String uId = null;
-	private List<Event> eventList = null;
+	private List<Story> storyList = null;
 	
 	private boolean firstRun = false;
 	
-    public EventListFragment()
+    public StoryListFragment()
     {
     }
     	
@@ -47,55 +49,56 @@ public class EventListFragment extends Fragment {
     	super.onCreate(savedInstanceState);
     	setHasOptionsMenu(true);
     	
-    	eventList = new ArrayList<Event>();
-		adapter = new EventListAdapter(getActivity(), eventList);
+    	storyList = new ArrayList<Story>();
+		adapter = new StoryListAdapter(getActivity(), storyList);
 		uId = (String)getExtra("uid");
 		firstRun = ((String)getExtra("origin")).equals("splash");
 		
-		Gen.appendLog("EventListFragment::onCreate> uId=" + uId);
-		Gen.appendLog("EventListFragment::onCreate> origin=" + (String)getExtra("origin"));
+		Gen.appendLog("StoryListFragment::onCreate> uId=" + uId);
+		Gen.appendLog("StoryListFragment::onCreate> origin=" + (String)getExtra("origin"));
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
     	
-    	Gen.appendLog("EventListFragment::onCreateView> Starting");
+    	Gen.appendLog("StoryListFragment::onCreateView> Starting");
     	
-    	View view = inflater.inflate(R.layout.fragment_my_events_pull,container, false);
+    	View view = inflater.inflate(R.layout.fragment_my_stories_pull,container, false);
     	
-        mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.ptr_layout);
+        mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.my_stories_ptr_layout);
         ActionBarPullToRefresh.from(getActivity())
                 .allChildrenArePullable()
                 .listener(refreshEvent)
                 .setup(mPullToRefreshLayout);
 		
-		lv = (ListView) view.findViewById(R.id.my_events_listView_pull);
+		lv = (ListView) view.findViewById(R.id.my_stories_listView_pull);
 		lv.setAdapter(adapter);
-		lv.setOnItemClickListener(viewEvent);
+		lv.setOnItemClickListener(viewStory);
 		
 		if (uId != null && firstRun)
-			new DownloadEventsTask().execute(uId);
+			new DownloadStoriesTask().execute(uId);
 		
-		Gen.appendLog("EventListFragment::onCreateView> Ending");
+		Gen.appendLog("StoryListFragment::onCreateView> Ending");
 		return view;
     }
     
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_my_events, menu);
-        menu.findItem(R.id.list_search).getActionView();
+        inflater.inflate(R.menu.fragment_my_stories, menu);
+        menu.findItem(R.id.my_stories_search).getActionView();
     }
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-        case R.id.list_add_event:
-        	Gen.appendLog("EventListFragment::onOptionsItemSelected> Display new event fragment");
-            ((DrawerActivity)getActivity()).changeFragment(new EventNewFragment(), null);
+        case R.id.my_stories_add:
+        	Gen.appendLog("StoryListFragment::onOptionsItemSelected> Display new story fragment");
+            ((DrawerActivity)getActivity()).changeFragment(new StoryNewFragment(), null);
             return true;
         default:
+        	Toast.makeText(getActivity(), "TODO", Toast.LENGTH_SHORT).show();
             return super.onOptionsItemSelected(item);
         }
     }
@@ -104,9 +107,9 @@ public class EventListFragment extends Fragment {
     public void onResume()
     {
     	super.onResume();
-    	Gen.appendLog("EventListFragment::onResume> Starting");
+    	Gen.appendLog("StoryListFragment::onResume> Starting");
     	lv.setAdapter(adapter);
-    	Gen.appendLog("EventListFragment::onResume> Ending");
+    	Gen.appendLog("StoryListFragment::onResume> Ending");
     }
     
     
@@ -115,13 +118,14 @@ public class EventListFragment extends Fragment {
 	 *                                Event-based functions
 	 * 
 	 ***************************************************************************************/
-    private OnItemClickListener viewEvent = new OnItemClickListener() {
+    private OnItemClickListener viewStory = new OnItemClickListener() {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            Gen.appendLog("EventListFragment::viewEvent> Display event#" + ((Event)parent.getItemAtPosition(position)).getEventId());
+            Gen.appendLog("StoryListFragment::viewStory> Display story#" + ((Story)parent.getItemAtPosition(position)).getStoryId());
             Bundle bundle = new Bundle();
-            bundle.putParcelable("event", (Event)parent.getItemAtPosition(position));
-            ((DrawerActivity)getActivity()).changeFragment(new EventViewFragment(), bundle);
+            bundle.putParcelable("story", (Story)parent.getItemAtPosition(position));
+            //((DrawerActivity)getActivity()).changeFragment(new EventViewFragment(), bundle);
+            Toast.makeText(getActivity(), "TODO", Toast.LENGTH_SHORT).show();
 		}
 	};
 	
@@ -129,7 +133,7 @@ public class EventListFragment extends Fragment {
 		@Override
 		public void onRefreshStarted(View view) {
 			if (uId != null) {
-				new DownloadEventsTask().execute(uId);
+				new DownloadStoriesTask().execute(uId);
 			}
 		}
 	};
@@ -154,36 +158,35 @@ public class EventListFragment extends Fragment {
 	 *                                DownloadEventsTask Class
 	 * 
 	 ***************************************************************************************/
-	class DownloadEventsTask extends AsyncTask<String, Integer, List<Event>>
+	class DownloadStoriesTask extends AsyncTask<String, Integer, List<Story>>
     {
           protected void onPreExecute()
-          {     
-        	  //super.onPreExecute();
-          	  pg = ProgressDialog.show(getActivity(), "", "Loading events...", true);
+          {     //super.onPreExecute();
+          		pg = ProgressDialog.show(getActivity(), "", "Loading events...", true);
           } 
 
-          protected List<Event> doInBackground(String ...params)
+          protected List<Story> doInBackground(String ...params)
           {  
-                return Communication.getUserEvents(params[0]);
+                return Communication.getUserStories(params[0]);
           } 
 
-          protected void onPostExecute(List<Event> result)
+          protected void onPostExecute(List<Story> result)
           {     
                 //super.onPostExecute(result);
                 if(result == null)
                 {
-                	result = new ArrayList<Event>();
-                	Event event = new Event();
-                	event.setComment("No event available");
-	                result.add(event);
+                	result = new ArrayList<Story>();
+                	Story story = new Story();
+                	story.setTitle("No story available");
+	                result.add(story);
                 }
-                eventList.clear();
-                eventList.addAll(result);
+                storyList.clear();
+                storyList.addAll(result);
             	adapter.notifyDataSetChanged();
             	mPullToRefreshLayout.setRefreshComplete();
             	firstRun = false;
             	pg.dismiss();
-            	Gen.appendLog("EventListFragment::DownloadEventsTask::onPostExecute> Nb of events downloaded : " + eventList.size());
+            	Gen.appendLog("StoryListFragment::DownloadEventsTask::onPostExecute> Nb of stories downloaded : " + storyList.size());
           }
           
           @Override

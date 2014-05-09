@@ -179,7 +179,7 @@ public class DrawerActivity extends Activity {
         		bundle = getIntent().getExtras(); 
         		if (bundle.get(Intent.EXTRA_STREAM) != null)
         		{
-        			fragment = new NewEventFragment();
+        			fragment = new EventNewFragment();
         			changeFragment(fragment, bundle);
         			break;
         		}
@@ -188,7 +188,7 @@ public class DrawerActivity extends Activity {
             changeFragment(fragment, bundle);
             break;
         case 1:
-            fragment = new NewStoryFragment();
+            fragment = new StoryListFragment();
             changeFragment(fragment, bundle);
             break;
         case 5:
@@ -208,11 +208,12 @@ public class DrawerActivity extends Activity {
     	if (fragment != null) {
     		if (bundle != null) fragment.setArguments(bundle);
     		FragmentTransaction transaction = getFragmentManager().beginTransaction();
-    		transaction.replace(R.id.frame_container, fragment, navMenuTitles[drawerPosition]);
+    		transaction.add(R.id.frame_container, fragment, navMenuTitles[drawerPosition]);
     		if (isFirstCall) {
-    			transaction.addToBackStack(navMenuTitles[drawerPosition]);
     			isFirstCall = false;
+    			transaction.addToBackStack(navMenuTitles[drawerPosition]);
     		}
+    			
     		transaction.commit();
  
             // Update selected item and title, then close the drawer

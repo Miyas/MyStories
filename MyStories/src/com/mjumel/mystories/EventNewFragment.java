@@ -34,7 +34,7 @@ import com.mjumel.mystories.tools.Gen;
 import com.mjumel.mystories.tools.ImageWorker;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-public class NewEventFragment extends Fragment {
+public class EventNewFragment extends Fragment {
 
 	private Spinner spnCats;
 	private Button btnRemember;
@@ -52,7 +52,7 @@ public class NewEventFragment extends Fragment {
 	
 	private static final int SELECT_PICTURE = 2;
 	
-    public NewEventFragment()
+    public EventNewFragment()
     {
     }
     
@@ -76,7 +76,7 @@ public class NewEventFragment extends Fragment {
 
 		Gen.appendLog("NewEventFragment::onCreateView> mediaUri = " + mediaUri);
 		Gen.appendLog("NewEventFragment::onCreateView> uid = " + uId);
-
+		
 		View view = inflater.inflate(R.layout.fragment_new_event,container, false);
 		spnCats = (Spinner) view.findViewById(R.id.event_cats);
 		ivImage = (ImageView) view.findViewById(R.id.event_imageView);
