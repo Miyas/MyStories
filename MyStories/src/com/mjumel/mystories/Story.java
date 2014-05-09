@@ -79,6 +79,7 @@ public class Story implements Parcelable {
     
     public List<Event> getEvents() { return events; }
     public void setEvents(List<Event> value) { events = value; }
+    public int getEventsCount() { return events.size(); }
     
     public boolean isSelected() { return isSelected; }
     public void setSelected(boolean value) { isSelected = value; }
@@ -98,8 +99,6 @@ public class Story implements Parcelable {
     public boolean shownCategory() { return showCategory; }
     public void showCategory() { showCategory = true; }
     public void hideCategory() { showCategory = false; }
-    
-    
 
 	@Override
 	public int describeContents() {

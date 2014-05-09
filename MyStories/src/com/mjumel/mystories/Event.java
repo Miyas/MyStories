@@ -12,6 +12,9 @@ public class Event implements Parcelable {
 	private int rating = -1;
 	private int category = -1;
 	private String[] mediaPath = new String[3];
+	private String thumbMediaPath = null;
+	private String resizedMediaPath = null;
+	private String originalMediaPath = null;
 	private String uId = null;
 	private String storyId = null;
 	
@@ -30,7 +33,10 @@ public class Event implements Parcelable {
 	
 	public Event(Parcel in) {
 		this.comment = in.readString();
-		this.mediaPath = (String[])in.readArray(String.class.getClassLoader());
+		//this.mediaPath = (String[])in.readArray(String.class.getClassLoader());
+		this.thumbMediaPath = in.readString();
+		this.resizedMediaPath = in.readString();
+		this.originalMediaPath = in.readString();
 		this.eventId = in.readString();
 		this.rating = in.readInt();
 		this.category = in.readInt();
@@ -46,6 +52,9 @@ public class Event implements Parcelable {
 		this.rating = rating;
 		this.category = category;
 		this.mediaPath = mediaPath;
+		this.thumbMediaPath = mediaPath[0];
+		this.resizedMediaPath = mediaPath[1];
+		this.originalMediaPath = mediaPath[2];
 		this.uId = uId;
 		this.storyId = storyId;
 		this.eventId = eventId;
@@ -54,26 +63,28 @@ public class Event implements Parcelable {
 	
 	public void print()
 	{
+		Gen.appendLog("Event::printEvent> eventId = " + eventId);
+		Gen.appendLog("Event::printEvent> storyId = " + storyId);
+		Gen.appendLog("Event::printEvent> uId = " + uId);
 		Gen.appendLog("Event::printEvent> comment = " + comment);
 		Gen.appendLog("Event::printEvent> rating = " + rating);
 		Gen.appendLog("Event::printEvent> category = " + category);
-		Gen.appendLog("Event::printEvent> mediaPath = " + mediaPath);
-		Gen.appendLog("Event::printEvent> uId = " + uId);
-		Gen.appendLog("Event::printEvent> storyId = " + storyId);
-		Gen.appendLog("Event::printEvent> eventId = " + eventId);
+		Gen.appendLog("Event::printEvent> ThumbMediaPath = " + getThumbMediaPath());
+		Gen.appendLog("Event::printEvent> ResizedMediaPath = " + getResizedMediaPath());
+		Gen.appendLog("Event::printEvent> OriginalMediaPath = " + getOriginalMediaPath());
 	}
 	
 	public String getComment() { return comment; }
     public void setComment(String value) { comment = value; }
     
-    public String getThumbMediaPath() { return mediaPath[0]==null?null:baseUrl+mediaPath[0]; }
-    public void setThumbMediaPath(String value) { mediaPath[0] = value; }
+    public String getThumbMediaPath() { return thumbMediaPath == null ? null : baseUrl+thumbMediaPath; }
+    public void setThumbMediaPath(String value) { thumbMediaPath = value; }
     
-    public String getResizedMediaPath() { return mediaPath[1]==null?null:baseUrl+mediaPath[1]; }
-    public void setResizedMediaPath(String value) { mediaPath[1] = value; }
+    public String getResizedMediaPath() { return resizedMediaPath == null ? null : baseUrl+resizedMediaPath; }
+    public void setResizedMediaPath(String value) { resizedMediaPath = value; }
     
-    public String getOriginalMediaPath() { return mediaPath[2]==null?null:baseUrl+mediaPath[2]; }
-    public void setOriginalMediaPath(String value) { mediaPath[2] = value; }
+    public String getOriginalMediaPath() { return originalMediaPath == null ? null : baseUrl+originalMediaPath; }
+    public void setOriginalMediaPath(String value) { originalMediaPath = value; }
     
     public int getRating() { return rating; }
     public void setRating(int value) { rating = value; }
@@ -120,7 +131,10 @@ public class Event implements Parcelable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(comment);
-		dest.writeArray(mediaPath);
+		//dest.writeArray(mediaPath);
+		dest.writeString(thumbMediaPath);
+		dest.writeString(resizedMediaPath);
+		dest.writeString(originalMediaPath);
 		dest.writeString(eventId);
 		dest.writeInt(rating);
 		dest.writeInt(category);

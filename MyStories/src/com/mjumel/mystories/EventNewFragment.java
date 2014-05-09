@@ -1,11 +1,9 @@
 package com.mjumel.mystories;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.util.List;
 
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
@@ -16,6 +14,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,11 +33,9 @@ import com.mjumel.mystories.adapters.NothingSelectedSpinnerAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
 import com.mjumel.mystories.tools.ImageWorker;
-import com.mjumel.mystories.tools.UserPicture;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.squareup.picasso.Picasso;
 
-public class NewEventFragment extends Fragment {
+public class EventNewFragment extends Fragment {
 
 	private Spinner spnCats;
 	private Button btnRemember;
@@ -49,19 +46,15 @@ public class NewEventFragment extends Fragment {
 	private Uri mediaUri;
 	private Uri mImageCaptureUri;
 	private String uId;
-	private String mediaLocalPath;
+	private List<Event> eventList = null;
 	
 	private Intent pictureActionIntent = null;
 	protected static final int CAMERA_REQUEST = 0;
 	protected static final int GALLERY_PICTURE = 1;
 	
 	private static final int SELECT_PICTURE = 2;
-	private UserPicture userPicture;
 	
-    public NewEventFragment()
-    {
-    }
-    
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	Gen.appendLog("NewEventFragment::onCreate> Starting");
@@ -70,7 +63,8 @@ public class NewEventFragment extends Fragment {
     	Gen.appendLog("NewEventFragment::onCreate> Ending");
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
     	
@@ -78,13 +72,12 @@ public class NewEventFragment extends Fragment {
 
     	mediaUri = (Uri)getExtra(Intent.EXTRA_STREAM);
 		uId = (String)getExtra("uid");
+		eventList = (List<Event>) getExtra("events"); 
 		getActivity().getIntent().putExtra(Intent.EXTRA_STREAM, (String)null);
 
 		Gen.appendLog("NewEventFragment::onCreateView> mediaUri = " + mediaUri);
 		Gen.appendLog("NewEventFragment::onCreateView> uid = " + uId);
 		
-		userPicture = new UserPicture(mediaUri, getActivity().getContentResolver());
-
 		View view = inflater.inflate(R.layout.fragment_new_event,container, false);
 		spnCats = (Spinner) view.findViewById(R.id.event_cats);
 		ivImage = (ImageView) view.findViewById(R.id.event_imageView);
@@ -105,13 +98,26 @@ public class NewEventFragment extends Fragment {
 		if (mediaUri != null)
 			setImage(mediaUri);
 		
+		/*etComment
+		.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+			@Override
+			public boolean onEditorAction(TextView textView, int id,
+					KeyEvent keyEvent) {
+				if (id == EditorInfo.IME_ACTION_DONE) {
+					attemptLogin();
+					return true;
+				}
+				return false;
+			}
+		});*/
+		
 		ivImage.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 startDialog();
             }
         });
 		
-		btnRemember.setOnClickListener(new OnClickListener() {           
+		btnRemember.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
             	final ProgressDialog pg = ProgressDialog.show(getActivity(), "", "Posting event...", true);
@@ -122,8 +128,8 @@ public class NewEventFragment extends Fragment {
                              Gen.appendLog("NewEventFragment::onCreateView::onClick> rating = " + rbRating.getProgress());
                              Gen.appendLog("NewEventFragment::onCreateView::onClick> mediaPath = " + mediaUri==null?null:ImageWorker.getPath(getActivity(), mediaUri));
                              Gen.appendLog("NewEventFragment::onCreateView::onClick> cat = " + spnCats.getSelectedItemPosition());
-                            
-                             Communication.postEvent(
+                             
+                             int eventId = Communication.newEvent(
                             		 uId, 
                             		 etComment.getText().toString(), 
                             		 rbRating.getProgress(), 
@@ -135,6 +141,26 @@ public class NewEventFragment extends Fragment {
                                 	 pg.dismiss();
                                  }
                              });
+                             if (eventId > 0) {
+                            	 Event event = new Event(
+                            			 etComment.getText().toString(), 
+                            			 rbRating.getProgress(), 
+                            			 spnCats.getSelectedItemPosition(), 
+                            			 new String[] {
+                            				 mediaUri==null?null:ImageWorker.getPath(getActivity(), mediaUri),
+                            				 mediaUri==null?null:ImageWorker.getPath(getActivity(), mediaUri),
+                            				 mediaUri==null?null:ImageWorker.getPath(getActivity(), mediaUri)
+                            			 },
+                            			 uId, 
+                            			 (String)null, 
+                            			 String.valueOf(eventId));
+                            	 if (eventList != null) {
+                            		 eventList.add(event);
+                            		 ((DrawerActivity)getActivity()).sendEventList(eventList);
+                            		 getActivity().getSupportFragmentManager().popBackStackImmediate();
+                            	 }
+                             } else 
+                            	 Toast.makeText(getActivity(), "Error while creating event", Toast.LENGTH_SHORT).show();
                         }
                       }).start();
             }
@@ -162,7 +188,6 @@ public class NewEventFragment extends Fragment {
     	}
     	
     	mediaUri = null;
-    	mediaLocalPath = null;
     	switch(requestCode) {
 	    	case(SELECT_PICTURE):
 	    		Gen.appendLog("NewEventFragment::onActivityResult> Case SELECT_PICTURE");
@@ -341,26 +366,8 @@ public class NewEventFragment extends Fragment {
     {
     	Gen.appendLog("NewEventFragment::setImage> Starting with uri=" + uri.toString());
     	mediaUri = uri;
-    	/*MyStoriesApp.getPicasso()
-	    	.load(mediaUri)
-	    	.fit().centerCrop()
-	    	.error(R.drawable.ic_action_cancel)
-	    	.placeholder(R.drawable.ic_action_refresh)
-	    	//.resize(80, 80)
-	    	.into(ivImage);*/
-    	
     	ImageLoader.getInstance().displayImage(mediaUri.toString(), ivImage);
     	Gen.appendLog("NewEventFragment::setImage>Loading uri=" + ImageLoader.getInstance().getLoadingUriForView(ivImage));
-    	
-	    	
-    	
-    	/*userPicture.setUri(mediaUri);
-        try {
-			ivImage.setImageBitmap(userPicture.getBitmap());
-		} catch (IOException e) {
-			Gen.appendLog("NewEventFragment::setImage> IOException error", "E");
-			Gen.appendLog("NewEventFragment::setImage> " + e.getLocalizedMessage(), "E");
-		}*/
     }
     
     private Object getExtra(String id)

@@ -3,12 +3,14 @@ package com.mjumel.mystories;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.Fragment;
+
+
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,22 +27,24 @@ import com.mjumel.mystories.adapters.NewStoryListAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
 
-public class NewStoryFragment extends Fragment {
+public class StoryNewFragment extends Fragment {
 
 	private ListView lv;
 	private EditText te;
 	private ProgressDialog pg;
 	private NewStoryListAdapter adapter;
+	private Menu mMenu;
 	
 	private String uId = null;
 	private List<Event> eventList = null;
+	private List<Event> eventSelected = null;
 	private boolean checkAllSelected = false;
 	private boolean hideAllText = false;
 	private boolean hideAllStars = false;
 	
 	private boolean firstRun = false;
 	
-    public NewStoryFragment()
+    public StoryNewFragment()
     {
     }
     
@@ -50,6 +54,7 @@ public class NewStoryFragment extends Fragment {
     	setHasOptionsMenu(true);
     	
     	eventList = new ArrayList<Event>();
+    	eventSelected = new ArrayList<Event>();
 		adapter = new NewStoryListAdapter(getActivity(), eventList);
 		uId = (String)getExtra("uid");
 		firstRun = true;
@@ -81,6 +86,8 @@ public class NewStoryFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_new_story, menu);
+        menu.findItem(R.id.new_story_save).setVisible(false);
+        mMenu = menu;
     }
     
     @Override
@@ -92,6 +99,7 @@ public class NewStoryFragment extends Fragment {
         	for (Event event : eventList)
         		event.setSelected(!checkAllSelected);
         	checkAllSelected = !checkAllSelected;
+        	updateMenu();
         	adapter.notifyDataSetChanged();
             return true;
         case R.id.new_story_save:
@@ -152,11 +160,30 @@ public class NewStoryFragment extends Fragment {
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             Event event = (Event)parent.getItemAtPosition(position);
             Gen.appendLog("NewStoryFragment::viewEvent> Select event#" + ((Event)parent.getItemAtPosition(position)).getEventId() + " / Current state : " + event.isSelected());
-            event.setSelected(!event.isSelected());
+            selectEvent(event);
+            updateMenu();
             adapter.notifyDataSetChanged();
             Gen.appendLog("NewStoryFragment::viewEvent> Select event#" + ((Event)parent.getItemAtPosition(position)).getEventId() + " / New state : " + event.isSelected());
 		}
 	};
+	
+	private void selectEvent(Event event) {
+		if (event.isSelected()) {
+        	event.setSelected(false);
+        	eventSelected.remove(event);
+        } else {
+        	event.setSelected(true);
+        	eventSelected.add(event);
+        }
+        
+	}
+	
+	private void updateMenu() {
+		if (eventSelected.size() > 0)
+        	mMenu.findItem(R.id.new_story_save).setVisible(true);
+        else
+        	mMenu.findItem(R.id.new_story_save).setVisible(false);
+	}
 	
     
 	/***************************************************************************************
@@ -261,29 +288,24 @@ public class NewStoryFragment extends Fragment {
         		return -3;
         	else
         		return Communication.addStory(new Story(te.getText().toString(), userId, selEvents));
-        } 
+        }
 
         protected void onPostExecute(Integer result) {
-        	pg.setButton(ProgressDialog.BUTTON_NEUTRAL, "OK", 
-    			new OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						pg.dismiss();
-						
-			}});
-        	pg.getButton(ProgressDialog.BUTTON_NEUTRAL).invalidate();
-			switch (result) {
+        	if (pg.isShowing()) 
+        		pg.dismiss();
+        	
+        	switch (result) {
 				case -3:
-					pg.setMessage("Your story must have a title");
+					Toast.makeText(getActivity(), "Your story must have a title", Toast.LENGTH_SHORT).show();
 					break;
 				case -2:
-					pg.setMessage("Your story must have at least one event");
+					Toast.makeText(getActivity(), "Your story must have at least one event", Toast.LENGTH_SHORT).show();
 					break;
 				case -1:
-					pg.setMessage("Your story could not be saved. Please check your internet access and retry");
+					Toast.makeText(getActivity(), "Your story could not be saved. Please check your internet access and retry", Toast.LENGTH_SHORT).show();
 					break;
 				default:
-					pg.setMessage("Story successfully saved");
+					Toast.makeText(getActivity(), "Story successfully saved", Toast.LENGTH_SHORT).show();
 					break;
 			}
         	//pg.dismiss();
@@ -291,7 +313,8 @@ public class NewStoryFragment extends Fragment {
           
         @Override
   		protected void onCancelled() {
-        	pg.dismiss();
+        	if (pg.isShowing()) 
+        		pg.dismiss();
   		}
      }
 }

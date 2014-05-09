@@ -1,9 +1,9 @@
 package com.mjumel.mystories;
 
-import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,15 +16,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RatingBar;
+import android.widget.RatingBar.OnRatingBarChangeListener;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.mjumel.mystories.adapters.NothingSelectedSpinnerAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.squareup.picasso.Picasso;
 
-public class ViewEventFragment extends Fragment {
+public class EventViewFragment extends Fragment {
 
 	private View view;
 	private Spinner spnCats;
@@ -43,7 +44,7 @@ public class ViewEventFragment extends Fragment {
 	private boolean editMode = false;
 	private boolean fullScreenMode = false;
 	
-    public ViewEventFragment()
+    public EventViewFragment()
     {
     }
     
@@ -53,6 +54,7 @@ public class ViewEventFragment extends Fragment {
     	setHasOptionsMenu(true);
     	
     	event = (Event)getArguments().getParcelable("event");
+    	uId = event.getUserId();
     	mediaPath = event.getResizedMediaPath();
 
 		Gen.appendLog("ViewEventFragment::onCreate> mediaPath = " + mediaPath);
@@ -84,13 +86,6 @@ public class ViewEventFragment extends Fragment {
 		        this.getActivity()));
 		
 		if (mediaPath != null) { 
-			/*MyStoriesApp.getPicasso()
-	        	.load(mediaPath)
-	        	.fit().centerCrop()
-	        	.error(R.drawable.ic_action_cancel)
-	        	.placeholder(R.drawable.ic_action_refresh)
-	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);*/
 			ImageLoader.getInstance().displayImage(mediaPath, ivImage);
 		}
 		etComment.setText(event.getComment());
@@ -98,8 +93,18 @@ public class ViewEventFragment extends Fragment {
 		rbRatingMini.setProgress(event.getRating());
 		spnCats.setSelection(event.getCategoryId());
 		
+		rbRating.setOnRatingBarChangeListener(new OnRatingBarChangeListener() {
+			@Override
+			public void onRatingChanged(RatingBar ratingBar, float rating,
+					boolean fromUser) {
+				rbRatingMini.setProgress(ratingBar.getProgress());				
+			}
+			
+		});
+		
 		ivImage.setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
+			@Override
+			public void onClick(View arg0) {
                 if (editMode) {
                 Intent intent = new Intent();
                 intent.setType("image/*");
@@ -111,22 +116,25 @@ public class ViewEventFragment extends Fragment {
             }
         });
 		
-		btnRemember.setOnClickListener(new OnClickListener() {           
+		btnRemember.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
             	final ProgressDialog pg = ProgressDialog.show(getActivity(), "", "Posting event...", true);
                 new Thread(new Runnable() {
                         public void run() {
                              Gen.appendLog("ViewEventFragment::onCreateView::onClick> uId = " + uId);
+                             Gen.appendLog("ViewEventFragment::onCreateView::onClick> eventId = " + event.getEventId());
                              Gen.appendLog("ViewEventFragment::onCreateView::onClick> comment = " + etComment.getText().toString());
                              Gen.appendLog("ViewEventFragment::onCreateView::onClick> rating = " + rbRating.getProgress());
                              Gen.appendLog("ViewEventFragment::onCreateView::onClick> mediaPath = " + mediaPath);
+                             Gen.appendLog("ViewEventFragment::onCreateView::onClick> old path  = " + event.getResizedMediaPath());
                              Gen.appendLog("ViewEventFragment::onCreateView::onClick> cat = " + spnCats.getSelectedItemPosition());
-                             Communication.postEvent(
+                             int res = Communication.editEvent(
                             		 uId, 
+                            		 event.getEventId(),
                             		 etComment.getText().toString(), 
                             		 rbRating.getProgress(), 
-                            		 mediaPath,
+                            		 (mediaPath.compareTo(event.getResizedMediaPath()) == 0 ? null : mediaPath),
                             		 spnCats.getSelectedItemPosition()
                              );
                              getActivity().runOnUiThread(new Runnable() {
@@ -134,6 +142,20 @@ public class ViewEventFragment extends Fragment {
                                 	 pg.dismiss();
                                  }
                              });
+                             if (res <= 0)
+                            	 
+                             getActivity().runOnUiThread(new Runnable() {
+                                 public void run() {
+                                	 Toast.makeText(getActivity(), "Problem", Toast.LENGTH_SHORT).show();
+                                 }
+                             });
+                             else
+                            	 getActivity().runOnUiThread(new Runnable() {
+                                     public void run() {
+                                    	 goEditMode();
+                                     }
+                                 });
+                            	 
                         }
                       }).start();                
             }
@@ -147,13 +169,6 @@ public class ViewEventFragment extends Fragment {
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == getActivity().RESULT_OK && requestCode == SELECT_PICTURE) {
         	mediaPath = data.getData().toString();
-        	/*MyStoriesApp.getPicasso()
-	        	.load(mediaPath)
-	        	.fit().centerCrop()
-	        	.error(R.drawable.ic_action_cancel)
-	        	.placeholder(R.drawable.ic_action_refresh)
-	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);*/
         	ImageLoader.getInstance().displayImage(mediaPath, ivImage);
         }
     }
@@ -170,45 +185,11 @@ public class ViewEventFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case R.id.view_event_edit:
-        	if (mMenu != null)
-        	{
-        		mMenu.findItem(R.id.view_event_link).setVisible(false);
-        		mMenu.findItem(R.id.view_event_edit).setVisible(false);
-        		mMenu.findItem(R.id.view_event_menu_overflow).setVisible(false);
-        		mMenu.findItem(R.id.edit_event_cancel).setVisible(true);
-        		mMenu.findItem(R.id.edit_event_save).setVisible(true);
-        		
-        		rbRating.setVisibility(RatingBar.VISIBLE);
-        		rbRatingMini.setVisibility(RatingBar.GONE);
-        		spnCats.setClickable(true);
-        		etComment.setClickable(true);
-        		ivImage.setClickable(true);
-        		
-        		editMode = true;
-        	}
-            return true;
         case R.id.edit_event_cancel:
         case R.id.edit_event_save:
-        	if (mMenu != null)
-        	{
-        		mMenu.findItem(R.id.view_event_link).setVisible(true);
-        		mMenu.findItem(R.id.view_event_edit).setVisible(true);
-        		mMenu.findItem(R.id.view_event_menu_overflow).setVisible(true);
-        		mMenu.findItem(R.id.edit_event_cancel).setVisible(false);
-        		mMenu.findItem(R.id.edit_event_save).setVisible(false);
-        		
-        		rbRating.setVisibility(RatingBar.GONE);
-        		rbRatingMini.setVisibility(RatingBar.VISIBLE);
-        		spnCats.setClickable(false);
-        		etComment.setClickable(false);
-        		ivImage.setClickable(false);
-        		
-        		editMode = false;
-        	}
+        	goEditMode();
             return true;
         case R.id.view_event_full_screen:
-        	goFullScreen();
-        	return true;
         case R.id.view_event_back:
         	goFullScreen();
         	return true;
@@ -232,19 +213,9 @@ public class ViewEventFragment extends Fragment {
 	    		mMenu.findItem(R.id.view_event_back).setVisible(true);
     		}
     		
-    		view.setPadding(0, 0, 0, 0);
     		spnCats.setVisibility(RatingBar.GONE);
     		etComment.setVisibility(RatingBar.GONE);
     		btnRemember.setVisibility(RatingBar.GONE);
-    		
-    		/*MyStoriesApp.getPicasso()
-	        	.load(mediaPath)
-	        	.fit().centerCrop()
-	        	.error(R.drawable.ic_action_cancel)
-	        	.placeholder(R.drawable.ic_action_refresh)
-	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);*/
-    		//ImageLoader.getInstance().displayImage(mediaPath, ivImage);
     		
     		fullScreenMode = true;
     	} else {
@@ -255,27 +226,56 @@ public class ViewEventFragment extends Fragment {
 	    		mMenu.findItem(R.id.view_event_back).setVisible(false);
     		}
 
-    		int padV = R.dimen.activity_vertical_margin;
-    		int padH = R.dimen.activity_horizontal_margin;
-    		//view.setPadding(padH, padV, padH, padV);
     		spnCats.setVisibility(RatingBar.VISIBLE);
     		etComment.setVisibility(RatingBar.VISIBLE);
     		btnRemember.setVisibility(RatingBar.VISIBLE);
     	    
-    		/*MyStoriesApp.getPicasso()
-	        	.load(mediaPath)
-	        	.fit().centerCrop()
-	        	.error(R.drawable.ic_action_cancel)
-	        	.placeholder(R.drawable.ic_action_refresh)
-	        	//.resize(ivImage.getWidth(), ivImage.getHeight())
-	        	.into(ivImage);*/
-    		//ImageLoader.getInstance().displayImage(mediaPath, ivImage);
-    		
     		fullScreenMode = false;
     	}
     	rbRatingMini.setVisibility(RatingBar.VISIBLE);
     	rbRating.setVisibility(RatingBar.GONE);
     	//ivImage.setClickable(false);
     	ivImage.invalidate();
+    }
+    
+    private void goEditMode()
+    {
+    	if (!editMode) {
+	    	if (mMenu != null)
+	    	{
+	    		mMenu.findItem(R.id.view_event_link).setVisible(false);
+	    		mMenu.findItem(R.id.view_event_edit).setVisible(false);
+	    		mMenu.findItem(R.id.view_event_menu_overflow).setVisible(false);
+	    		mMenu.findItem(R.id.edit_event_cancel).setVisible(true);
+	    		mMenu.findItem(R.id.edit_event_save).setVisible(true);
+    		}
+    		
+    		rbRating.setVisibility(RatingBar.VISIBLE);
+    		rbRatingMini.setVisibility(RatingBar.GONE);
+    		btnRemember.setVisibility(RatingBar.VISIBLE);
+    		spnCats.setClickable(true);
+    		etComment.setClickable(true);
+    		ivImage.setClickable(true);
+    		
+    		editMode = true;
+    	} else {
+    		if (mMenu != null)
+        	{
+        		mMenu.findItem(R.id.view_event_link).setVisible(true);
+        		mMenu.findItem(R.id.view_event_edit).setVisible(true);
+        		mMenu.findItem(R.id.view_event_menu_overflow).setVisible(true);
+        		mMenu.findItem(R.id.edit_event_cancel).setVisible(false);
+        		mMenu.findItem(R.id.edit_event_save).setVisible(false);
+        	}
+    		
+    		rbRating.setVisibility(RatingBar.GONE);
+    		rbRatingMini.setVisibility(RatingBar.VISIBLE);
+    		btnRemember.setVisibility(RatingBar.GONE);
+    		spnCats.setClickable(false);
+    		etComment.setClickable(false);
+    		ivImage.setClickable(false);
+    		
+    		editMode = false;
+    	}
     }
 }

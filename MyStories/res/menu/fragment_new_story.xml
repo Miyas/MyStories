@@ -36,6 +36,6 @@
 		        android:showAsAction="withText|ifRoom|collapseActionView"
 		        android:title="Hide Stars"/>
         </menu>
-    </item>
+     </item>
 
 </menu>

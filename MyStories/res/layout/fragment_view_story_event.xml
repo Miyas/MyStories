@@ -1,0 +1,47 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="com.mjumel.mystories.NewEventActivity$PlaceholderFragment" >
+	
+    <TextView
+	    android:id="@+id/story_event_comment"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentBottom="true"
+	    android:layout_centerHorizontal="true"
+	    android:lines="3"
+	    android:text="TextView" />
+    	
+	<ImageView
+	    android:id="@+id/story_event_image"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:layout_above="@id/story_event_comment"
+	    android:layout_alignParentRight="true"
+	    android:layout_alignParentTop="true"
+	    android:layout_centerInParent="false"
+	    android:background="@layout/image_border"
+	    android:clickable="false"
+	    android:contentDescription="TODO"
+	    android:scaleType="fitCenter" />
+
+	<RatingBar
+	    android:id="@+id/story_event_rating"
+	    style="?android:attr/ratingBarStyleSmall"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignRight="@id/story_event_image"
+	    android:layout_alignTop="@id/story_event_image"
+	    android:layout_marginRight="5dp"
+	    android:layout_marginTop="5dp"
+	    android:isIndicator="true"
+	    android:max="5"
+	    android:numStars="5"
+	    android:stepSize="1" />
+
+
+
+</RelativeLayout>

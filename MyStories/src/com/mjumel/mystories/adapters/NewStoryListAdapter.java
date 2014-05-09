@@ -13,7 +13,6 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.mjumel.mystories.Event;
-import com.mjumel.mystories.MyStoriesApp;
 import com.mjumel.mystories.R;
 import com.mjumel.mystories.tools.Gen;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -26,7 +25,6 @@ public class NewStoryListAdapter extends ArrayAdapter<Event> {
 		TextView comment;
 		RatingBar rating;
 		ImageView image;
-		//SquaredImageView  image;
 	}
 
 	public NewStoryListAdapter(Activity context, List<Event> events) {
@@ -45,8 +43,8 @@ public class NewStoryListAdapter extends ArrayAdapter<Event> {
 		if ( rowView == null ) {
 			rowView = inflater.inflate(R.layout.fragment_new_story_item, null);
 			holder = new ViewHolder();
-            holder.comment = (TextView) rowView.findViewById(R.id.event_item_textView);
-            holder.rating = (RatingBar) rowView.findViewById(R.id.event_item_ratingBar);
+            holder.comment = (TextView) rowView.findViewById(R.id.my_stories_item_title);
+            holder.rating = (RatingBar) rowView.findViewById(R.id.my_stories_item_ratingBar);
             holder.image = (ImageView) rowView.findViewById(R.id.event_item_imageView);
             rowView.setTag(holder);
         } else {
@@ -54,29 +52,19 @@ public class NewStoryListAdapter extends ArrayAdapter<Event> {
         }
 		
 		Event event = this.getItem(position);
-		//Gen.appendLog("EventListAdapter::getView> event#" + position + " / eventid#" + event.getEventId());
-		
-		/*if (position%2 == 0)
-			if (rowView.isSelected())
-				rowView.setBackgroundColor(context.getResources().getColor(R.color.background_dark));
-			else
-				rowView.setBackgroundColor(context.getResources().getColor(R.color.background_light));
-		else
-			if (rowView.isSelected())
-				rowView.setBackgroundColor(Color.BLACK);
-			else
-				rowView.setBackgroundColor(Color.WHITE);*/
 		
 		if (event.isSelected())
 			rowView.setBackgroundColor(context.getResources().getColor(R.color.background_dark));
+		else if (position%2 == 0)
+			rowView.setBackgroundColor(context.getResources().getColor(R.color.item_background_2));
 		else
-			rowView.setBackgroundColor(context.getResources().getColor(R.color.background_light));
+			rowView.setBackgroundColor(context.getResources().getColor(R.color.item_background_1));
 		
 		holder.comment.setText(event.getComment());
 		holder.comment.setTextColor(Color.BLACK);
 		
 		if (event.getRating() < 0)
-			holder.rating.setVisibility(RatingBar.INVISIBLE);
+			holder.rating.setVisibility(RatingBar.GONE);
 		else
 		{
 			if (event.getRating() == 0)
@@ -92,44 +80,12 @@ public class NewStoryListAdapter extends ArrayAdapter<Event> {
 			Gen.appendLog("EventListAdapter::getView> Image loading for event#" + position + " (" + event.getThumbMediaPath() + ")");
 			holder.image.setVisibility(ImageView.VISIBLE);
 			
-			/*MyStoriesApp.getPicasso()
-	        	.load(event.getThumbMediaPath())
-	        	.centerCrop()
-	        	.error(R.drawable.ic_action_cancel)
-	        	.placeholder(R.drawable.ic_action_refresh)
-	        	.resize(80, 80)
-	        	.into(holder.image);*/
-			
 			ImageLoader.getInstance().displayImage(event.getThumbMediaPath(), holder.image);
-	        
-			// Change layout display in function of the position of the view in the list
-			/*LayoutParams lpImage = new LayoutParams(80,80);
-			LayoutParams lpText = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-			if (position%2 == 0) {
-				lpImage.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, -1);
-				lpText.addRule(RelativeLayout.LEFT_OF, R.id.event_item_imageView);
-			} else {
-				lpImage.addRule(RelativeLayout.ALIGN_PARENT_LEFT, -1);
-				lpText.addRule(RelativeLayout.RIGHT_OF, R.id.event_item_imageView);
-			}
-			holder.image.setLayoutParams(lpImage);
-			holder.comment.setLayoutParams(lpText);
-			//holder.rating.setLayoutParams(lpText);
-			 */
-			
-			/*UserPicture userPicture = new UserPicture(Uri.parse(event.getThumbMediaPath()), context.getContentResolver());
-	        try {
-	        	holder.image.setImageBitmap(userPicture.getBitmap());
-			} catch (IOException e) {
-				e.printStackTrace();
-				Gen.appendLog("EventListAdapter::getView> IOException Error ("+event.getThumbMediaPath()+")");
-			}
-	        userPicture = null;*/
 		}
 		else
 		{
 			holder.image.setImageBitmap(null);
-			holder.image.setVisibility(ImageView.INVISIBLE);
+			holder.image.setVisibility(ImageView.GONE);
 		}
 
         //Gen.appendLog("EventListAdapter::getView> Ending event#"+position);

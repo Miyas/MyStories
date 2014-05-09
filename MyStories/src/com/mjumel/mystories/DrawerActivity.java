@@ -1,17 +1,19 @@
 package com.mjumel.mystories;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,7 +26,7 @@ import com.mjumel.mystories.adapters.NavDrawerListAdapter;
 import com.mjumel.mystories.tools.Gen;
 import com.mjumel.mystories.tools.Prefs;
 
-public class DrawerActivity extends Activity {
+public class DrawerActivity extends FragmentActivity {
 	private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -41,6 +43,7 @@ public class DrawerActivity extends Activity {
     
     private int drawerPosition;
     private boolean isFirstCall = false;
+    private List<Event> eventList;
  
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,8 +109,9 @@ public class DrawerActivity extends Activity {
         if (savedInstanceState == null) {
         	// TODO
         	// Don't forget to change this value to 0 when debug is done
+        	isFirstCall = true;
             displayView(0);
-            isFirstCall = true;
+            
         }
     }
     
@@ -179,7 +183,7 @@ public class DrawerActivity extends Activity {
         		bundle = getIntent().getExtras(); 
         		if (bundle.get(Intent.EXTRA_STREAM) != null)
         		{
-        			fragment = new NewEventFragment();
+        			fragment = new EventNewFragment();
         			changeFragment(fragment, bundle);
         			break;
         		}
@@ -188,7 +192,7 @@ public class DrawerActivity extends Activity {
             changeFragment(fragment, bundle);
             break;
         case 1:
-            fragment = new NewStoryFragment();
+            fragment = new StoryListFragment();
             changeFragment(fragment, bundle);
             break;
         case 5:
@@ -207,12 +211,18 @@ public class DrawerActivity extends Activity {
     	Gen.appendLog("DrawerActivity::changeFragment> drawerPosition = " + drawerPosition);
     	if (fragment != null) {
     		if (bundle != null) fragment.setArguments(bundle);
-    		FragmentTransaction transaction = getFragmentManager().beginTransaction();
+    		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
     		transaction.replace(R.id.frame_container, fragment, navMenuTitles[drawerPosition]);
     		if (isFirstCall) {
-    			transaction.addToBackStack(navMenuTitles[drawerPosition]);
     			isFirstCall = false;
+    			Gen.appendLog("DrawerActivity::changeFragment> First call, no back stack");
+    		} else {
+    			transaction.addToBackStack(navMenuTitles[drawerPosition]);
+    			Gen.appendLog("DrawerActivity::changeFragment> Other call, back stack");
     		}
+    		transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+    		//}
+    			
     		transaction.commit();
  
             // Update selected item and title, then close the drawer
@@ -225,6 +235,20 @@ public class DrawerActivity extends Activity {
             // Error in creating fragment
         	Gen.appendLog("DrawerActivity::changeFragment> Error in creating fragment", "E");
         }
+    }
+    
+    public void sendEventList(List<Event> eventList) {
+    	this.eventList = eventList;
+    }
+    
+    public List<Event> getEventList() {
+    	if (eventList != null) {
+	    	List<Event> events = new ArrayList<Event>();
+	    	events.addAll(eventList);
+	    	eventList = null;
+	    	return events;
+    	} else
+    		return null;
     }
  
     @Override

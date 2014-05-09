@@ -3,10 +3,10 @@ package com.mjumel.mystories;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,16 +38,17 @@ public class EventListFragment extends Fragment {
 	
 	private boolean firstRun = false;
 	
-    public EventListFragment()
-    {
-    }
     	
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	setHasOptionsMenu(true);
     	
-    	eventList = new ArrayList<Event>();
+		eventList = (List<Event>) getExtra("events");
+		if (eventList == null)
+			eventList = new ArrayList<Event>();
+		
 		adapter = new EventListAdapter(getActivity(), eventList);
 		uId = (String)getExtra("uid");
 		firstRun = ((String)getExtra("origin")).equals("splash");
@@ -64,6 +65,14 @@ public class EventListFragment extends Fragment {
     	
     	View view = inflater.inflate(R.layout.fragment_my_events_pull,container, false);
     	
+    	List<Event> events = ((DrawerActivity)getActivity()).getEventList(); 
+    	if (events != null) {
+    		eventList.clear();
+    		eventList.addAll(events);
+    		events = null;
+    		adapter.notifyDataSetChanged();
+    	}
+    	
         mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.ptr_layout);
         ActionBarPullToRefresh.from(getActivity())
                 .allChildrenArePullable()
@@ -74,7 +83,7 @@ public class EventListFragment extends Fragment {
 		lv.setAdapter(adapter);
 		lv.setOnItemClickListener(viewEvent);
 		
-		if (uId != null && firstRun)
+		if (uId != null && eventList.size() <= 0 && firstRun)
 			new DownloadEventsTask().execute(uId);
 		
 		Gen.appendLog("EventListFragment::onCreateView> Ending");
@@ -84,7 +93,7 @@ public class EventListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_list_events, menu);
+        inflater.inflate(R.menu.fragment_my_events, menu);
         menu.findItem(R.id.list_search).getActionView();
     }
     
@@ -93,7 +102,9 @@ public class EventListFragment extends Fragment {
         switch (item.getItemId()) {
         case R.id.list_add_event:
         	Gen.appendLog("EventListFragment::onOptionsItemSelected> Display new event fragment");
-            ((DrawerActivity)getActivity()).changeFragment(new NewEventFragment(), null);
+        	Bundle bundle = new Bundle();
+        	bundle.putParcelableArrayList("events", new ArrayList<Event>(eventList));
+            ((DrawerActivity)getActivity()).changeFragment(new EventNewFragment(), bundle);
             return true;
         default:
             return super.onOptionsItemSelected(item);
@@ -121,7 +132,8 @@ public class EventListFragment extends Fragment {
             Gen.appendLog("EventListFragment::viewEvent> Display event#" + ((Event)parent.getItemAtPosition(position)).getEventId());
             Bundle bundle = new Bundle();
             bundle.putParcelable("event", (Event)parent.getItemAtPosition(position));
-            ((DrawerActivity)getActivity()).changeFragment(new ViewEventFragment(), bundle);
+            bundle.putParcelableArrayList("events", new ArrayList<Event>(eventList));
+            ((DrawerActivity)getActivity()).changeFragment(new EventViewFragment(), bundle);
 		}
 	};
 	
@@ -157,8 +169,9 @@ public class EventListFragment extends Fragment {
 	class DownloadEventsTask extends AsyncTask<String, Integer, List<Event>>
     {
           protected void onPreExecute()
-          {     super.onPreExecute();
-          		pg = ProgressDialog.show(getActivity(), "", "Loading events...", true);
+          {     
+        	  //super.onPreExecute();
+          	  pg = ProgressDialog.show(getActivity(), "", "Loading events...", true);
           } 
 
           protected List<Event> doInBackground(String ...params)
@@ -168,7 +181,7 @@ public class EventListFragment extends Fragment {
 
           protected void onPostExecute(List<Event> result)
           {     
-                super.onPostExecute(result);
+                //super.onPostExecute(result);
                 if(result == null)
                 {
                 	result = new ArrayList<Event>();
