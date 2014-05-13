@@ -11,24 +11,15 @@
         android:showAsAction="ifRoom"
         android:title="Retake picture"
         android:icon="@drawable/ic_action_camera"/>
-    
+	<item
+        android:id="@+id/new_event_full_screen"
+        android:orderInCategory="100"
+        android:showAsAction="withText|ifRoom"
+        android:title="Full Screen"/>
     <item
-        android:id="@+id/menu_overflow"
-        android:icon="@drawable/ic_action_overflow"
-        android:orderInCategory="11111"
-        android:showAsAction="always">
-        <menu>
-            <item
-		        android:id="@+id/new_event_full_screen"
-		        android:orderInCategory="100"
-		        android:showAsAction="withText|ifRoom|collapseActionView"
-		        android:title="Full Screen"/>
-		    <item
-		        android:id="@+id/new_event_hide_media"
-		        android:orderInCategory="110"
-		        android:showAsAction="withText|ifRoom|collapseActionView"
-		        android:title="Hide Media"/>
-        </menu>
-    </item>
+        android:id="@+id/new_event_hide_media"
+        android:orderInCategory="110"
+        android:showAsAction="withText|ifRoom"
+        android:title="Hide Media"/>
     
 </menu>

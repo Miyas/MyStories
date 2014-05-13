@@ -1,6 +1,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-     >
+    xmlns:tools="http://schemas.android.com/tools">
 
     <item
         android:id="@+id/new_story_check_all"
@@ -12,30 +11,21 @@
         android:showAsAction="ifRoom"
         android:title="Save Story"
         android:icon="@drawable/ic_action_save"/>
-    
+	<item
+        android:id="@+id/new_story_filter"
+        android:orderInCategory="100"
+        android:showAsAction="withText|ifRoom"
+        android:title="Show/Hide Filters"
+        android:icon="@drawable/ic_action_search"/>
+	<item
+        android:id="@+id/new_story_hide_text"
+        android:orderInCategory="110"
+        android:showAsAction="ifRoom|withText"
+        android:title="Hide Text"/>
     <item
-        android:id="@+id/new_story_overflow"
-        android:icon="@drawable/ic_action_overflow"
-        android:orderInCategory="11111"
-        android:showAsAction="always">
-        <menu>
-            <item
-		        android:id="@+id/new_story_filter"
-		        android:orderInCategory="100"
-		        android:showAsAction="withText|ifRoom|collapseActionView"
-		        android:title="Show/Hide Filters"
-		        android:icon="@drawable/ic_action_search"/>
-            <item
-		        android:id="@+id/new_story_hide_text"
-		        android:orderInCategory="110"
-		        android:showAsAction="withText|ifRoom|collapseActionView"
-		        android:title="Hide Text"/>
-		    <item
-		        android:id="@+id/new_story_hide_stars"
-		        android:orderInCategory="120"
-		        android:showAsAction="withText|ifRoom|collapseActionView"
-		        android:title="Hide Stars"/>
-        </menu>
-     </item>
+        android:id="@+id/new_story_hide_stars"
+        android:orderInCategory="120"
+        android:showAsAction="ifRoom|withText"
+        android:title="Hide Stars"/>
 
 </menu>
