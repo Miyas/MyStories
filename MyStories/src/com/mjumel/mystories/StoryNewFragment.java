@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -36,6 +37,7 @@ public class StoryNewFragment extends Fragment {
 	private Menu mMenu;
 	
 	private String uId = null;
+	private ArrayList<Story> storyList = null;
 	private List<Event> eventList = null;
 	private List<Event> eventSelected = null;
 	private boolean checkAllSelected = false;
@@ -43,6 +45,7 @@ public class StoryNewFragment extends Fragment {
 	private boolean hideAllStars = false;
 	
 	private boolean firstRun = false;
+	
 	
     public StoryNewFragment()
     {
@@ -56,11 +59,13 @@ public class StoryNewFragment extends Fragment {
     	eventList = new ArrayList<Event>();
     	eventSelected = new ArrayList<Event>();
 		adapter = new NewStoryListAdapter(getActivity(), eventList);
+		storyList = getArguments().getParcelableArrayList("stories"); 
 		uId = (String)getExtra("uid");
 		firstRun = true;
 		
 		Gen.appendLog("NewStoryFragment::onCreate> uId=" + uId);
 		Gen.appendLog("NewStoryFragment::onCreate> origin=" + (String)getExtra("origin"));
+		Gen.appendLog("NewStoryFragment::onCreate> storyList nb = " + storyList.size());
     }
 
     @Override
@@ -71,9 +76,9 @@ public class StoryNewFragment extends Fragment {
     	
     	View view = inflater.inflate(R.layout.fragment_new_story,container, false);
     	te = (EditText) view.findViewById(R.id.new_story_title);
-		lv = (ListView) view.findViewById(R.id.new_story_listView);
+    	lv = (ListView) view.findViewById(R.id.new_story_listView);
 		lv.setAdapter(adapter);
-		lv.setOnItemClickListener(viewEvent);
+		lv.setOnItemClickListener(selectEvent);
 		
 		if (uId != null && firstRun)
 			new DownloadEventsTask().execute(uId);
@@ -117,7 +122,7 @@ public class StoryNewFragment extends Fragment {
         		if (hideAllText) {
         			event.hideText();
         		} else {
-        			event.shownText();
+        			event.showText();
         		}
         	}
         	hideAllText = !hideAllText;
@@ -127,9 +132,9 @@ public class StoryNewFragment extends Fragment {
         	Gen.appendLog("NewStoryFragment::onOptionsItemSelected> Menu new_story_hide_stars");
         	for (Event event : eventList) {
         		if (hideAllStars) {
-        			event.hideText();
+        			event.hideStars();
         		} else {
-        			event.shownText();
+        			event.showStars();
         		}
         	}
         	hideAllStars = !hideAllStars;
@@ -155,14 +160,12 @@ public class StoryNewFragment extends Fragment {
 	 *                                Event-based functions
 	 * 
 	 ***************************************************************************************/
-    private OnItemClickListener viewEvent = new OnItemClickListener() {
+    private OnItemClickListener selectEvent = new OnItemClickListener() {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             Event event = (Event)parent.getItemAtPosition(position);
             Gen.appendLog("NewStoryFragment::viewEvent> Select event#" + ((Event)parent.getItemAtPosition(position)).getEventId() + " / Current state : " + event.isSelected());
             selectEvent(event);
-            updateMenu();
-            adapter.notifyDataSetChanged();
             Gen.appendLog("NewStoryFragment::viewEvent> Select event#" + ((Event)parent.getItemAtPosition(position)).getEventId() + " / New state : " + event.isSelected());
 		}
 	};
@@ -175,14 +178,27 @@ public class StoryNewFragment extends Fragment {
         	event.setSelected(true);
         	eventSelected.add(event);
         }
-        
+		adapter.notifyDataSetChanged();
+		updateMenu();
 	}
 	
 	private void updateMenu() {
-		if (eventSelected.size() > 0)
+		Gen.appendLog("NewStoryFragment::updateMenu> Starting");
+		if (eventSelected.size() > 0) {
         	mMenu.findItem(R.id.new_story_save).setVisible(true);
-        else
+        	Gen.appendLog("NewStoryFragment::updateMenu> Showing action Save");
+		} else {
         	mMenu.findItem(R.id.new_story_save).setVisible(false);
+        	Gen.appendLog("NewStoryFragment::updateMenu> Hiding action Save");
+		}
+		Gen.appendLog("NewStoryFragment::updateMenu> Ending");
+	}
+	
+	//Fonction appelée au clic d'une des checkbox
+	public void cbChecked(View v) {
+		CheckBox cb = (CheckBox) v;
+		int position = Integer.parseInt(cb.getTag().toString());
+		selectEvent(eventList.get(position));
 	}
 	
     
@@ -256,6 +272,7 @@ public class StoryNewFragment extends Fragment {
 	class SaveStoryTask extends AsyncTask<List<Event>, Integer, Integer> {
 		
 		private String userId = null;
+		private Story story = null;
 		
 		public SaveStoryTask(String uId) {
 			userId = uId;
@@ -286,8 +303,10 @@ public class StoryNewFragment extends Fragment {
         		return -2;
         	else if (te.getText().length() <= 0)
         		return -3;
-        	else
-        		return Communication.addStory(new Story(te.getText().toString(), userId, selEvents));
+        	else {
+        		story = new Story(te.getText().toString(), userId, selEvents);
+        		return Communication.addStory(story);
+        	}
         }
 
         protected void onPostExecute(Integer result) {
@@ -306,6 +325,12 @@ public class StoryNewFragment extends Fragment {
 					break;
 				default:
 					Toast.makeText(getActivity(), "Story successfully saved", Toast.LENGTH_SHORT).show();
+					if (storyList != null) {
+	               		Gen.appendLog("StoryNewFragment$SaveStoryTask::onPostExecute> Adding new story and going back to list");
+	               		storyList.add(0, story);
+	               		((DrawerActivity)getActivity()).sendStoryList(storyList);
+	               		getActivity().getSupportFragmentManager().popBackStackImmediate();
+	               	 }
 					break;
 			}
         	//pg.dismiss();

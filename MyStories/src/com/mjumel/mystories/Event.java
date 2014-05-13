@@ -11,7 +11,6 @@ public class Event implements Parcelable {
 	private String comment = null;
 	private int rating = -1;
 	private int category = -1;
-	private String[] mediaPath = new String[3];
 	private String thumbMediaPath = null;
 	private String resizedMediaPath = null;
 	private String originalMediaPath = null;
@@ -33,7 +32,6 @@ public class Event implements Parcelable {
 	
 	public Event(Parcel in) {
 		this.comment = in.readString();
-		//this.mediaPath = (String[])in.readArray(String.class.getClassLoader());
 		this.thumbMediaPath = in.readString();
 		this.resizedMediaPath = in.readString();
 		this.originalMediaPath = in.readString();
@@ -42,6 +40,11 @@ public class Event implements Parcelable {
 		this.category = in.readInt();
 		this.uId = in.readString();
 		this.storyId = in.readString();
+		this.isSelected = in.readInt()==0?false:true;
+		this.showStars = in.readInt()==0?false:true;
+		this.showText = in.readInt()==0?false:true;
+		this.showMedia = in.readInt()==0?false:true;
+		this.showCategory = in.readInt()==0?false:true;
 	}
 	
 	public Event(String comment, int rating, int category, 
@@ -51,7 +54,6 @@ public class Event implements Parcelable {
 		this.comment = comment;
 		this.rating = rating;
 		this.category = category;
-		this.mediaPath = mediaPath;
 		this.thumbMediaPath = mediaPath[0];
 		this.resizedMediaPath = mediaPath[1];
 		this.originalMediaPath = mediaPath[2];
@@ -131,7 +133,6 @@ public class Event implements Parcelable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(comment);
-		//dest.writeArray(mediaPath);
 		dest.writeString(thumbMediaPath);
 		dest.writeString(resizedMediaPath);
 		dest.writeString(originalMediaPath);
@@ -140,6 +141,11 @@ public class Event implements Parcelable {
 		dest.writeInt(category);
 		dest.writeString(uId);
 		dest.writeString(storyId);
+		dest.writeInt(isSelected?1:0);
+		dest.writeInt(showStars?1:0);
+		dest.writeInt(showText?1:0);
+		dest.writeInt(showMedia?1:0);
+		dest.writeInt(showCategory?1:0);
 	}
 	
 	public static final Parcelable.Creator<Event> CREATOR = new Parcelable.Creator<Event>()

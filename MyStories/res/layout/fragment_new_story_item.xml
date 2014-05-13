@@ -4,29 +4,39 @@
     android:minHeight="80dp"
     android:maxHeight="80dp"
     android:layout_height="80dp"
+    android:clickable="false"
+	android:descendantFocusability="blocksDescendants"
+	android:focusable="false"
+	android:focusableInTouchMode="false"
     android:background="@drawable/new_story_list_item_selector">
 
     <ImageView 
-        android:id="@+id/event_item_imageView"
+        android:id="@+id/new_story_item_image"
+        android:clickable="false"
+		android:focusable="false"
+		android:focusableInTouchMode="false"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:scaleType="centerCrop"
         android:src="@drawable/abc_ab_bottom_solid_dark_holo" />
-
-    <TextView
-        android:id="@+id/my_stories_item_title"
-        android:layout_width="match_parent"
+    <!--  
+    <CheckBox
+        android:id="@+id/new_story_item_checkbox"
+        android:clickable="false"
+		android:focusable="false"
+		android:focusableInTouchMode="false"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@id/event_item_imageView"
-        android:text="TextView"
-        android:textColor="#FFFFFF" />
-
+        android:layout_alignParentLeft="true" />
+    -->
+    
     <RatingBar
-        android:id="@+id/my_stories_item_ratingBar"
+        android:id="@+id/new_story_item_ratingBar"
+        android:clickable="false"
+		android:focusable="false"
+		android:focusableInTouchMode="false"
         style="?android:attr/ratingBarStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -36,5 +46,21 @@
         android:max="5"
         android:numStars="5"
         android:stepSize="1" />
+
+    <TextView
+        android:id="@+id/new_story_item_title"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/new_story_item_ratingBar"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@id/new_story_item_image"
+        android:clickable="false"
+        android:ellipsize="marquee"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:maxLines="2"
+        android:text="TextView"
+        android:textColor="#FFFFFF" />
 
 </RelativeLayout>

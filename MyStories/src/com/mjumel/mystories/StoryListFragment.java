@@ -3,9 +3,9 @@ package com.mjumel.mystories;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
-
+import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
+import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -22,14 +22,9 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.mjumel.mystories.adapters.EventListAdapter;
 import com.mjumel.mystories.adapters.StoryListAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
-
-import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
-import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
-import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
 public class StoryListFragment extends Fragment {
 
@@ -48,12 +43,16 @@ public class StoryListFragment extends Fragment {
     {
     }
     	
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	setHasOptionsMenu(true);
     	
-    	storyList = new ArrayList<Story>();
+    	storyList = (List<Story>) getExtra("stories");
+    	if (storyList == null)
+    		storyList = new ArrayList<Story>();
+    	
 		adapter = new StoryListAdapter(getActivity(), storyList);
 		uId = (String)getExtra("uid");
 		firstRun = ((String)getExtra("origin")).equals("splash");
@@ -70,6 +69,14 @@ public class StoryListFragment extends Fragment {
     	
     	View view = inflater.inflate(R.layout.fragment_my_stories_pull,container, false);
     	
+    	List<Story> stories = ((DrawerActivity)getActivity()).getStoryList(); 
+    	if (stories != null) {
+    		storyList.clear();
+    		storyList.addAll(stories);
+    		stories = null;
+    		adapter.notifyDataSetChanged();
+    	}
+    	
         mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.my_stories_ptr_layout);
         ActionBarPullToRefresh.from(getActivity())
                 .allChildrenArePullable()
@@ -80,7 +87,7 @@ public class StoryListFragment extends Fragment {
 		lv.setAdapter(adapter);
 		lv.setOnItemClickListener(viewStory);
 		
-		if (uId != null && firstRun)
+		if (uId != null && storyList.size() <= 0 && firstRun)
 			new DownloadStoriesTask().execute(uId);
 		
 		Gen.appendLog("StoryListFragment::onCreateView> Ending");
@@ -99,7 +106,9 @@ public class StoryListFragment extends Fragment {
         switch (item.getItemId()) {
         case R.id.my_stories_add:
         	Gen.appendLog("StoryListFragment::onOptionsItemSelected> Display new story fragment");
-            ((DrawerActivity)getActivity()).changeFragment(new StoryNewFragment(), null);
+        	Bundle bundle = new Bundle();
+        	bundle.putParcelableArrayList("stories", new ArrayList<Story>(storyList));
+            ((DrawerActivity)getActivity()).changeFragment(new StoryNewFragment(), bundle);
             return true;
         default:
         	Toast.makeText(getActivity(), "TODO", Toast.LENGTH_SHORT).show();
@@ -126,10 +135,6 @@ public class StoryListFragment extends Fragment {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             Gen.appendLog("StoryListFragment::viewStory> Display story#" + ((Story)parent.getItemAtPosition(position)).getStoryId());
-            //Bundle bundle = new Bundle();
-            //bundle.putParcelable("story", (Story)parent.getItemAtPosition(position));
-            //((DrawerActivity)getActivity()).changeFragment(new StoryViewFragment(), bundle);
-            
             Intent intent = new Intent(getActivity().getApplicationContext(), StoryViewFragment.class);
 			intent.putExtra("story", (Story)parent.getItemAtPosition(position));;			
 			startActivity(intent);

@@ -1,6 +1,9 @@
 package com.mjumel.mystories;
 
+import java.io.File;
+
 import android.app.Application;
+import android.os.Environment;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -8,6 +11,7 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 public class MyStoriesApp extends Application {
 	public static String LOG_FILENAME;
+	public final static String CACHE_DIR = Environment.getExternalStorageDirectory() + "/.mystories/";
 	
     @Override
     public void onCreate() {
@@ -28,5 +32,6 @@ public class MyStoriesApp extends Application {
         ImageLoader.getInstance().init(config);
         
         LOG_FILENAME = getString(R.string.log_filename);
+        new File(CACHE_DIR).mkdirs();
     }
 }

@@ -44,6 +44,7 @@ public class DrawerActivity extends FragmentActivity {
     private int drawerPosition;
     private boolean isFirstCall = false;
     private List<Event> eventList;
+    private List<Story> storyList;
  
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,8 +163,11 @@ public class DrawerActivity extends FragmentActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         // if nav drawer is opened, hide the action items
-        //boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
-        //menu.findItem(R.id.action_settings).setVisible(!drawerOpen);
+        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
+        menu.findItem(R.id.action_settings).setVisible(!drawerOpen);
+        
+        
+    	Gen.appendLog("DrawerActivity::onPrepareOptionsMenu> Starting");
         return super.onPrepareOptionsMenu(menu);
     }
  
@@ -229,14 +233,23 @@ public class DrawerActivity extends FragmentActivity {
             mDrawerList.setItemChecked(drawerPosition, true);
             mDrawerList.setSelection(drawerPosition);
             setTitle(navMenuTitles[drawerPosition]);
+            
+            Gen.appendLog("DrawerActivity::changeFragment> Changing icon");
             getActionBar().setIcon(navMenuIcons.getResourceId(drawerPosition, -1));
+            Gen.appendLog("DrawerActivity::changeFragment> End Changing icon");
             mDrawerLayout.closeDrawer(mDrawerList);
         } else {
             // Error in creating fragment
-        	Gen.appendLog("DrawerActivity::changeFragment> Error in creating fragment", "E");
+        	Gen.appendError("DrawerActivity::changeFragment> Error in creating fragment");
         }
     }
     
+    /***************************************************************************************
+	 *
+	 *                                Communication between fragments
+	 * 
+	 ***************************************************************************************/
+	
     public void sendEventList(List<Event> eventList) {
     	this.eventList = eventList;
     }
@@ -250,6 +263,22 @@ public class DrawerActivity extends FragmentActivity {
     	} else
     		return null;
     }
+    
+    public void sendStoryList(List<Story> storyList) {
+    	this.storyList = storyList;
+    }
+    
+    public List<Story> getStoryList() {
+    	if (storyList != null) {
+	    	List<Story> stories = new ArrayList<Story>();
+	    	stories.addAll(storyList);
+	    	storyList = null;
+	    	return stories;
+    	} else
+    		return null;
+    }
+    
+    
  
     @Override
     public void setTitle(CharSequence title) {

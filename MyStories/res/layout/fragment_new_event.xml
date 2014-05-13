@@ -60,4 +60,18 @@
         android:scaleType="fitCenter"
         android:contentDescription="TODO"/>
 
+	<TextView
+	    android:id="@+id/event_imageView_text"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignBottom="@id/event_imageView"
+	    android:layout_alignLeft="@id/event_imageView"
+	    android:layout_alignParentTop="true"
+	    android:layout_alignRight="@id/event_imageView"
+	    android:layout_alignTop="@id/event_imageView"
+	    android:gravity="center"
+	    android:hint="Click me to add a new media"
+	    android:textAlignment="center"
+	    android:textAppearance="?android:attr/textAppearanceLarge" />
+
 </RelativeLayout>

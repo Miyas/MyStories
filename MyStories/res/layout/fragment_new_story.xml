@@ -12,6 +12,7 @@
         android:layout_alignParentTop="true"
         android:ems="10"
         android:hint="Story title"
+        android:imeOptions="actionDone"
         android:inputType="textShortMessage" >
 
         <requestFocus />

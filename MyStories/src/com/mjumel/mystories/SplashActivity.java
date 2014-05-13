@@ -73,7 +73,7 @@ public class SplashActivity extends Activity {
 			Gen.writeLog("SplashActivity::onCreateView> Starting");
 			
 			View rootView = inflater.inflate(R.layout.fragment_splash, container, false);
-			textView = (TextView) rootView.findViewById(R.id.textView1);
+			textView = (TextView) rootView.findViewById(R.id.event_imageView_text);
 			textView.setText("Checking Credentials...");
 			
 			String login = Prefs.getString(getActivity(), MS_PREFS_LOGIN);

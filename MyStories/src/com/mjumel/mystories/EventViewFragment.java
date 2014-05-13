@@ -2,6 +2,7 @@ package com.mjumel.mystories;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 import com.mjumel.mystories.adapters.NothingSelectedSpinnerAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
+import com.mjumel.mystories.tools.ImageWorker;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class EventViewFragment extends Fragment {
@@ -57,15 +59,16 @@ public class EventViewFragment extends Fragment {
     	uId = event.getUserId();
     	mediaPath = event.getResizedMediaPath();
 
-		Gen.appendLog("ViewEventFragment::onCreate> mediaPath = " + mediaPath);
-		Gen.appendLog("ViewEventFragment::onCreate> uid = " + uId);
+		Gen.appendLog("EventViewFragment::onCreate> uid = " + uId);
+		Gen.appendLog("EventViewFragment::onCreate> eventId = " + event.getEventId());
+		Gen.appendLog("EventViewFragment::onCreate> mediaPath = " + mediaPath);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
     	
-    	Gen.appendLog("ViewEventFragment::onCreateView> Starting");
+    	Gen.appendLog("EventViewFragment::onCreateView> Starting");
 
 		view = inflater.inflate(R.layout.fragment_view_event,container, false);
 		spnCats = (Spinner) view.findViewById(R.id.view_event_cats);
@@ -93,75 +96,11 @@ public class EventViewFragment extends Fragment {
 		rbRatingMini.setProgress(event.getRating());
 		spnCats.setSelection(event.getCategoryId());
 		
-		rbRating.setOnRatingBarChangeListener(new OnRatingBarChangeListener() {
-			@Override
-			public void onRatingChanged(RatingBar ratingBar, float rating,
-					boolean fromUser) {
-				rbRatingMini.setProgress(ratingBar.getProgress());				
-			}
-			
-		});
+		rbRating.setOnRatingBarChangeListener(ratingChanged);
+		ivImage.setOnClickListener(imageClicked);
+		btnRemember.setOnClickListener(saveEvent);
 		
-		ivImage.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View arg0) {
-                if (editMode) {
-                Intent intent = new Intent();
-                intent.setType("image/*");
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent,
-                        "Select Picture"), SELECT_PICTURE);
-                } else 
-                	goFullScreen();
-            }
-        });
-		
-		btnRemember.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            	final ProgressDialog pg = ProgressDialog.show(getActivity(), "", "Posting event...", true);
-                new Thread(new Runnable() {
-                        public void run() {
-                             Gen.appendLog("ViewEventFragment::onCreateView::onClick> uId = " + uId);
-                             Gen.appendLog("ViewEventFragment::onCreateView::onClick> eventId = " + event.getEventId());
-                             Gen.appendLog("ViewEventFragment::onCreateView::onClick> comment = " + etComment.getText().toString());
-                             Gen.appendLog("ViewEventFragment::onCreateView::onClick> rating = " + rbRating.getProgress());
-                             Gen.appendLog("ViewEventFragment::onCreateView::onClick> mediaPath = " + mediaPath);
-                             Gen.appendLog("ViewEventFragment::onCreateView::onClick> old path  = " + event.getResizedMediaPath());
-                             Gen.appendLog("ViewEventFragment::onCreateView::onClick> cat = " + spnCats.getSelectedItemPosition());
-                             int res = Communication.editEvent(
-                            		 uId, 
-                            		 event.getEventId(),
-                            		 etComment.getText().toString(), 
-                            		 rbRating.getProgress(), 
-                            		 (mediaPath.compareTo(event.getResizedMediaPath()) == 0 ? null : mediaPath),
-                            		 spnCats.getSelectedItemPosition()
-                             );
-                             getActivity().runOnUiThread(new Runnable() {
-                                 public void run() {
-                                	 pg.dismiss();
-                                 }
-                             });
-                             if (res <= 0)
-                            	 
-                             getActivity().runOnUiThread(new Runnable() {
-                                 public void run() {
-                                	 Toast.makeText(getActivity(), "Problem", Toast.LENGTH_SHORT).show();
-                                 }
-                             });
-                             else
-                            	 getActivity().runOnUiThread(new Runnable() {
-                                     public void run() {
-                                    	 goEditMode();
-                                     }
-                                 });
-                            	 
-                        }
-                      }).start();                
-            }
-         });
-		
-		Gen.appendLog("ViewEventFragment::onCreateView> Ending");
+		Gen.appendLog("EventViewFragment::onCreateView> Ending");
 		return view;
     }
     
@@ -175,7 +114,7 @@ public class EventViewFragment extends Fragment {
     
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-    	Gen.appendLog("ViewEventFragment::onCreateOptionsMenu> Starting");
+    	Gen.appendLog("EventViewFragment::onCreateOptionsMenu> Starting");
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_view_event, menu);
         mMenu = menu;
@@ -200,7 +139,7 @@ public class EventViewFragment extends Fragment {
     
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-    	Gen.appendLog("ViewEventFragment::onPrepareOptionsMenu> Starting");
+    	Gen.appendLog("EventViewFragment::onPrepareOptionsMenu> Starting");
     }
     
     private void goFullScreen()
@@ -277,5 +216,90 @@ public class EventViewFragment extends Fragment {
     		
     		editMode = false;
     	}
+    }
+    
+    /***************************************************************************************
+	 *
+	 *                                Event-based functions
+	 * 
+	 ***************************************************************************************/
+	private OnRatingBarChangeListener ratingChanged = new OnRatingBarChangeListener() {
+		@Override
+		public void onRatingChanged(RatingBar ratingBar, float rating,
+				boolean fromUser) {
+			rbRatingMini.setProgress(ratingBar.getProgress());				
+		}
+		
+	};
+	
+	private OnClickListener imageClicked = new OnClickListener() {
+		@Override
+		public void onClick(View view) {
+            if (editMode) {
+            Intent intent = new Intent();
+            intent.setType("image/*");
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(Intent.createChooser(intent,
+                    "Select Picture"), SELECT_PICTURE);
+            } else 
+            	goFullScreen();
+        }
+    };
+    
+    private OnClickListener saveEvent = new OnClickListener() {
+        @Override
+        public void onClick(View v) {
+        	new PostEventTask().execute(new String[] {});            
+        }
+     };
+	
+    
+    /***************************************************************************************
+	 *
+	 *                                PostEventTask Class
+	 * 
+	 ***************************************************************************************/
+	class PostEventTask extends AsyncTask<String, Integer, Integer>
+    {
+		private ProgressDialog pg;
+		
+         protected void onPreExecute() {
+        	 pg = ProgressDialog.show(getActivity(), "", "Posting event...", true);
+         } 
+
+         protected Integer doInBackground(String ...params) {  
+        	 Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> uId = " + uId);
+             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> eventId = " + event.getEventId());
+             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> comment = " + etComment.getText().toString());
+             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> rating = " + rbRating.getProgress());
+             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> mediaPath = " + mediaPath);
+             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> old path  = " + event.getResizedMediaPath());
+             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> cat = " + spnCats.getSelectedItemPosition());
+             return Communication.editEvent(
+            		 uId, 
+            		 event.getEventId(),
+            		 etComment.getText().toString(), 
+            		 rbRating.getProgress(), 
+            		 (mediaPath.compareTo(event.getResizedMediaPath()) == 0 ? null : mediaPath),
+            		 spnCats.getSelectedItemPosition()
+             );
+         }
+
+         protected void onPostExecute(Integer result) {  
+        	 pg.dismiss();
+        	 if (result <= 0) {
+        		 Gen.appendError("EventViewFragment$PostEventTask::onPostExecute> uId = " + uId);
+        		 Gen.appendError("EventViewFragment$PostEventTask::onPostExecute> result = " + result);
+        		 Toast.makeText(getActivity(), "Event could not be edited. Please retry later", Toast.LENGTH_SHORT).show();
+        	 } else {
+        		 Toast.makeText(getActivity(), "Event edited successfully", Toast.LENGTH_SHORT).show();
+            	 goEditMode();
+        	 }
+         }
+         
+         @Override
+ 		protected void onCancelled() {
+       	  pg.dismiss();
+ 		}
     }
 }

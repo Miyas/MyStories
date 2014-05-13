@@ -25,12 +25,12 @@
     
     <!-- Category Spinner Items -->
     <string-array name="nav_spinner_cats" translatable="false">
-        <item >Category 1</item>
-        <item >Category 2</item>
-        <item >Category 3</item>
-        <item >Category 4</item>
-        <item >Category 5</item>
-        <item >Category 6</item>
+        <item >Family</item>
+        <item >Friends</item>
+        <item >Travel</item>
+        <item >Fun</item>
+        <item >Sport</item>
+        <item >Work</item>
     </string-array>
      
     <!-- Nav Drawer Menu Items -->
@@ -46,12 +46,12 @@
     <!-- Nav Drawer List Item Icons -->
     <!-- Keep them in order as the titles are in -->
     <array name="nav_drawer_icons" translatable="false">
-        <item>@drawable/ic_action_select_all</item>
-        <item>@drawable/ic_action_paste</item>
-        <item>@drawable/ic_action_group</item>
-        <item>@drawable/ic_action_cloud</item>
-        <item>@drawable/ic_action_settings</item>
-        <item>@drawable/ic_action_not_secure</item>
+        <item>@drawable/logo_events_48</item>
+        <item>@drawable/logo_stories_48</item>
+        <item>@drawable/logo_friends_48</item>
+        <item>@drawable/logo_public_48</item>
+        <item>@drawable/logo_settings_48</item>
+        <item>@drawable/logo_disco_48</item>
     </array>
     
     <string name="desc_list_item_icon" translatable="false">Item Icon</string>
