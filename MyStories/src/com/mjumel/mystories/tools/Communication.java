@@ -74,7 +74,7 @@ public class Communication {
 	        HttpEntity httpEntity = response.getEntity();
 	        String result = EntityUtils.toString(httpEntity);
 	
-	        Gen.appendLog("Communication::postEvent> Result" + result);
+	        Gen.appendLog("Communication::postEvent> Result : " + result);
 	        return Integer.parseInt(result);
 	    }
 		catch(NumberFormatException e) {
