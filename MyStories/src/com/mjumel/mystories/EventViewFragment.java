@@ -2,6 +2,7 @@ package com.mjumel.mystories;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,12 +14,12 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.RatingBar.OnRatingBarChangeListener;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mjumel.mystories.adapters.NothingSelectedSpinnerAdapter;
@@ -31,9 +32,9 @@ public class EventViewFragment extends Fragment {
 
 	private View view;
 	private Spinner spnCats;
-	private Button btnRemember;
 	private ImageView ivImage;
 	private EditText etComment;
+	private TextView etCommentRO;
 	private RatingBar rbRating, rbRatingMini;
 	
 	private Event event;
@@ -74,7 +75,7 @@ public class EventViewFragment extends Fragment {
 		spnCats = (Spinner) view.findViewById(R.id.view_event_cats);
 		ivImage = (ImageView) view.findViewById(R.id.view_event_imageView);
 		etComment = (EditText) view.findViewById(R.id.view_event_comment);
-		btnRemember = (Button) view.findViewById(R.id.view_event_save);
+		etCommentRO = (TextView) view.findViewById(R.id.view_event_textView);
 		rbRating  = (RatingBar) view.findViewById(R.id.view_event_rating);
 		rbRatingMini  = (RatingBar) view.findViewById(R.id.view_event_mini_rating);
 		
@@ -92,13 +93,13 @@ public class EventViewFragment extends Fragment {
 			ImageLoader.getInstance().displayImage(mediaPath, ivImage);
 		}
 		etComment.setText(event.getComment());
+		etCommentRO.setText(event.getComment());
 		rbRating.setProgress(event.getRating());
 		rbRatingMini.setProgress(event.getRating());
 		spnCats.setSelection(event.getCategoryId());
 		
 		rbRating.setOnRatingBarChangeListener(ratingChanged);
 		ivImage.setOnClickListener(imageClicked);
-		btnRemember.setOnClickListener(saveEvent);
 		
 		Gen.appendLog("EventViewFragment::onCreateView> Ending");
 		return view;
@@ -123,17 +124,19 @@ public class EventViewFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-        case R.id.view_event_edit:
-        case R.id.edit_event_cancel:
-        case R.id.edit_event_save:
-        	goEditMode();
-            return true;
-        case R.id.view_event_full_screen:
-        case R.id.view_event_back:
-        	goFullScreen();
-        	return true;
-        default:
-            return super.onOptionsItemSelected(item);
+	        case R.id.view_event_edit:
+	        case R.id.edit_event_cancel:
+	        	goEditMode();
+	            return true;
+	        case R.id.edit_event_save:
+	        	new PostEventTask().execute(new String[] {});
+	            return true;
+	        case R.id.view_event_full_screen:
+	        case R.id.view_event_back:
+	        	goFullScreen();
+	        	return true;
+	        default:
+	            return super.onOptionsItemSelected(item);
         }
     }
     
@@ -152,9 +155,9 @@ public class EventViewFragment extends Fragment {
 	    		mMenu.findItem(R.id.view_event_back).setVisible(true);
     		}
     		
-    		spnCats.setVisibility(RatingBar.GONE);
-    		etComment.setVisibility(RatingBar.GONE);
-    		btnRemember.setVisibility(RatingBar.GONE);
+    		spnCats.setVisibility(Spinner.GONE);
+    		etComment.setVisibility(EditText.GONE);
+    		etCommentRO.setVisibility(TextView.GONE);
     		
     		fullScreenMode = true;
     	} else {
@@ -165,9 +168,9 @@ public class EventViewFragment extends Fragment {
 	    		mMenu.findItem(R.id.view_event_back).setVisible(false);
     		}
 
-    		spnCats.setVisibility(RatingBar.VISIBLE);
-    		etComment.setVisibility(RatingBar.VISIBLE);
-    		btnRemember.setVisibility(RatingBar.VISIBLE);
+    		spnCats.setVisibility(Spinner.VISIBLE);
+    		etComment.setVisibility(EditText.INVISIBLE);
+    		etCommentRO.setVisibility(TextView.VISIBLE);
     	    
     		fullScreenMode = false;
     	}
@@ -191,7 +194,8 @@ public class EventViewFragment extends Fragment {
     		
     		rbRating.setVisibility(RatingBar.VISIBLE);
     		rbRatingMini.setVisibility(RatingBar.GONE);
-    		btnRemember.setVisibility(RatingBar.VISIBLE);
+    		etComment.setVisibility(EditText.VISIBLE);
+    		etCommentRO.setVisibility(TextView.INVISIBLE);
     		spnCats.setClickable(true);
     		etComment.setClickable(true);
     		ivImage.setClickable(true);
@@ -209,7 +213,8 @@ public class EventViewFragment extends Fragment {
     		
     		rbRating.setVisibility(RatingBar.GONE);
     		rbRatingMini.setVisibility(RatingBar.VISIBLE);
-    		btnRemember.setVisibility(RatingBar.GONE);
+    		etComment.setVisibility(EditText.INVISIBLE);
+    		etCommentRO.setVisibility(TextView.VISIBLE);
     		spnCats.setClickable(false);
     		etComment.setClickable(false);
     		ivImage.setClickable(false);
@@ -246,13 +251,6 @@ public class EventViewFragment extends Fragment {
         }
     };
     
-    private OnClickListener saveEvent = new OnClickListener() {
-        @Override
-        public void onClick(View v) {
-        	new PostEventTask().execute(new String[] {});            
-        }
-     };
-	
     
     /***************************************************************************************
 	 *
@@ -261,26 +259,30 @@ public class EventViewFragment extends Fragment {
 	 ***************************************************************************************/
 	class PostEventTask extends AsyncTask<String, Integer, Integer>
     {
-		private ProgressDialog pg;
-		
+		 private ProgressDialog pg;
+		 private String imagePath; 
+		 
          protected void onPreExecute() {
         	 pg = ProgressDialog.show(getActivity(), "", "Posting event...", true);
          } 
 
-         protected Integer doInBackground(String ...params) {  
+         protected Integer doInBackground(String ...params) { 
+        	 imagePath = mediaPath==null?null:ImageWorker.getPath(getActivity(), Uri.parse(mediaPath));
+        	 
         	 Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> uId = " + uId);
              Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> eventId = " + event.getEventId());
              Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> comment = " + etComment.getText().toString());
              Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> rating = " + rbRating.getProgress());
-             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> mediaPath = " + mediaPath);
+             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> imagePath = " + imagePath);
              Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> old path  = " + event.getResizedMediaPath());
              Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> cat = " + spnCats.getSelectedItemPosition());
+             
              return Communication.editEvent(
             		 uId, 
             		 event.getEventId(),
             		 etComment.getText().toString(), 
             		 rbRating.getProgress(), 
-            		 (mediaPath.compareTo(event.getResizedMediaPath()) == 0 ? null : mediaPath),
+            		 (imagePath.compareTo(event.getResizedMediaPath()) == 0 ? null : imagePath),
             		 spnCats.getSelectedItemPosition()
              );
          }
@@ -293,6 +295,7 @@ public class EventViewFragment extends Fragment {
         		 Toast.makeText(getActivity(), "Event could not be edited. Please retry later", Toast.LENGTH_SHORT).show();
         	 } else {
         		 Toast.makeText(getActivity(), "Event edited successfully", Toast.LENGTH_SHORT).show();
+        		 etCommentRO.setText(etComment.getText().toString());
             	 goEditMode();
         	 }
          }

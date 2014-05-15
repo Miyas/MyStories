@@ -1,21 +1,16 @@
 package com.mjumel.mystories;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -87,7 +82,7 @@ public class EventNewFragment extends Fragment {
 
 		Gen.appendLog("EventNewFragment::onCreateView> mediaUri = " + mediaUri);
 		Gen.appendLog("EventNewFragment::onCreateView> uid = " + uId);
-		Gen.appendLog("EventNewFragment::onCreateView> eventsList nb = " + eventList.size());
+		Gen.appendLog("EventNewFragment::onCreateView> eventsList nb = " + (eventList == null ? 0 : eventList.size()));
 		
 		View view = inflater.inflate(R.layout.fragment_new_event,container, false);
 		spnCats = (Spinner) view.findViewById(R.id.event_cats);
@@ -263,7 +258,6 @@ public class EventNewFragment extends Fragment {
     	}
     	if (mediaUri != null) {
     		setImage(mediaUri);
-    		imageText.setVisibility(TextView.GONE);
     	} else {
     		Toast.makeText(getActivity(), "Problem getting back the image", Toast.LENGTH_SHORT).show();
     		Gen.appendError("EventNewFragment::onActivityResult> Problem getting back the image");
@@ -339,6 +333,7 @@ public class EventNewFragment extends Fragment {
 			e.printStackTrace();
 		}     //Since API Level 5
     	
+		imageText.setVisibility(TextView.GONE);
     	ImageLoader.getInstance().displayImage(mediaUri.toString(), ivImage);
     	Gen.appendLog("EventNewFragment::setImage>Loading uri=" + ImageLoader.getInstance().getLoadingUriForView(ivImage));
     }
@@ -414,29 +409,6 @@ public class EventNewFragment extends Fragment {
 
          protected Integer doInBackground(String ...params) {
         	 imagePath = mediaUri==null?null:ImageWorker.getPath(getActivity(), mediaUri);
-        	 if (mediaUri != null && imagePath == null) {
-                 try {
-                	Gen.appendError("EventNewFragment$PostEventTask::doInBackground> Path not found, trying to get content otherwise");
-					InputStream is = getActivity().getContentResolver().openInputStream(mediaUri);
-					imagePath = MyStoriesApp.CACHE_DIR + 
-							 Gen.md5Encrypt(mediaUri.toString()) + ".jpg";
-					File tmpFile = new File(imagePath);
-					Gen.CopyStream(is, new FileOutputStream(tmpFile));
-					is.close();
-				} catch (FileNotFoundException e) {
-					Gen.appendError("EventNewFragment$PostEventTask::doInBackground> FileNotFoundException");
-					Gen.appendError("EventNewFragment$PostEventTask::doInBackground> imagePath = " + imagePath);
-					Gen.appendError("EventNewFragment$PostEventTask::doInBackground> " + e.getLocalizedMessage());
-					e.printStackTrace();
-					imagePath = null;
-				} catch (IOException e) {
-					Gen.appendError("EventNewFragment$PostEventTask::doInBackground> IOException");
-					Gen.appendError("EventNewFragment$PostEventTask::doInBackground> imagePath = " + imagePath);
-					Gen.appendError("EventNewFragment$PostEventTask::doInBackground> " + e.getLocalizedMessage());
-					e.printStackTrace();
-					imagePath = null;
-				}
-        	 }
         	 
         	 Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> uId = " + uId);
              Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> comment = " + etComment.getText().toString());

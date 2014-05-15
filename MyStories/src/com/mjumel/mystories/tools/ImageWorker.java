@@ -1,5 +1,13 @@
 package com.mjumel.mystories.tools;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import com.mjumel.mystories.MyStoriesApp;
+
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
 import android.content.Context;
@@ -90,6 +98,30 @@ public class ImageWorker {
 	    	Gen.appendLog("ImageWorker::getPath> File found");
 	        path = uri.getPath();
 	    }
+	    
+	    if (uri != null && path == null) {
+            try {
+           	Gen.appendError("ImageWorker::getPath> Path not found, trying to get content otherwise");
+				InputStream is = context.getContentResolver().openInputStream(uri);
+				path = MyStoriesApp.CACHE_DIR + 
+						 Gen.md5Encrypt(uri.toString()) + ".jpg";
+				File tmpFile = new File(path);
+				Gen.CopyStream(is, new FileOutputStream(tmpFile));
+				is.close();
+			} catch (FileNotFoundException e) {
+				Gen.appendError("ImageWorker::getPath> FileNotFoundException");
+				Gen.appendError("ImageWorker::getPath> imagePath = " + path);
+				Gen.appendError("ImageWorker::getPath> " + e.getLocalizedMessage());
+				e.printStackTrace();
+				path = null;
+			} catch (IOException e) {
+				Gen.appendError("ImageWorker::getPath> IOException");
+				Gen.appendError("ImageWorker::getPath> imagePath = " + path);
+				Gen.appendError("ImageWorker::getPath> " + e.getLocalizedMessage());
+				e.printStackTrace();
+				path = null;
+			}
+   	 	}
 
 	    Gen.appendLog("ImageWorker::getPath> New path : " + path);
 	    return path;
