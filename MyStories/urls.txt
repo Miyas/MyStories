@@ -1,0 +1,9 @@
+Règles sur le design d'appli
+  > http://www.androiduipatterns.com/2011/12/how-should-android-apps-look-like_16.html
+Bibliothèques utiles
+  > http://www.frandroid.com/android/developpement/149620_les-bibliotheques-utiles-pour-ameliorer-les-listview-dans-vos-applications-android
+Règles sur les icones : http://developer.android.com/design/style/iconography.html
+Styling Android : http://blog.stylingandroid.com/archives/632
+  
+ActioBarSherlock
+Infinite listview : chargement d'une liste supplémentaire lorqu'on atteint le bas de la liste
