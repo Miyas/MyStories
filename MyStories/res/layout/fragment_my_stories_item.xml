@@ -1,53 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="40dp"
+    android:layout_height="80dp"
     android:background="@drawable/list_selector"
-    android:minHeight="40dp"
-    android:maxHeight="40dp" >
+    android:minHeight="80dp"
+    android:maxHeight="80dp"
+    >
 
     <TextView
-        android:id="@+id/my_stories_item_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:id="@+id/my_stories_item_rating_text"
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:minHeight="60dp"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/my_stories_item_ratingBar"
-        android:text="TextView"
-        android:textColor="@color/light_bg_text_color" />
-
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@color/background_dark"
+        android:gravity="center"
+        android:text="Rating"
+        android:textColor="@color/dark_bg_text_color" />
+    
     <TextView
         android:id="@+id/my_stories_item_viewers"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/my_stories_item_desc"
-        android:layout_alignBottom="@+id/my_stories_item_desc"
+        android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_toRightOf="@+id/my_stories_item_desc"
+		android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
         android:gravity="right"
-        android:text="TextView"
+        android:text="Viewers"
         android:textColor="@color/light_bg_text_color" />
 
     <TextView
         android:id="@+id/my_stories_item_desc"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/my_stories_item_rating_text"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@id/my_stories_item_title"
-        android:text="TextView"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="10dp"
+        android:text="Desc"
         android:textColor="@color/light_bg_text_color" />
 
-    <RatingBar
-        android:id="@+id/my_stories_item_ratingBar"
-        style="?android:attr/ratingBarStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/my_stories_item_title"
-        android:layout_alignParentRight="true"
-        android:isIndicator="true"
-        android:max="5"
-        android:numStars="5"
-        android:stepSize="1" />
+    <TextView
+        android:id="@+id/my_stories_item_title"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/my_stories_item_viewers"
+        android:layout_toRightOf="@+id/my_stories_item_rating_text"
+        android:layout_marginTop="10dp"
+        android:text="Title"
+        android:textColor="@color/light_bg_text_color" />
 
 </RelativeLayout>

@@ -6,10 +6,8 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -109,7 +107,7 @@ public class NewStoryListAdapter extends ArrayAdapter<Event> {
 		return rowView;
 	}
 	
-	private OnClickListener cbChecked = new OnClickListener() {
+	/*private OnClickListener cbChecked = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
 			Gen.appendLog("NewStoryListAdapter::cbChecked> Starting");
@@ -117,5 +115,5 @@ public class NewStoryListAdapter extends ArrayAdapter<Event> {
 			Event event = getItem((Integer)cb.getTag());
 			event.setSelected(cb.isChecked());
 		}
-	};
+	};*/
 }

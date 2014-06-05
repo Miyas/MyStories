@@ -12,7 +12,7 @@
         android:id="@+id/list_add_event"
         android:showAsAction="ifRoom"
         android:title="Add new event"
-        android:icon="@drawable/ic_action_new"/>
+        android:icon="@drawable/ic_action_new_event"/>
     <item
         android:id="@+id/list_settings"
         android:orderInCategory="100"

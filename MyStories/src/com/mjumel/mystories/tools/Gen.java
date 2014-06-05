@@ -17,16 +17,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import com.mjumel.mystories.MyStoriesApp;
-import com.mjumel.mystories.R;
-
-import android.content.Context;
-import android.os.Build;
 import android.os.Environment;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+
+import com.mjumel.mystories.MyStoriesApp;
 
 public class Gen {
 	
@@ -119,8 +116,8 @@ public class Gen {
 	        valEncrypted = sb.toString();
 	 
     	} catch (NoSuchAlgorithmException e) {
-    		Gen.appendLog( "Gen::md5Encrypt > NoSuchAlgorithmException ERROR", "E");
-        	Gen.appendLog( e.getMessage(), "E");
+    		Gen.appendError( "Gen::md5Encrypt > NoSuchAlgorithmException ERROR");
+        	Gen.appendError( e.getMessage());
 		}
     	
     	return valEncrypted;
@@ -147,4 +144,26 @@ public class Gen {
         }
         catch(Exception ex){}
     }
+	
+	public static String superTrim(String s) 
+	{
+		String sTmp = "";
+		String charToRemove = " \\n\\r";
+		int startPos = 0;
+		
+		Gen.appendLog( "Gen::superTrim > Input string = " + s);
+		
+		int pos = 0;
+		Gen.appendLog( "Gen::superTrim > Current char(" + pos + ") = \"" + s.subSequence(pos, pos+1) + "\"");
+		while(charToRemove.contains(s.subSequence(pos, pos+1))) {
+			pos++;
+			Gen.appendLog( "Gen::superTrim > Current char(" + pos + ") = \"" + s.subSequence(pos, pos+1) + "\"");
+			Gen.appendLog( "Gen::superTrim > Char removed");
+		}
+		
+		sTmp = s.substring(pos);
+		Gen.appendLog( "Gen::superTrim > Output string = " + sTmp);
+		
+		return sTmp;
+	}
 }

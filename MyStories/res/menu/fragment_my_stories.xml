@@ -3,6 +3,21 @@
      >
 
     <item
+        android:id="@+id/my_stories_delete"
+        android:orderInCategory="1"
+        android:showAsAction="ifRoom"
+        android:visible="false"
+        android:title="Delete"
+        android:icon="@drawable/ic_action_discard"/>
+    <item
+        android:id="@+id/my_stories_cancel"
+        android:orderInCategory="2"
+        android:showAsAction="ifRoom"
+        android:visible="false"
+        android:title="Cancel"
+        android:icon="@drawable/ic_action_cancel"/>
+    
+    <item
         android:id="@+id/my_stories_search"
         android:showAsAction="ifRoom"
         android:title="Search event"
@@ -18,7 +33,7 @@
         android:id="@+id/my_stories_add"
         android:showAsAction="ifRoom"
         android:title="Add new event"
-        android:icon="@drawable/ic_action_new"/>
+        android:icon="@drawable/ic_action_new_event"/>
 	<item
         android:id="@+id/my_stories_switch"
         android:orderInCategory="100"
@@ -37,4 +52,5 @@
         android:showAsAction="withText|ifRoom|collapseActionView"
         android:title="Hide/Show Stars"
         android:icon="@drawable/ic_action_not_important"/>
+	
 </menu>

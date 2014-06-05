@@ -11,6 +11,7 @@ import com.mjumel.mystories.MyStoriesApp;
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -183,5 +184,109 @@ public class ImageWorker {
 	 */
 	public static boolean isMediaDocument(Uri uri) {
 	    return "com.android.providers.media.documents".equals(uri.getAuthority());
+	}
+	
+	/**
+	 * @param context The context.
+	 * @param date The intent data from camera app.
+	 * @return The correct Uri to the captured picture.
+	 */
+	public static Uri getCameraImagePath(Context context, Intent data) {
+		Uri mImageCaptureUri_samsung = null;
+        // Final Code As Below
+        //try {
+        	if (data != null) {
+        		Gen.appendLog("ImageWorker::getCameraImagePath> inside Classical Phones");
+            	return data.getData();
+            }
+        	
+        	Gen.appendLog("ImageWorker::getCameraImagePath> inside Samsung Phones");
+            String[] projection = {
+                    MediaStore.Images.Thumbnails._ID, // The columns we want
+                    MediaStore.Images.Thumbnails.IMAGE_ID,
+                    MediaStore.Images.Thumbnails.KIND,
+                    MediaStore.Images.Thumbnails.DATA};
+            String selection = MediaStore.Images.Thumbnails.KIND + "=" + // Select
+                                                                            // only
+                                                                            // mini's
+                    MediaStore.Images.Thumbnails.MINI_KIND;
+
+            String sort = MediaStore.Images.Thumbnails._ID + " DESC";
+
+            // At the moment, this is a bit of a hack, as I'm returning ALL
+            // images, and just taking the latest one. There is a better way
+            // to
+            // narrow this down I think with a WHERE clause which is
+            // currently
+            // the selection variable
+            Cursor myCursor = context.getContentResolver().query(
+                    MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
+                    projection, selection, null, sort);
+
+            long imageId = 0l;
+            long thumbnailImageId = 0l;
+            String thumbnailPath = "";
+            int orientation = -1;
+
+            try {
+                myCursor.moveToFirst();
+                imageId = myCursor
+                        .getLong(myCursor
+                                .getColumnIndexOrThrow(MediaStore.Images.Thumbnails.IMAGE_ID));
+                thumbnailImageId = myCursor
+                        .getLong(myCursor
+                                .getColumnIndexOrThrow(MediaStore.Images.Thumbnails._ID));
+                thumbnailPath = myCursor
+                        .getString(myCursor
+                                .getColumnIndexOrThrow(MediaStore.Images.Thumbnails.DATA));
+            } finally {
+                myCursor.close();
+            }
+
+            // Create new Cursor to obtain the file Path for the large image
+
+            String[] largeFileProjection = {
+                    MediaStore.Images.ImageColumns._ID,
+                    MediaStore.Images.ImageColumns.DATA,
+                    MediaStore.Images.ImageColumns.ORIENTATION};
+            String largeFileSort = MediaStore.Images.ImageColumns._ID
+                    + " DESC";
+            myCursor = context.getContentResolver().query(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    largeFileProjection, null, null, largeFileSort);
+            String largeImagePath = "";
+
+            try {
+                myCursor.moveToFirst();
+
+                // This will actually give you the file path location of the
+                // image.
+                largeImagePath = myCursor
+                        .getString(myCursor
+                                .getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DATA));
+                orientation = myCursor
+                        .getInt(myCursor
+                                .getColumnIndexOrThrow(MediaStore.Images.ImageColumns.ORIENTATION));
+                Gen.appendLog("ImageWorker::getCameraImagePath> Orientation = " + orientation);
+                mImageCaptureUri_samsung = Uri.fromFile(new File(largeImagePath));
+                //mImageCaptureUri = null;
+            } finally {
+                myCursor.close();
+            }
+
+            // These are the two URI's you'll be interested in. They give
+            // you a handle to the actual images
+            Uri uriLargeImage = Uri.withAppendedPath(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    String.valueOf(imageId));
+            Uri uriThumbnailImage = Uri.withAppendedPath(
+                    MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
+                    String.valueOf(thumbnailImageId));
+
+           	return mImageCaptureUri_samsung;
+        /*} catch (Exception e) {
+            mImageCaptureUri_samsung = null;
+            Gen.appendLog("inside catch Samsung Phones exception " + e.toString(), "E");
+        }*/
 	}
 }

@@ -1,4 +1,4 @@
-package com.mjumel.mystories.tools;
+package com.mjumel.mystories.old;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,6 +16,8 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore.Images.ImageColumns;
 import android.provider.MediaStore.Images.Media;
+
+import com.mjumel.mystories.tools.Gen;
 
 /**
  * Creates resized images without exploding memory. Uses the method described in android
@@ -78,7 +80,7 @@ public class UserPicture {
 
             return true;
         } catch (Exception e) {
-        	Gen.appendLog("UserPicture::getInformationFromMediaDatabase> Exception " + e.toString(), "E");
+        	Gen.appendError("UserPicture::getInformationFromMediaDatabase> Exception " + e.toString());
         	return false;
         }
     }

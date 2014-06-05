@@ -11,7 +11,7 @@ public class Story implements Parcelable {
 	
 	private String storyId = null;
 	private String title = null;
-	private int rating = -1;
+	private double rating = -1.0;
 	private String uId = null;
 	private List<Event> events;
 	
@@ -31,12 +31,12 @@ public class Story implements Parcelable {
 		Gen.appendLog("Story::Story> Creating new story with constructor#2");
 		this.storyId = in.readString();
 		this.title = in.readString();
-		this.rating = in.readInt();
+		this.rating = in.readDouble();
 		this.uId = in.readString();
 		this.events = in.readArrayList(Event.class.getClassLoader());
 	}
 	
-	public Story(String storyId, String title, int rating, String uId, List<Event> events) 
+	public Story(String storyId, String title, double rating, String uId, List<Event> events) 
     {
 		Gen.appendLog("Story::Story> Creating new story with constructor#3");
 		this.storyId = storyId;
@@ -68,8 +68,8 @@ public class Story implements Parcelable {
 	public String getTitle() { return title; }
     public void setTitle(String value) { title = value; }
     
-    public int getRating() { return rating; }
-    public void setRating(int value) { rating = value; }
+    public double getRating() { return rating; }
+    public void setRating(double value) { rating = value; }
     
     public String getUserId() { return uId; }
     public void setUserId(String value) { uId = value; }
@@ -110,7 +110,7 @@ public class Story implements Parcelable {
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(storyId);
 		dest.writeString(title);
-		dest.writeInt(rating);
+		dest.writeDouble(rating);
 		dest.writeString(uId);
 		dest.writeList(events);
 	}
