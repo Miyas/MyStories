@@ -174,7 +174,7 @@ public class StoryListFragment extends Fragment {
     {
           protected void onPreExecute()
           {     //super.onPreExecute();
-          		pg = ProgressDialog.show(getActivity(), "", "Loading events...", true);
+          		pg = ProgressDialog.show(getActivity(), "", "Loading stories...", true);
           } 
 
           protected List<Story> doInBackground(String ...params)

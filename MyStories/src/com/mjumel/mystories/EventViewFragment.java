@@ -1,10 +1,18 @@
 package com.mjumel.mystories;
 
+import java.util.ArrayList;
+
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
+import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -37,15 +45,17 @@ public class EventViewFragment extends Fragment {
 	private TextView etCommentRO;
 	private RatingBar rbRating, rbRatingMini;
 	
+	private ArrayList<Event> eventList = null;
+	private int position;
 	private Event event;
 	private String mediaPath;
 	private String uId;
 	
-	private static int SELECT_PICTURE = 1;
-	
 	private Menu mMenu = null;
 	private boolean editMode = false;
 	private boolean fullScreenMode = false;
+	
+	private Intent pictureActionIntent = null;
 	
     public EventViewFragment()
     {
@@ -56,13 +66,16 @@ public class EventViewFragment extends Fragment {
     	super.onCreate(savedInstanceState);
     	setHasOptionsMenu(true);
     	
-    	event = (Event)getArguments().getParcelable("event");
+    	eventList = getArguments().getParcelableArrayList("events");
+    	position = getArguments().getInt("position");
+    	event = eventList.get(position);
     	uId = event.getUserId();
     	mediaPath = event.getResizedMediaPath();
-
+    	
 		Gen.appendLog("EventViewFragment::onCreate> uid = " + uId);
 		Gen.appendLog("EventViewFragment::onCreate> eventId = " + event.getEventId());
 		Gen.appendLog("EventViewFragment::onCreate> mediaPath = " + mediaPath);
+		Gen.appendLog("EventNewFragment::onCreateView> eventsList nb = " + (eventList == null ? 0 : eventList.size()));
     }
 
     @Override
@@ -89,7 +102,7 @@ public class EventViewFragment extends Fragment {
 		        // R.layout.contact_spinner_nothing_selected_dropdown, // Optional
 		        this.getActivity()));
 		
-		if (mediaPath != null) { 
+		if (mediaPath != null) {
 			ImageLoader.getInstance().displayImage(mediaPath, ivImage);
 		}
 		etComment.setText(event.getComment());
@@ -105,14 +118,6 @@ public class EventViewFragment extends Fragment {
 		return view;
     }
     
-    @SuppressWarnings("static-access")
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == getActivity().RESULT_OK && requestCode == SELECT_PICTURE) {
-        	mediaPath = data.getData().toString();
-        	ImageLoader.getInstance().displayImage(mediaPath, ivImage);
-        }
-    }
-    
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     	Gen.appendLog("EventViewFragment::onCreateOptionsMenu> Starting");
@@ -125,15 +130,17 @@ public class EventViewFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
 	        case R.id.view_event_edit:
-	        case R.id.edit_event_cancel:
+	        case R.id.view_event_cancel:
 	        	goEditMode();
 	            return true;
-	        case R.id.edit_event_save:
+	        case R.id.view_event_save:
 	        	new PostEventTask().execute(new String[] {});
 	            return true;
-	        case R.id.view_event_full_screen:
 	        case R.id.view_event_back:
 	        	goFullScreen();
+	        	return true;
+	        case R.id.view_event_delete:
+	        	deleteDialog();
 	        	return true;
 	        default:
 	            return super.onOptionsItemSelected(item);
@@ -145,35 +152,87 @@ public class EventViewFragment extends Fragment {
     	Gen.appendLog("EventViewFragment::onPrepareOptionsMenu> Starting");
     }
     
+    
+    @SuppressWarnings("static-access")
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    	Gen.appendLog("EventNewFragment::onActivityResult> Starting");
+    	super.onActivityResult(requestCode, resultCode, data);
+    	
+    	if (resultCode != getActivity().RESULT_OK) {
+    		Gen.appendLog("EventNewFragment::onActivityResult> RESULT_KO (Cancelled?)");
+    		return;
+    	}
+    	
+    	Uri mediaUri = null;
+    	switch(requestCode) {
+	    	case(MyStoriesApp.SELECT_PICTURE):
+	    		Gen.appendLog("EventNewFragment::onActivityResult> Case SELECT_PICTURE");
+	    		mediaUri = data.getData();
+	    		break;
+	    	case(MyStoriesApp.GALLERY_PICTURE):
+	    		Gen.appendLog("EventNewFragment::onActivityResult> Case GALLERY_PICTURE");
+                if (data != null) {
+                	Gen.appendLog("EventNewFragment::onActivityResult> Url = " + data.getData());
+                	//mediaLocalPath = ImageWorker.getPath(getActivity(), data.getData());
+                	mediaUri = data.getData();
+                }
+	    		break;
+	    	case(MyStoriesApp.CAMERA_REQUEST):
+	    		Gen.appendLog("EventNewFragment::onActivityResult> Case CAMERA_REQUEST");
+	    		mediaUri = ImageWorker.getCameraImagePath(getActivity(), data);
+                break;
+    	}
+    	if (mediaUri != null) {
+    		setImage(mediaUri);
+    	} else {
+    		Toast.makeText(getActivity(), "Problem getting back the image", Toast.LENGTH_SHORT).show();
+    		Gen.appendError("EventNewFragment::onActivityResult> Problem getting back the image");
+    	}
+    }
+    
+    private void setImage(Uri uri)
+    {
+    	Gen.appendLog("EventNewFragment::setImage> Starting with uri=" + uri.toString());
+    	
+    	mediaPath = uri.toString();
+    	ImageLoader.getInstance().displayImage(mediaPath, ivImage);
+    	
+		/*try {
+			ExifInterface ei = new ExifInterface(mediaUri.toString());
+			int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+			Gen.appendLog("EventNewFragment::setImage> Image orientation = " + orientation);
+		} catch (IOException e) {
+			Gen.appendLog("EventNewFragment::setImage> Image orientation error");
+			Gen.appendLog("EventNewFragment::setImage> " + e.getLocalizedMessage());
+			e.printStackTrace();
+		}     //Since API Level 5
+    	*/
+    	
+    	Gen.appendLog("EventNewFragment::setImage>Loading uri=" + ImageLoader.getInstance().getLoadingUriForView(ivImage));
+    }
+    
     private void goFullScreen()
     {
     	if (!fullScreenMode) {
-    		if (mMenu != null) {
-	    		mMenu.findItem(R.id.view_event_link).setVisible(false);
-	    		mMenu.findItem(R.id.view_event_edit).setVisible(false);
-	    		mMenu.findItem(R.id.view_event_menu_overflow).setVisible(false);
-	    		mMenu.findItem(R.id.view_event_back).setVisible(true);
-    		}
-    		
     		spnCats.setVisibility(Spinner.GONE);
     		etComment.setVisibility(EditText.GONE);
     		etCommentRO.setVisibility(TextView.GONE);
-    		
-    		fullScreenMode = true;
     	} else {
-    		if (mMenu != null) {
-	    		mMenu.findItem(R.id.view_event_link).setVisible(true);
-	    		mMenu.findItem(R.id.view_event_edit).setVisible(true);
-	    		mMenu.findItem(R.id.view_event_menu_overflow).setVisible(true);
-	    		mMenu.findItem(R.id.view_event_back).setVisible(false);
-    		}
-
     		spnCats.setVisibility(Spinner.VISIBLE);
     		etComment.setVisibility(EditText.INVISIBLE);
     		etCommentRO.setVisibility(TextView.VISIBLE);
-    	    
-    		fullScreenMode = false;
     	}
+    	
+    	if (mMenu != null) {
+    		mMenu.findItem(R.id.view_event_link).setVisible(fullScreenMode);
+    		mMenu.findItem(R.id.view_event_edit).setVisible(fullScreenMode);
+    		mMenu.findItem(R.id.view_event_delete).setVisible(fullScreenMode);
+    		mMenu.findItem(R.id.view_event_back).setVisible(!fullScreenMode);
+    		mMenu.findItem(R.id.view_event_cancel).setVisible(!fullScreenMode);
+    		mMenu.findItem(R.id.view_event_save).setVisible(!fullScreenMode);
+		}
+    	fullScreenMode = !fullScreenMode;
+    	
     	rbRatingMini.setVisibility(RatingBar.VISIBLE);
     	rbRating.setVisibility(RatingBar.GONE);
     	//ivImage.setClickable(false);
@@ -183,44 +242,32 @@ public class EventViewFragment extends Fragment {
     private void goEditMode()
     {
     	if (!editMode) {
-	    	if (mMenu != null)
-	    	{
-	    		mMenu.findItem(R.id.view_event_link).setVisible(false);
-	    		mMenu.findItem(R.id.view_event_edit).setVisible(false);
-	    		mMenu.findItem(R.id.view_event_menu_overflow).setVisible(false);
-	    		mMenu.findItem(R.id.edit_event_cancel).setVisible(true);
-	    		mMenu.findItem(R.id.edit_event_save).setVisible(true);
-    		}
-    		
     		rbRating.setVisibility(RatingBar.VISIBLE);
     		rbRatingMini.setVisibility(RatingBar.GONE);
     		etComment.setVisibility(EditText.VISIBLE);
     		etCommentRO.setVisibility(TextView.INVISIBLE);
-    		spnCats.setClickable(true);
-    		etComment.setClickable(true);
-    		ivImage.setClickable(true);
-    		
-    		editMode = true;
     	} else {
-    		if (mMenu != null)
-        	{
-        		mMenu.findItem(R.id.view_event_link).setVisible(true);
-        		mMenu.findItem(R.id.view_event_edit).setVisible(true);
-        		mMenu.findItem(R.id.view_event_menu_overflow).setVisible(true);
-        		mMenu.findItem(R.id.edit_event_cancel).setVisible(false);
-        		mMenu.findItem(R.id.edit_event_save).setVisible(false);
-        	}
-    		
     		rbRating.setVisibility(RatingBar.GONE);
     		rbRatingMini.setVisibility(RatingBar.VISIBLE);
     		etComment.setVisibility(EditText.INVISIBLE);
     		etCommentRO.setVisibility(TextView.VISIBLE);
-    		spnCats.setClickable(false);
-    		etComment.setClickable(false);
-    		ivImage.setClickable(false);
-    		
-    		editMode = false;
     	}
+    	
+    	if (mMenu != null)
+    	{
+    		mMenu.findItem(R.id.view_event_link).setVisible(editMode);
+    		mMenu.findItem(R.id.view_event_edit).setVisible(editMode);
+    		mMenu.findItem(R.id.view_event_delete).setVisible(editMode);
+    		mMenu.findItem(R.id.view_event_back).setVisible(!editMode);
+    		mMenu.findItem(R.id.view_event_cancel).setVisible(!editMode);
+    		mMenu.findItem(R.id.view_event_save).setVisible(!editMode);
+		}
+    	
+		spnCats.setClickable(!editMode);
+		etComment.setClickable(!editMode);
+		ivImage.setClickable(!editMode);
+		
+		editMode = !editMode;
     }
     
     /***************************************************************************************
@@ -241,15 +288,82 @@ public class EventViewFragment extends Fragment {
 		@Override
 		public void onClick(View view) {
             if (editMode) {
-            Intent intent = new Intent();
-            intent.setType("image/*");
-            intent.setAction(Intent.ACTION_GET_CONTENT);
-            startActivityForResult(Intent.createChooser(intent,
-                    "Select Picture"), SELECT_PICTURE);
+            	chooseSourceDialog();
             } else 
             	goFullScreen();
         }
     };
+    
+    private void chooseSourceDialog() {
+    	Gen.appendLog("EventNewFragment::startDialog> Starting");
+        AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(getActivity());
+        myAlertDialog.setTitle("Get Pictures Option");
+        myAlertDialog.setMessage("Where do you want to get your picture from?");
+
+        myAlertDialog.setPositiveButton(R.string.alert1_gallery,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        pictureActionIntent = new Intent(Intent.ACTION_GET_CONTENT, null);
+                        pictureActionIntent.setType("image/*");
+                        pictureActionIntent.putExtra("return-data", true);
+                        startActivityForResult(pictureActionIntent, MyStoriesApp.GALLERY_PICTURE);
+                    }
+                });
+
+        myAlertDialog.setNegativeButton(R.string.alert1_camera,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        //pictureActionIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        //startActivityForResult(pictureActionIntent, CAMERA_REQUEST);
+                        
+                        // Other Method
+                        String storageState = Environment.getExternalStorageState();
+
+                        if (storageState.equals(Environment.MEDIA_MOUNTED)) {
+                            pictureActionIntent = new Intent(
+                                    MediaStore.ACTION_IMAGE_CAPTURE);
+
+                            String filename = System.currentTimeMillis() + ".jpg";
+                            ContentValues values = new ContentValues();
+                            values.put(MediaStore.Images.Media.TITLE, filename);
+                            Uri mImageCaptureUri = getActivity().getContentResolver().insert(
+                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    values);
+
+                            pictureActionIntent.putExtra(
+                                    android.provider.MediaStore.EXTRA_OUTPUT,
+                                    mImageCaptureUri);
+
+                            try {
+                                startActivityForResult(pictureActionIntent, MyStoriesApp.CAMERA_REQUEST);
+                            } catch (ActivityNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            Toast.makeText(getActivity(), "SD Card required", Toast.LENGTH_SHORT).show();
+                            Gen.appendLog("EventNewFragment::startDialog> SD Card is required", "E");
+                        }
+
+                    }
+                });
+        myAlertDialog.show();
+    }
+    
+    private void deleteDialog() {
+    	Gen.appendLog("EventViewFragment::deleteDialog> Starting");
+        AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(getActivity());
+        myAlertDialog.setTitle("Delete event");
+        myAlertDialog.setMessage("This event will be removed from all the stories it is in!");
+
+        myAlertDialog.setPositiveButton("Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface arg0, int arg1) {
+                    	new DeleteEventTask().execute(new String[] {});
+                    }
+                });
+        myAlertDialog.setNegativeButton("No", null);
+        myAlertDialog.show();
+    }
     
     
     /***************************************************************************************
@@ -259,50 +373,107 @@ public class EventViewFragment extends Fragment {
 	 ***************************************************************************************/
 	class PostEventTask extends AsyncTask<String, Integer, Integer>
     {
-		 private ProgressDialog pg;
-		 private String imagePath; 
+		private ProgressDialog pg;
+		private String imagePath;
 		 
-         protected void onPreExecute() {
-        	 pg = ProgressDialog.show(getActivity(), "", "Posting event...", true);
-         } 
+        protected void onPreExecute() {
+        	pg = ProgressDialog.show(getActivity(), "", "Posting event...", true);
+        } 
 
-         protected Integer doInBackground(String ...params) { 
-        	 imagePath = mediaPath==null?null:ImageWorker.getPath(getActivity(), Uri.parse(mediaPath));
+        protected Integer doInBackground(String ...params) {
+        	Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> old imagepath  = " + event.getResizedMediaPath());
+        	if (mediaPath.compareTo(event.getResizedMediaPath()) == 0) {
+        		imagePath = null;
+        	} else if (mediaPath == null) {
+        		imagePath = null;
+        		event.setOriginalMediaPath(imagePath);
+                event.setResizedMediaPath(imagePath);
+                event.setThumbMediaPath(imagePath);
+        	} else {
+        		imagePath = ImageWorker.getPath(getActivity(), Uri.parse(imagePath));
+        		event.setOriginalMediaPath(imagePath);
+                event.setResizedMediaPath(imagePath);
+                event.setThumbMediaPath(imagePath);
+        	}
         	 
-        	 Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> uId = " + uId);
-             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> eventId = " + event.getEventId());
-             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> comment = " + etComment.getText().toString());
-             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> rating = " + rbRating.getProgress());
-             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> imagePath = " + imagePath);
-             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> old path  = " + event.getResizedMediaPath());
-             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> cat = " + spnCats.getSelectedItemPosition());
+            event.setComment(etComment.getText().toString());
+            event.setRating(rbRating.getProgress());
+            event.setCategoryId(spnCats.getSelectedItemPosition());
              
-             return Communication.editEvent(
-            		 uId, 
-            		 event.getEventId(),
-            		 etComment.getText().toString(), 
-            		 rbRating.getProgress(), 
-            		 (imagePath.compareTo(event.getResizedMediaPath()) == 0 ? null : imagePath),
-            		 spnCats.getSelectedItemPosition()
-             );
-         }
+            Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> uId = " + event.getUserId());
+            Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> eventId = " + event.getEventId());
+            Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> comment = " + event.getComment());
+            Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> rating = " + event.getRating());
+            Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> imagePath = " + imagePath);
+            Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> cat = " + event.getCategoryId());
+             
+            return Communication.editEvent(
+            	event.getUserId(),
+            	event.getEventId(),
+            	event.getComment(),
+            	event.getRating(),
+            	imagePath,
+            	event.getCategoryId()
+            );
+        }
 
-         protected void onPostExecute(Integer result) {  
-        	 pg.dismiss();
-        	 if (result <= 0) {
-        		 Gen.appendError("EventViewFragment$PostEventTask::onPostExecute> uId = " + uId);
-        		 Gen.appendError("EventViewFragment$PostEventTask::onPostExecute> result = " + result);
-        		 Toast.makeText(getActivity(), "Event could not be edited. Please retry later", Toast.LENGTH_SHORT).show();
-        	 } else {
-        		 Toast.makeText(getActivity(), "Event edited successfully", Toast.LENGTH_SHORT).show();
-        		 etCommentRO.setText(etComment.getText().toString());
-            	 goEditMode();
-        	 }
-         }
-         
-         @Override
+        protected void onPostExecute(Integer result) {  
+        	pg.dismiss();
+        	if (result <= 0) {
+        		Gen.appendError("EventViewFragment$PostEventTask::onPostExecute> uId = " + uId);
+        		Gen.appendError("EventViewFragment$PostEventTask::onPostExecute> result = " + result);
+        		Toast.makeText(getActivity(), "Event could not be edited. Please retry later", Toast.LENGTH_SHORT).show();
+        	} else {
+        		Toast.makeText(getActivity(), "Event edited successfully", Toast.LENGTH_SHORT).show();
+        		etCommentRO.setText(etComment.getText().toString());
+        		eventList.set(position, event);
+        		((DrawerActivity)getActivity()).sendEventList(eventList);
+        		goEditMode();
+        	}
+        }
+        
+        @Override
  		protected void onCancelled() {
-       	  pg.dismiss();
+        	pg.dismiss();
  		}
     }
+
+
+	/***************************************************************************************
+	 *
+	 *                                DeleteEventTask Class
+	 * 
+	 ***************************************************************************************/
+	class DeleteEventTask extends AsyncTask<String, Integer, Boolean>
+    {
+		private ProgressDialog pg;
+		 
+       protected void onPreExecute() {
+    	   pg = ProgressDialog.show(getActivity(), "", "Deleting event...", true);
+       } 
+
+       protected Boolean doInBackground(String ...params) {
+       	   return Communication.deleteEvent(event);
+       }
+
+       protected void onPostExecute(Boolean result) {
+    	   pg.dismiss();
+	       if (!result) {
+	    	   Gen.appendError("EventViewFragment$DeleteEventTask::onPostExecute> uId = " + event.getUserId());
+	    	   Gen.appendError("EventViewFragment$DeleteEventTask::onPostExecute> eventId = " + event.getEventId());
+	    	   Toast.makeText(getActivity(), "Event could not be deleted. Please retry later", Toast.LENGTH_SHORT).show();
+	       } else {
+	    	   Toast.makeText(getActivity(), "Event deleted", Toast.LENGTH_SHORT).show();
+	    	   eventList.remove(position);
+	    	   ((DrawerActivity)getActivity()).sendEventList(eventList);
+	    	   getActivity().getSupportFragmentManager().popBackStackImmediate();
+	       }
+       }
+       
+       @Override
+       protected void onCancelled() {
+    	   pg.dismiss();
+       }
+   }
+
 }

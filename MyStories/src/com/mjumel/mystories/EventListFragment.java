@@ -130,8 +130,9 @@ public class EventListFragment extends Fragment {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             Gen.appendLog("EventListFragment::viewEvent> Display event#" + ((Event)parent.getItemAtPosition(position)).getEventId());
+            Gen.appendLog("EventListFragment::viewEvent> Display event#" + eventList.get(position).getEventId());
             Bundle bundle = new Bundle();
-            bundle.putParcelable("event", (Event)parent.getItemAtPosition(position));
+            bundle.putInt("position", position);
             bundle.putParcelableArrayList("events", new ArrayList<Event>(eventList));
             ((DrawerActivity)getActivity()).changeFragment(new EventViewFragment(), bundle);
 		}

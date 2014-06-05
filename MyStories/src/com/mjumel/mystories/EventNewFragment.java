@@ -1,6 +1,5 @@
 package com.mjumel.mystories;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -10,7 +9,6 @@ import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -54,10 +52,6 @@ public class EventNewFragment extends Fragment {
 	private ArrayList<Event> eventList = null;
 	
 	private Intent pictureActionIntent = null;
-	protected static final int CAMERA_REQUEST = 0;
-	protected static final int GALLERY_PICTURE = 1;
-	
-	private static final int SELECT_PICTURE = 2;
 	
 
     @Override
@@ -79,6 +73,8 @@ public class EventNewFragment extends Fragment {
 		eventList = getArguments().getParcelableArrayList("events"); 
 		getActivity().getIntent().putExtra(Intent.EXTRA_STREAM, (String)null);
 		
+		if (eventList == null)
+			eventList = new ArrayList<Event>();
 
 		Gen.appendLog("EventNewFragment::onCreateView> mediaUri = " + mediaUri);
 		Gen.appendLog("EventNewFragment::onCreateView> uid = " + uId);
@@ -124,7 +120,6 @@ public class EventNewFragment extends Fragment {
     
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        // TODO Add your menu entries here
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_new_event, menu);
     }
@@ -141,11 +136,11 @@ public class EventNewFragment extends Fragment {
     	
     	mediaUri = null;
     	switch(requestCode) {
-	    	case(SELECT_PICTURE):
+	    	case(MyStoriesApp.SELECT_PICTURE):
 	    		Gen.appendLog("EventNewFragment::onActivityResult> Case SELECT_PICTURE");
 	    		mediaUri = data.getData();
 	    		break;
-	    	case(GALLERY_PICTURE):
+	    	case(MyStoriesApp.GALLERY_PICTURE):
 	    		Gen.appendLog("EventNewFragment::onActivityResult> Case GALLERY_PICTURE");
                 if (data != null) {
                 	Gen.appendLog("EventNewFragment::onActivityResult> Url = " + data.getData());
@@ -153,107 +148,9 @@ public class EventNewFragment extends Fragment {
                 	mediaUri = data.getData();
                 }
 	    		break;
-	    	case(CAMERA_REQUEST):
+	    	case(MyStoriesApp.CAMERA_REQUEST):
 	    		Gen.appendLog("EventNewFragment::onActivityResult> Case CAMERA_REQUEST");
-
-	    		Uri mImageCaptureUri_samsung = null;
-                // Final Code As Below
-                //try {
-                	if (data != null) {
-                		Gen.appendLog("EventNewFragment::onActivityResult> inside Classical Phones");
-                    	mediaUri = data.getData();
-                    	break;
-                    }
-                	
-                	Gen.appendLog("EventNewFragment::onActivityResult> inside Samsung Phones");
-                    String[] projection = {
-                            MediaStore.Images.Thumbnails._ID, // The columns we want
-                            MediaStore.Images.Thumbnails.IMAGE_ID,
-                            MediaStore.Images.Thumbnails.KIND,
-                            MediaStore.Images.Thumbnails.DATA};
-                    String selection = MediaStore.Images.Thumbnails.KIND + "=" + // Select
-                                                                                    // only
-                                                                                    // mini's
-                            MediaStore.Images.Thumbnails.MINI_KIND;
-
-                    String sort = MediaStore.Images.Thumbnails._ID + " DESC";
-
-                    // At the moment, this is a bit of a hack, as I'm returning ALL
-                    // images, and just taking the latest one. There is a better way
-                    // to
-                    // narrow this down I think with a WHERE clause which is
-                    // currently
-                    // the selection variable
-                    Cursor myCursor = getActivity().getContentResolver().query(
-                            MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
-                            projection, selection, null, sort);
-
-                    long imageId = 0l;
-                    long thumbnailImageId = 0l;
-                    String thumbnailPath = "";
-                    int orientation = -1;
-
-                    try {
-                        myCursor.moveToFirst();
-                        imageId = myCursor
-                                .getLong(myCursor
-                                        .getColumnIndexOrThrow(MediaStore.Images.Thumbnails.IMAGE_ID));
-                        thumbnailImageId = myCursor
-                                .getLong(myCursor
-                                        .getColumnIndexOrThrow(MediaStore.Images.Thumbnails._ID));
-                        thumbnailPath = myCursor
-                                .getString(myCursor
-                                        .getColumnIndexOrThrow(MediaStore.Images.Thumbnails.DATA));
-                    } finally {
-                        myCursor.close();
-                    }
-
-                    // Create new Cursor to obtain the file Path for the large image
-
-                    String[] largeFileProjection = {
-                            MediaStore.Images.ImageColumns._ID,
-                            MediaStore.Images.ImageColumns.DATA,
-                            MediaStore.Images.ImageColumns.ORIENTATION};
-                    String largeFileSort = MediaStore.Images.ImageColumns._ID
-                            + " DESC";
-                    myCursor = getActivity().getContentResolver().query(
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                            largeFileProjection, null, null, largeFileSort);
-                    String largeImagePath = "";
-
-                    try {
-                        myCursor.moveToFirst();
-
-                        // This will actually give you the file path location of the
-                        // image.
-                        largeImagePath = myCursor
-                                .getString(myCursor
-                                        .getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DATA));
-                        orientation = myCursor
-                                .getInt(myCursor
-                                        .getColumnIndexOrThrow(MediaStore.Images.ImageColumns.ORIENTATION));
-                        Gen.appendLog("EventNewFragment::onActivityResult> Orientation = " + orientation);
-                        mImageCaptureUri_samsung = Uri.fromFile(new File(largeImagePath));
-                        //mImageCaptureUri = null;
-                    } finally {
-                        myCursor.close();
-                    }
-
-                    // These are the two URI's you'll be interested in. They give
-                    // you a handle to the actual images
-                    Uri uriLargeImage = Uri.withAppendedPath(
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                            String.valueOf(imageId));
-                    Uri uriThumbnailImage = Uri.withAppendedPath(
-                            MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
-                            String.valueOf(thumbnailImageId));
-
-                    if (mImageCaptureUri_samsung != null)
-                    	mediaUri = mImageCaptureUri_samsung;
-                /*} catch (Exception e) {
-                    mImageCaptureUri_samsung = null;
-                    Gen.appendLog("inside catch Samsung Phones exception " + e.toString(), "E");
-                }*/
+	    		mediaUri = ImageWorker.getCameraImagePath(getActivity(), data);
                 break;
     	}
     	if (mediaUri != null) {
@@ -276,7 +173,7 @@ public class EventNewFragment extends Fragment {
                         pictureActionIntent = new Intent(Intent.ACTION_GET_CONTENT, null);
                         pictureActionIntent.setType("image/*");
                         pictureActionIntent.putExtra("return-data", true);
-                        startActivityForResult(pictureActionIntent, GALLERY_PICTURE);
+                        startActivityForResult(pictureActionIntent, MyStoriesApp.GALLERY_PICTURE);
                     }
                 });
 
@@ -305,12 +202,12 @@ public class EventNewFragment extends Fragment {
                                     mImageCaptureUri);
 
                             try {
-                                startActivityForResult(pictureActionIntent, CAMERA_REQUEST);
+                                startActivityForResult(pictureActionIntent, MyStoriesApp.CAMERA_REQUEST);
                             } catch (ActivityNotFoundException e) {
                                 e.printStackTrace();
                             }
                         } else {
-                            Toast.makeText(getActivity(), "SD Card is required", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), "SD Card required", Toast.LENGTH_SHORT).show();
                             Gen.appendLog("EventNewFragment::startDialog> SD Card is required", "E");
                         }
 
@@ -447,11 +344,11 @@ public class EventNewFragment extends Fragment {
                		((DrawerActivity)getActivity()).sendEventList(eventList);
                		getActivity().getSupportFragmentManager().popBackStackImmediate();
                	 }
-                } else {
-                	Gen.appendError("EventNewFragment$PostEventTask::onPostExecute> Error while creating event");
-                	Gen.appendError("EventNewFragment$PostEventTask::onPostExecute> result" + result);
-                	Toast.makeText(getActivity(), "Error while creating event", Toast.LENGTH_SHORT).show();
-                }
+             } else {
+               	Gen.appendError("EventNewFragment$PostEventTask::onPostExecute> Error while creating event");
+               	Gen.appendError("EventNewFragment$PostEventTask::onPostExecute> result" + result);
+               	Toast.makeText(getActivity(), "Error while creating event", Toast.LENGTH_SHORT).show();
+             }
          }
          
          @Override
