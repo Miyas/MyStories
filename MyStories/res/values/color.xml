@@ -5,7 +5,7 @@
     <color name="list_background_old">#E1D6FF</color>
     <color name="list_background_pressed">#992416</color>
     <color name="list_divider">#9B86D5</color>
-    
+   
     <color name="counter_text_bg">#626262</color>
     <color name="counter_text_color">#c5c4c4</color>
     
@@ -31,5 +31,5 @@
     <color name="rating_5">#C0D586</color>
     
     <color name="overlay_grey">#40E0E0E0</color>
-    
+   
 </resources>
