@@ -218,27 +218,49 @@ public class Communication {
         return -1;
 	}
 	
-	public static boolean deleteStory(Story story) 
+	public static boolean deleteStories(List<Story> stories) 
 	{
-		Gen.appendLog("Communication::deleteStory> Starting");
+		Gen.appendLog("Communication::deleteStories> Starting");
+		
+		String sStories = null;
+		String sUserId = null;
+		for (Story story : stories) {
+			if (story.isSelected()) {
+				if (sStories == null) {
+					sStories = story.getStoryId();
+				} else {
+					sStories += ";" + story.getStoryId();
+				}
+			}
+			sUserId = (sUserId == null ? story.getUserId() : sUserId);
+		}
 		
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("action", "4"));
-        params.add(new BasicNameValuePair("ui", story.getUserId()));
-        params.add(new BasicNameValuePair("sid", story.getStoryId()));
+        params.add(new BasicNameValuePair("ui", sUserId));
+        params.add(new BasicNameValuePair("sid", sStories));
         
         String[] res = postText(POST_URI, params);
 		if (res[0].equals("200"))
 		{
-			Gen.appendLog("Communication::deleteStory> Response = \n" + res[1] + "\n");
+			Gen.appendLog("Communication::deleteStories> Response = \n" + res[1] + "\n");
 			try {
-				return (res[1].compareTo("1")==0?true:false);
+				return (Integer.parseInt(res[1]) == stories.size()?true:false);
 			} catch(NumberFormatException e) {
-				Gen.appendError("Communication::deleteStory> NumberFormatException Exception");
-				Gen.appendError("Communication::deleteStory> " + e.getLocalizedMessage());
+				Gen.appendError("Communication::deleteStories> NumberFormatException Exception");
+				Gen.appendError("Communication::deleteStories> " + e.getLocalizedMessage());
        		}
         }
         return false;
+	}
+	
+	public static boolean deleteStory(Story story) 
+	{
+		Gen.appendLog("Communication::deleteStory> Starting");
+		
+		List<Story> stories = new ArrayList<Story>();
+		stories.add(story);
+		return deleteStories(stories);
 	}
 	
 	private static String[] postText(String uri, List<NameValuePair> params)

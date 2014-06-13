@@ -2,10 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
+    android:background="#000000"
     tools:context="com.mjumel.mystories.NewEventActivity$PlaceholderFragment" >
-	
-    
     	
 	<ImageView
 	    android:id="@+id/story_event_image"
@@ -18,6 +16,13 @@
 	    android:clickable="false"
 	    android:contentDescription="TODO"
 	    android:scaleType="fitCenter" />
+
+	<TextView
+	    android:id="@+id/story_event_rating_overlay"
+	    android:layout_width="match_parent"
+	    android:layout_height="26dp"
+	    android:background="@color/overlay_grey"
+	    android:minHeight="26dp" />
 
 	<RatingBar
 	    android:id="@+id/story_event_rating"
@@ -39,8 +44,11 @@
 	    android:layout_height="wrap_content"
 	    android:layout_alignParentBottom="true"
 	    android:layout_centerHorizontal="true"
-	    android:background="@color/background_light"
+	    android:background="@color/overlay_grey"
 	    android:maxLines="3"
-	    android:minLines="1" />
+	    android:minHeight="26dp"
+	    android:minLines="1"
+	    android:text="Comment"
+	    android:textColor="@color/dark_bg_text_color" />
 
 </RelativeLayout>

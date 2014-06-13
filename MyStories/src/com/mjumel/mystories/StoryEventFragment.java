@@ -13,6 +13,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout.LayoutParams;
@@ -39,7 +40,8 @@ public class StoryEventFragment extends Fragment {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
-    	setHasOptionsMenu(true);
+    	setHasOptionsMenu(false);
+    	getActivity().getActionBar().hide();
     	
     	Gen.appendLog("StoryEventFragment::onCreate> Starting");
     	story = (Story)getArguments().getParcelable("story");
@@ -68,6 +70,17 @@ public class StoryEventFragment extends Fragment {
 			image.setVisibility(ImageView.GONE);
 			rating.setVisibility(RatingBar.GONE);
 		}
+		
+		image.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            	setHasOptionsMenu(true);
+            	if (getActivity().getActionBar().isShowing())
+            		getActivity().getActionBar().hide();
+            	else
+            		getActivity().getActionBar().show();
+            }
+         });
 		
 		Gen.appendLog("StoryEventFragment::onCreateView> Ending");
 		return view;
@@ -169,8 +182,6 @@ public class StoryEventFragment extends Fragment {
 				Toast.makeText(getActivity(), "Story could not be deleted. Please retry later", Toast.LENGTH_SHORT).show();
 			} else {
 				Toast.makeText(getActivity(), "Story deleted", Toast.LENGTH_SHORT).show();
-				//eventList.remove(position);
-				//((DrawerActivity)getActivity()).sendEventList(eventList);
 				getActivity().finish();
 			}
 		}
@@ -179,5 +190,5 @@ public class StoryEventFragment extends Fragment {
 		protected void onCancelled() {
 			pg.dismiss();
 		}
-  }
+	}
 }

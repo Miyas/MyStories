@@ -116,6 +116,7 @@ public class EventListFragment extends Fragment {
     {
     	super.onResume();
     	Gen.appendLog("EventListFragment::onResume> Starting");
+    	getActivity().setTitle("My Events");
     	lv.setAdapter(adapter);
     	Gen.appendLog("EventListFragment::onResume> Ending");
     }

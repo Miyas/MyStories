@@ -31,6 +31,7 @@ public class StoryListFragment extends Fragment {
 	private ListView lv;
 	private ProgressDialog pg;
 	private StoryListAdapter adapter;
+	private Menu mMenu;
 	
 	private PullToRefreshLayout mPullToRefreshLayout;
 	
@@ -53,7 +54,7 @@ public class StoryListFragment extends Fragment {
     	if (storyList == null)
     		storyList = new ArrayList<Story>();
     	
-		adapter = new StoryListAdapter(getActivity(), storyList);
+		adapter = new StoryListAdapter(getActivity(), this, storyList);
 		uId = (String)getExtra("uid");
 		firstRun = ((String)getExtra("origin")).equals("splash");
 		
@@ -99,10 +100,13 @@ public class StoryListFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_my_stories, menu);
         menu.findItem(R.id.my_stories_search).getActionView();
+        this.mMenu = menu;
     }
     
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    @SuppressWarnings("unchecked")
+	@Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
         switch (item.getItemId()) {
         case R.id.my_stories_add:
         	Gen.appendLog("StoryListFragment::onOptionsItemSelected> Display new story fragment");
@@ -110,6 +114,28 @@ public class StoryListFragment extends Fragment {
         	bundle.putParcelableArrayList("stories", new ArrayList<Story>(storyList));
             ((DrawerActivity)getActivity()).changeFragment(new StoryNewFragment(), bundle);
             return true;
+        case R.id.my_stories_cancel:
+        	updateMenu(false);
+        	return true;
+        case R.id.my_stories_delete:
+        	Toast.makeText(getActivity(), "Delete action", Toast.LENGTH_SHORT).show();
+        	new DeleteStoryTask().execute(storyList);
+        	return true;
+        case R.id.my_stories_search:
+        	Toast.makeText(getActivity(), "Search action", Toast.LENGTH_SHORT).show();
+        	return true;
+        case R.id.my_stories_filters:
+        	Toast.makeText(getActivity(), "Show filters action", Toast.LENGTH_SHORT).show();
+        	return true;
+        case R.id.my_stories_switch:
+        	Toast.makeText(getActivity(), "Switch display action", Toast.LENGTH_SHORT).show();
+        	return true;
+        case R.id.my_stories_hide_title:
+        	Toast.makeText(getActivity(), "Hide title action", Toast.LENGTH_SHORT).show();
+        	return true;
+        case R.id.my_stories_hide_stars:
+        	Toast.makeText(getActivity(), "Hide stars action", Toast.LENGTH_SHORT).show();
+        	return true;
         default:
         	Toast.makeText(getActivity(), "TODO", Toast.LENGTH_SHORT).show();
             return super.onOptionsItemSelected(item);
@@ -122,7 +148,20 @@ public class StoryListFragment extends Fragment {
     	super.onResume();
     	Gen.appendLog("StoryListFragment::onResume> Starting");
     	lv.setAdapter(adapter);
+    	getActivity().setTitle("My Stories");
     	Gen.appendLog("StoryListFragment::onResume> Ending");
+    }
+    
+    public void updateMenu(boolean delete)
+    {
+   		mMenu.findItem(R.id.my_stories_delete).setVisible(delete);
+   		mMenu.findItem(R.id.my_stories_cancel).setVisible(delete);
+   		mMenu.findItem(R.id.my_stories_search).setVisible(!delete);
+   		mMenu.findItem(R.id.my_stories_filters).setVisible(!delete);
+   		mMenu.findItem(R.id.my_stories_add).setVisible(!delete);
+   		mMenu.findItem(R.id.my_stories_switch).setVisible(!delete);
+   		mMenu.findItem(R.id.my_stories_hide_title).setVisible(!delete);
+   		mMenu.findItem(R.id.my_stories_hide_stars).setVisible(!delete);
     }
     
     
@@ -170,7 +209,7 @@ public class StoryListFragment extends Fragment {
 	 *                                DownloadEventsTask Class
 	 * 
 	 ***************************************************************************************/
-	class DownloadStoriesTask extends AsyncTask<String, Integer, List<Story>>
+	private class DownloadStoriesTask extends AsyncTask<String, Integer, List<Story>>
     {
           protected void onPreExecute()
           {     //super.onPreExecute();
@@ -206,5 +245,40 @@ public class StoryListFragment extends Fragment {
         	  mPullToRefreshLayout.setRefreshComplete();
         	  pg.dismiss();
   		}
-     }
+    }
+	
+	
+	/***************************************************************************************
+	 *
+	 *                                DeleteStoryTask Class
+	 * 
+	 ***************************************************************************************/
+	private class DeleteStoryTask extends AsyncTask<List<Story>, Integer, Boolean>
+	{
+		private ProgressDialog pg;
+		 
+		protected void onPreExecute() {
+			pg = ProgressDialog.show(getActivity(), "", "Deleting stories...", true);
+		} 
+
+		protected Boolean doInBackground(List<Story> ...params) {
+			return Communication.deleteStories(params[0]);
+		}
+
+		protected void onPostExecute(Boolean result) {
+			pg.dismiss();
+			if (!result) {
+				Gen.appendError("StoryEventFragment$DeleteStoryTask::onPostExecute> Error while deleting stories");
+				Toast.makeText(getActivity(), "Stories could not be deleted. Please retry later", Toast.LENGTH_SHORT).show();
+			} else {
+				Toast.makeText(getActivity(), "Stories deleted", Toast.LENGTH_SHORT).show();
+				getActivity().finish();
+			}
+		}
+     
+		@Override
+		protected void onCancelled() {
+			pg.dismiss();
+		}
+	}
 }

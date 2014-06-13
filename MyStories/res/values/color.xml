@@ -4,8 +4,8 @@
     <color name="list_background">#FDFFF7</color>
     <color name="list_background_old">#E1D6FF</color>
     <color name="list_background_pressed">#992416</color>
-    <color name="list_divider">#272727</color>
-    
+    <color name="list_divider">#9B86D5</color>
+   
     <color name="counter_text_bg">#626262</color>
     <color name="counter_text_color">#c5c4c4</color>
     
@@ -20,4 +20,16 @@
     <color name="dark_bg_text_color">#FDFFF7</color>
     <color name="dark_bg_text_color_old">#E1D6FF</color>
     
+    <color name="green">#C0D586</color>
+    <color name="purple">#9B86D5</color>
+    
+    <color name="rating_0">#D9D9D9</color>
+    <color name="rating_1">#8699D5</color>
+    <color name="rating_2">#86C0D5</color>
+    <color name="rating_3">#86D59B</color>
+    <color name="rating_4">#89A63A</color>
+    <color name="rating_5">#C0D586</color>
+    
+    <color name="overlay_grey">#40E0E0E0</color>
+   
 </resources>

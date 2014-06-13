@@ -234,7 +234,7 @@ public class DrawerActivity extends FragmentActivity {
             setTitle(navMenuTitles[drawerPosition]);
             
             Gen.appendLog("DrawerActivity::changeFragment> Changing icon");
-            getActionBar().setIcon(navMenuIcons.getResourceId(drawerPosition, -1));
+            //getActionBar().setIcon(navMenuIcons.getResourceId(drawerPosition, -1));
             Gen.appendLog("DrawerActivity::changeFragment> End Changing icon");
             mDrawerLayout.closeDrawer(mDrawerList);
         } else {
