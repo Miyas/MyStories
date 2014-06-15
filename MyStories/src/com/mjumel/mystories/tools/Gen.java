@@ -39,7 +39,7 @@ public class Gen {
 	
 	private static void doWrite(String text, String crit, boolean append)
 	{
-	   File logFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + MyStoriesApp.LOG_FILENAME);
+	   File logFile = new File(MyStoriesApp.CACHE_DIR + MyStoriesApp.LOG_FILENAME);
 	   if (!logFile.exists()) {
 	      try {
 	         logFile.createNewFile();
