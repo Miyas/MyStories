@@ -3,7 +3,6 @@ package com.mjumel.mystories;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -163,7 +162,7 @@ public class DrawerActivity extends FragmentActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         // if nav drawer is opened, hide the action items
-        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
+        //boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
         //menu.findItem(R.id.action_settings).setVisible(!drawerOpen);
         
         
@@ -235,7 +234,7 @@ public class DrawerActivity extends FragmentActivity {
             setTitle(navMenuTitles[drawerPosition]);
             
             Gen.appendLog("DrawerActivity::changeFragment> Changing icon");
-            getActionBar().setIcon(navMenuIcons.getResourceId(drawerPosition, -1));
+            //getActionBar().setIcon(navMenuIcons.getResourceId(drawerPosition, -1));
             Gen.appendLog("DrawerActivity::changeFragment> End Changing icon");
             mDrawerLayout.closeDrawer(mDrawerList);
         } else {

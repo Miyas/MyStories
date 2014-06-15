@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="48dp"
-    android:background="@color/list_item_title" >
+    android:background="@color/background_light" >
  
     <ImageView
         android:id="@+id/icon"
@@ -24,7 +24,7 @@
         android:minHeight="?android:attr/listPreferredItemHeightSmall"
         android:paddingRight="40dp"
         android:textAppearance="?android:attr/textAppearanceListItemSmall"
-        android:textColor="@color/background_light" />
+        android:textColor="@color/light_bg_text_color" />
      
     <TextView android:id="@+id/counter"
         android:layout_width="wrap_content"

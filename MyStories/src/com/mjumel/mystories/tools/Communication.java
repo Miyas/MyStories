@@ -30,6 +30,28 @@ import com.mjumel.mystories.Story;
 
 public class Communication {
 	
+	private static final String AUTH_URI = "http://anizoo.info/mystories/include/auth.php";
+	private static final String POST_URI = "http://anizoo.info/mystories/post/userevents.php";
+	
+	public static int login(String login, String pwd) 
+	{
+		Gen.appendLog("Communication::login> Starting");
+		
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("action", "1"));
+        params.add(new BasicNameValuePair("l", login));
+        params.add(new BasicNameValuePair("p", pwd));
+        
+		String[] res = postText(AUTH_URI, params);
+		if (res[0].equals("200"))
+		{
+        	String[] message = res[1].split(":");
+        	if (message[0].equals("OK"))
+        		return Integer.valueOf(message[1]);
+        }
+       	return -1;
+	}
+	
 	public static int newEvent(String userid, String comment, int rating, String mediaUri, int cat) {
 		return postEvent(userid, null, comment, rating, mediaUri, cat);
 	}
@@ -41,12 +63,11 @@ public class Communication {
 		Gen.appendLog("Communication::postEvent> Starting");
 		int serverResponseCode = 0;
 		
-		String upLoadServerUri = "http://anizoo.info/mystories/post/userevents.php"; 
 		try
 	    {
 	        HttpClient client = new DefaultHttpClient();
 	
-	        HttpPost post = new HttpPost(upLoadServerUri);
+	        HttpPost post = new HttpPost(POST_URI);
 	
 	        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
 	        entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -90,37 +111,39 @@ public class Communication {
         return -1;
 	}
 	
-	public static int login(String login, String pwd) 
+	public static boolean deleteEvent(Event event) 
 	{
-		Gen.appendLog("Communication::login> Starting");
+		Gen.appendLog("Communication::deleteEvent> Starting");
 		
-		String upLoadServerUri = "http://anizoo.info/mystories/include/auth.php";
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("action", "1"));
-        params.add(new BasicNameValuePair("l", login));
-        params.add(new BasicNameValuePair("p", pwd));
+        params.add(new BasicNameValuePair("action", "7"));
+        params.add(new BasicNameValuePair("ui", event.getUserId()));
+        params.add(new BasicNameValuePair("eid", event.getEventId()));
         
-		String[] res = postText(upLoadServerUri, params);
+        String[] res = postText(POST_URI, params);
 		if (res[0].equals("200"))
 		{
-        	String[] message = res[1].split(":");
-        	if (message[0].equals("OK"))
-        		return Integer.valueOf(message[1]);
+			Gen.appendLog("Communication::deleteEvent> Response = \n" + res[1] + "\n");
+			try {
+				return (res[1].compareTo("1")==0?true:false);
+			} catch(NumberFormatException e) {
+				Gen.appendError("Communication::deleteEvent> NumberFormatException Exception");
+				Gen.appendError("Communication::deleteEvent> " + e.getLocalizedMessage());
+       		}
         }
-       	return -1;
+        return false;
 	}
 	
 	public static List<Event> getUserEvents(String userId)//, String userSession) 
 	{
 		Gen.appendLog("Communication::getUserEvents> Starting");
 		
-		String upLoadServerUri = "http://anizoo.info/mystories/post/userevents.php";
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("action", "1"));
         params.add(new BasicNameValuePair("ui", userId));
         //params.add(new BasicNameValuePair("us", userSession));
         
-        String[] res = postText(upLoadServerUri, params);
+        String[] res = postText(POST_URI, params);
 		if (res[0].equals("200"))
 		{
 			//Gen.appendLog("Communication::getUserEvents> Response = \n" + res[1] + "\n");
@@ -141,13 +164,12 @@ public class Communication {
 	{
 		Gen.appendLog("Communication::getUserStories> Starting");
 		
-		String upLoadServerUri = "http://anizoo.info/mystories/post/userevents.php";
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("action", "5"));
         params.add(new BasicNameValuePair("ui", userId));
         //params.add(new BasicNameValuePair("us", userSession));
         
-        String[] res = postText(upLoadServerUri, params);
+        String[] res = postText(POST_URI, params);
 		if (res[0].equals("200"))
 		{
 			Gen.appendLog("Communication::getUserStories> Response = \n" + res[1] + "\n");
@@ -166,9 +188,7 @@ public class Communication {
 	
 	public static int addStory(Story story) 
 	{
-		Gen.appendLog("Communication::saveStory> Starting");
-		
-		String upLoadServerUri = "http://anizoo.info/mystories/post/userevents.php";
+		Gen.appendLog("Communication::addStory> Starting");
 		
 		String sEvents = null;
 		for (Event event : story.getEvents()) {
@@ -184,18 +204,63 @@ public class Communication {
         params.add(new BasicNameValuePair("title", story.getTitle()));
         params.add(new BasicNameValuePair("events", sEvents));
         
-        String[] res = postText(upLoadServerUri, params);
+        String[] res = postText(POST_URI, params);
 		if (res[0].equals("200"))
 		{
-			//Gen.appendLog("Communication::getUserEvents> Response = \n" + res[1] + "\n");
+			//Gen.appendLog("Communication::addStory> Response = \n" + res[1] + "\n");
 			try {
 				return Integer.parseInt(res[1]);
 			} catch(NumberFormatException e) {
-				Gen.appendError("Communication::saveStory> NumberFormatException Exception");
-				Gen.appendError("Communication::saveStory> " + e.getLocalizedMessage());
+				Gen.appendError("Communication::addStory> NumberFormatException Exception");
+				Gen.appendError("Communication::addStory> " + e.getLocalizedMessage());
        		}
         }
         return -1;
+	}
+	
+	public static boolean deleteStories(List<Story> stories) 
+	{
+		Gen.appendLog("Communication::deleteStories> Starting");
+		
+		String sStories = null;
+		String sUserId = null;
+		for (Story story : stories) {
+			if (story.isSelected()) {
+				if (sStories == null) {
+					sStories = story.getStoryId();
+				} else {
+					sStories += ";" + story.getStoryId();
+				}
+			}
+			sUserId = (sUserId == null ? story.getUserId() : sUserId);
+		}
+		
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("action", "4"));
+        params.add(new BasicNameValuePair("ui", sUserId));
+        params.add(new BasicNameValuePair("sid", sStories));
+        
+        String[] res = postText(POST_URI, params);
+		if (res[0].equals("200"))
+		{
+			Gen.appendLog("Communication::deleteStories> Response = \n" + res[1] + "\n");
+			try {
+				return (Integer.parseInt(res[1]) == stories.size()?true:false);
+			} catch(NumberFormatException e) {
+				Gen.appendError("Communication::deleteStories> NumberFormatException Exception");
+				Gen.appendError("Communication::deleteStories> " + e.getLocalizedMessage());
+       		}
+        }
+        return false;
+	}
+	
+	public static boolean deleteStory(Story story) 
+	{
+		Gen.appendLog("Communication::deleteStory> Starting");
+		
+		List<Story> stories = new ArrayList<Story>();
+		stories.add(story);
+		return deleteStories(stories);
 	}
 	
 	private static String[] postText(String uri, List<NameValuePair> params)
