@@ -24,6 +24,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.telephony.TelephonyManager;
 
 import com.mjumel.mystories.Event;
 import com.mjumel.mystories.Story;
@@ -33,7 +34,7 @@ public class Communication {
 	private static final String AUTH_URI = "http://anizoo.info/mystories/include/auth.php";
 	private static final String POST_URI = "http://anizoo.info/mystories/post/userevents.php";
 	
-	public static int login(String login, String pwd) 
+	public static int login(String login, String pwd, Context c) 
 	{
 		Gen.appendLog("Communication::login> Starting");
 		
@@ -41,6 +42,27 @@ public class Communication {
         params.add(new BasicNameValuePair("action", "1"));
         params.add(new BasicNameValuePair("l", login));
         params.add(new BasicNameValuePair("p", pwd));
+        params.add(new BasicNameValuePair("phone", getPhoneNumber(c)));
+        
+		String[] res = postText(AUTH_URI, params);
+		if (res[0].equals("200"))
+		{
+        	String[] message = res[1].split(":");
+        	if (message[0].equals("OK"))
+        		return Integer.valueOf(message[1]);
+        }
+       	return -1;
+	}
+	
+	public static int register(String login, String pwd, Context c) 
+	{
+		Gen.appendLog("Communication::register> Starting");
+		
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("action", "3"));
+        params.add(new BasicNameValuePair("l", login));
+        params.add(new BasicNameValuePair("p", pwd));
+        params.add(new BasicNameValuePair("phone", getPhoneNumber(c)));
         
 		String[] res = postText(AUTH_URI, params);
 		if (res[0].equals("200"))
@@ -317,5 +339,11 @@ public class Communication {
 		final ConnectivityManager conMgr =  (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
 		final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
 		return (activeNetwork != null && activeNetwork.isConnected());
+	}
+	
+	public static String getPhoneNumber(Context c) {
+		TelephonyManager tMgr = (TelephonyManager)c.getSystemService(Context.TELEPHONY_SERVICE);
+		Gen.appendLog("Communication::getPhoneNumber> Phone number : " + tMgr.getLine1Number());
+		return tMgr.getLine1Number();
 	}
 }

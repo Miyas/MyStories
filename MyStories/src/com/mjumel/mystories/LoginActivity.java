@@ -195,11 +195,8 @@ public class LoginActivity extends Activity {
 	public class UserLoginTask extends AsyncTask<Void, Void, Integer> {
 		@Override
 		protected Integer doInBackground(Void... params) {
-			// TODO: attempt authentication against a network service.
-			
 			if(!Communication.checkNetState(getApplicationContext())) return -2;
-			return Communication.login(mEmail, Gen.md5Encrypt(mPassword));
-			
+			return Communication.login(mEmail, Gen.md5Encrypt(mPassword), getApplicationContext());
 		}
 
 		@Override
