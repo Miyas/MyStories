@@ -113,7 +113,7 @@ public class SplashActivity extends Activity {
 			@Override
 			protected Integer doInBackground(String... params) {
 				if(!Communication.checkNetState(getActivity())) return -2;
-				return Communication.login(params[0], params[1]);
+				return Communication.login(params[0], params[1], getActivity());
 			}
 
 			@Override
@@ -136,10 +136,10 @@ public class SplashActivity extends Activity {
 					getActivity().finish();				    
 				} else if (uid == -2) {
 					textView.setText("Communication error, check your internet connexion");
-					Gen.appendLog("SplashActivity::UserLoginTask> Communication error, check your internet connexion");
+					Gen.appendError("SplashActivity::UserLoginTask> Communication error, check your internet connexion");
 				} else {
 					textView.setText("Error while login, redirecting to login screen");
-					Gen.appendLog("SplashActivity::UserLoginTask> Error while login, redirecting to login screen");
+					Gen.appendError("SplashActivity::UserLoginTask> Error while login, redirecting to login screen");
 					
 					Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
 					intent.putExtras(getActivity().getIntent());

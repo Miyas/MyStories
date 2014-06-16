@@ -1,0 +1,8 @@
+Forcer les couleurs de fond
+Après post d'un event > retour à my events
+Add event : sur commentaire, modifier retour chariot par OK
+action bar sous kitkat : cumulation des boutons !!
+
+ViewEvent : pb affichage de la photo lors du retour à la liste des évènements
+viewStory : modifier la disposition de l'image et du texte en fonction du mode d'affichage (en paysage : photo à gauche + texte à droite)
+
