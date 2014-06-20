@@ -1,0 +1,135 @@
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.mjumel.mystories.LoginActivity" >
+
+    <!-- Login progress -->
+
+    <LinearLayout
+        android:id="@+id/register_status"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:background="@color/background_dark"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:visibility="gone" >
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/register_status_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:text="@string/register_progress_signing_in"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/dark_bg_text_color"
+            android:textColorHint="@color/dark_bg_text_color" />
+
+    </LinearLayout>
+
+    <!-- Login form -->
+
+    <ScrollView
+        android:id="@+id/register_form"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/purple" >
+
+        <LinearLayout
+            style="@style/LoginFormContainer"
+            android:orientation="vertical" >
+
+            <EditText
+                android:id="@+id/register_email"
+                style="@style/textbox_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/prompt_email"
+                android:inputType="textEmailAddress"
+                android:maxLines="1"
+                android:singleLine="true" />
+            
+            <View
+             	android:layout_width="fill_parent"
+             	android:layout_height="1dp"
+             	android:background="#c0c0c0" />
+
+            <EditText
+                android:id="@+id/register_password"
+                style="@style/textbox_text"
+                android:hint="@string/prompt_password"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:singleLine="true" />
+            
+            <EditText
+                android:id="@+id/register_firstname"
+                style="@style/textbox_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="@string/prompt_firstname"
+                android:inputType="textPersonName"
+                android:maxLines="1"
+                android:singleLine="true" />
+            
+            <View
+             	android:layout_width="fill_parent"
+             	android:layout_height="1dp"
+             	android:background="#c0c0c0" />
+
+            <EditText
+                android:id="@+id/register_lastname"
+                style="@style/textbox_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/prompt_lastname"
+                android:inputType="textPersonName"
+                android:maxLines="1"
+                android:singleLine="true" />
+            
+            <EditText
+                android:id="@+id/register_phone"
+                style="@style/textbox_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="@string/prompt_phone_number"
+                android:imeOptions="actionGo"
+                android:imeActionId="@+id/register"
+                android:inputType="phone"
+                android:maxLines="1"
+                android:singleLine="true" />
+
+            <Button
+                android:id="@+id/register_register_button"
+                style="@style/button_text"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_yellow"
+                android:text="@string/action_register" />
+
+            <Button
+                android:id="@+id/register_sign_in_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_marginRight="5dp"
+                android:background="@color/purple"
+                android:gravity="center_vertical|center_horizontal|right"
+                android:minHeight="32dp"
+                android:text="@string/action_sign_in_short"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</merge>

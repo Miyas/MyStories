@@ -17,7 +17,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import android.os.Environment;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
@@ -39,7 +38,8 @@ public class Gen {
 	
 	private static void doWrite(String text, String crit, boolean append)
 	{
-	   File logFile = new File(MyStoriesApp.CACHE_DIR + MyStoriesApp.LOG_FILENAME);
+	   File logFile = new File(MyStoriesApp.EXT_DIR + MyStoriesApp.LOG_FILENAME);
+	   Log.e("MAX", "Writing log to " + logFile.getAbsolutePath());
 	   if (!logFile.exists()) {
 	      try {
 	         logFile.createNewFile();
@@ -149,7 +149,6 @@ public class Gen {
 	{
 		String sTmp = "";
 		String charToRemove = " \\n\\r";
-		int startPos = 0;
 		
 		Gen.appendLog( "Gen::superTrim > Input string = " + s);
 		

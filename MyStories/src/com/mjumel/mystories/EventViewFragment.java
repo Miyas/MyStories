@@ -46,6 +46,7 @@ public class EventViewFragment extends Fragment {
 	private RatingBar rbRating, rbRatingMini;
 	
 	private ArrayList<Event> eventList = null;
+	private ArrayList<Story> storiesList = null;
 	private int position;
 	private Event event;
 	private String mediaPath;
@@ -141,6 +142,9 @@ public class EventViewFragment extends Fragment {
 	        	return true;
 	        case R.id.view_event_delete:
 	        	deleteDialog();
+	        	return true;
+	        case R.id.view_event_link:
+	        	linkDialog();
 	        	return true;
 	        default:
 	            return super.onOptionsItemSelected(item);
@@ -365,6 +369,37 @@ public class EventViewFragment extends Fragment {
         myAlertDialog.show();
     }
     
+    private void linkDialog() {
+    	Gen.appendLog("EventViewFragment::linkDialog> Starting");
+    	final ArrayList mSelectedItems = new ArrayList();
+        AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(getActivity());
+        myAlertDialog.setTitle("Stories to link to");
+        myAlertDialog.setMultiChoiceItems(new CharSequence[] {"1","2","3"}, null,
+                new DialogInterface.OnMultiChoiceClickListener() {
+		        @Override
+		        public void onClick(DialogInterface dialog, int which,
+		            boolean isChecked) {
+		            if (isChecked) {
+		                // If the user checked the item, add it to the selected items
+		                mSelectedItems.add(which);
+		            } else if (mSelectedItems.contains(which)) {
+		                // Else, if the item is already in the array, remove it 
+		                mSelectedItems.remove(Integer.valueOf(which));
+		            }
+		        }
+        });
+
+
+        myAlertDialog.setPositiveButton("OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface arg0, int arg1) {
+                    	//TODO
+                    }
+                });
+        myAlertDialog.setNegativeButton("Cancel", null);
+        myAlertDialog.show();
+    }
+    
     
     /***************************************************************************************
 	 *
@@ -395,11 +430,11 @@ public class EventViewFragment extends Fragment {
                 event.setResizedMediaPath(imagePath);
                 event.setThumbMediaPath(imagePath);
         	}
-        	 
+        	
             event.setComment(etComment.getText().toString());
             event.setRating(rbRating.getProgress());
             event.setCategoryId(spnCats.getSelectedItemPosition());
-             
+            
             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> uId = " + event.getUserId());
             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> eventId = " + event.getEventId());
             Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> comment = " + event.getComment());
@@ -453,7 +488,7 @@ public class EventViewFragment extends Fragment {
        } 
 
        protected Boolean doInBackground(String ...params) {
-       	   return Communication.deleteEvent(event);
+       	   return Communication.deleteEvent(uId, event);
        }
 
        protected void onPostExecute(Boolean result) {

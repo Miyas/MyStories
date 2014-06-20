@@ -55,9 +55,11 @@ public class Event implements Parcelable {
 		this.comment = comment;
 		this.rating = rating;
 		this.category = category;
-		this.thumbMediaPath = mediaPath[0];
-		this.resizedMediaPath = mediaPath[1];
-		this.originalMediaPath = mediaPath[2];
+		if (mediaPath != null) {
+			this.thumbMediaPath = mediaPath[0];
+			this.resizedMediaPath = mediaPath[1];
+			this.originalMediaPath = mediaPath[2];
+		}
 		this.uId = uId;
 		this.storyId = storyId;
 		this.eventId = eventId;

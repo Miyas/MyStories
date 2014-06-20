@@ -29,6 +29,7 @@ public class StoryEventFragment extends Fragment {
 	private Story story = null;
 	private Event event = null;
 	private int eventPos = -1;
+	private String uId = null;
 	
 	private TextView comment;
 	private ImageView image;
@@ -47,6 +48,7 @@ public class StoryEventFragment extends Fragment {
     	story = (Story)getArguments().getParcelable("story");
     	event = (Event)getArguments().getParcelable("event");
     	eventPos = getArguments().getInt("pos");
+    	uId = story.getUserId();
     }
 
     @Override
@@ -171,7 +173,7 @@ public class StoryEventFragment extends Fragment {
 		} 
 
 		protected Boolean doInBackground(String ...params) {
-			return Communication.deleteStory(story);
+			return Communication.deleteStory(uId, story);
 		}
 
 		protected void onPostExecute(Boolean result) {

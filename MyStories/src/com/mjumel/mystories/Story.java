@@ -44,7 +44,7 @@ public class Story implements Parcelable {
 		this.rating = rating;
 		this.uId = uId;
 		this.events = events;
-		print();
+		//print();
     }
 	
 	public Story(String title, String uId, List<Event> events) 
@@ -53,7 +53,16 @@ public class Story implements Parcelable {
 		this.title = title;
 		this.uId = uId;
 		this.events = events;
-		print();
+		//print();
+    }
+	
+	public Story(String storyId, String title, String uId) 
+    {
+		Gen.appendLog("Story::Story> Creating new story with constructor#5");
+		this.title = title;
+		this.uId = uId;
+		this.storyId = storyId;
+		//print();
     }
 	
 	public void print()
