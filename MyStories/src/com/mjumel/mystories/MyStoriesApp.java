@@ -11,7 +11,8 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 public class MyStoriesApp extends Application {
 	public static String LOG_FILENAME;
-	public final static String CACHE_DIR = Environment.getExternalStorageDirectory() + "/.mystories/";
+	public final static String EXT_DIR = Environment.getExternalStorageDirectory() + "/";
+	public final static String CACHE_DIR = Environment.getExternalStorageDirectory() + ".mystories/";
 	public static final int CAMERA_REQUEST = 0;
 	public static final int GALLERY_PICTURE = 1;
 	public static final int SELECT_PICTURE = 2;

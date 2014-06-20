@@ -7,12 +7,14 @@
     tools:context="com.mjumel.mystories.NewEventActivity$PlaceholderFragment" >
 
     <Button
-	    android:id="@+id/event_save"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_alignParentBottom="true"
-	    android:layout_alignParentRight="true"
-	    android:text="Remember" />
+        android:id="@+id/event_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="5dp"
+        android:background="@drawable/button_purple"
+        android:text="Remember" />
     	
     <Spinner
         android:id="@+id/event_cats"

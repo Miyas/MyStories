@@ -8,6 +8,7 @@ import com.mjumel.mystories.adapters.StoryPagerAdapter;
 import com.mjumel.mystories.tools.Gen;
 
 public class StoryViewFragment extends FragmentActivity  {
+	
 	private StoryPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
     

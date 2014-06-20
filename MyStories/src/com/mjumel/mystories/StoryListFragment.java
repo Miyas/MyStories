@@ -27,6 +27,8 @@ import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
 
 public class StoryListFragment extends Fragment {
+	
+	private DrawerActivity activity;
 
 	private ListView lv;
 	private ProgressDialog pg;
@@ -38,28 +40,23 @@ public class StoryListFragment extends Fragment {
 	private String uId = null;
 	private List<Story> storyList = null;
 	
-	private boolean firstRun = false;
-	
     public StoryListFragment()
     {
     }
-    	
-    @SuppressWarnings("unchecked")
+
 	@Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	setHasOptionsMenu(true);
     	
-    	storyList = (List<Story>) getExtra("stories");
-    	if (storyList == null)
-    		storyList = new ArrayList<Story>();
+    	activity = (DrawerActivity) getActivity();
+    	
+		storyList = activity.getStoryList();
+		uId = activity.getUserId();
     	
 		adapter = new StoryListAdapter(getActivity(), this, storyList);
-		uId = (String)getExtra("uid");
-		firstRun = ((String)getExtra("origin")).equals("splash");
 		
 		Gen.appendLog("StoryListFragment::onCreate> uId=" + uId);
-		Gen.appendLog("StoryListFragment::onCreate> origin=" + (String)getExtra("origin"));
     }
 
     @Override
@@ -70,14 +67,6 @@ public class StoryListFragment extends Fragment {
     	
     	View view = inflater.inflate(R.layout.fragment_my_stories_pull,container, false);
     	
-    	List<Story> stories = ((DrawerActivity)getActivity()).getStoryList(); 
-    	if (stories != null) {
-    		storyList.clear();
-    		storyList.addAll(stories);
-    		stories = null;
-    		adapter.notifyDataSetChanged();
-    	}
-    	
         mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.my_stories_ptr_layout);
         ActionBarPullToRefresh.from(getActivity())
                 .allChildrenArePullable()
@@ -87,9 +76,6 @@ public class StoryListFragment extends Fragment {
 		lv = (ListView) view.findViewById(R.id.my_stories_listView_pull);
 		lv.setAdapter(adapter);
 		lv.setOnItemClickListener(viewStory);
-		
-		if (uId != null && storyList.size() <= 0 && firstRun)
-			new DownloadStoriesTask().execute(uId);
 		
 		Gen.appendLog("StoryListFragment::onCreateView> Ending");
 		return view;
@@ -110,16 +96,13 @@ public class StoryListFragment extends Fragment {
         switch (item.getItemId()) {
         case R.id.my_stories_add:
         	Gen.appendLog("StoryListFragment::onOptionsItemSelected> Display new story fragment");
-        	Bundle bundle = new Bundle();
-        	bundle.putParcelableArrayList("stories", new ArrayList<Story>(storyList));
-            ((DrawerActivity)getActivity()).changeFragment(new StoryNewFragment(), bundle);
+            ((DrawerActivity)getActivity()).changeFragment(new StoryNewFragment(), null);
             return true;
-        case R.id.my_stories_cancel:
-        	updateMenu(false);
-        	return true;
         case R.id.my_stories_delete:
-        	Toast.makeText(getActivity(), "Delete action", Toast.LENGTH_SHORT).show();
         	new DeleteStoryTask().execute(storyList);
+        	return true;
+        case R.id.my_stories_share:
+        	Toast.makeText(getActivity(), "Share action", Toast.LENGTH_SHORT).show();
         	return true;
         case R.id.my_stories_search:
         	Toast.makeText(getActivity(), "Search action", Toast.LENGTH_SHORT).show();
@@ -149,13 +132,17 @@ public class StoryListFragment extends Fragment {
     	Gen.appendLog("StoryListFragment::onResume> Starting");
     	lv.setAdapter(adapter);
     	getActivity().setTitle("My Stories");
+    	
+    	storyList = activity.getStoryList();
+   		adapter.notifyDataSetChanged();
+   		
     	Gen.appendLog("StoryListFragment::onResume> Ending");
     }
     
     public void updateMenu(boolean delete)
     {
    		mMenu.findItem(R.id.my_stories_delete).setVisible(delete);
-   		mMenu.findItem(R.id.my_stories_cancel).setVisible(delete);
+   		mMenu.findItem(R.id.my_stories_share).setVisible(delete);
    		mMenu.findItem(R.id.my_stories_search).setVisible(!delete);
    		mMenu.findItem(R.id.my_stories_filters).setVisible(!delete);
    		mMenu.findItem(R.id.my_stories_add).setVisible(!delete);
@@ -175,7 +162,8 @@ public class StoryListFragment extends Fragment {
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             Gen.appendLog("StoryListFragment::viewStory> Display story#" + ((Story)parent.getItemAtPosition(position)).getStoryId());
             Intent intent = new Intent(getActivity().getApplicationContext(), StoryViewFragment.class);
-			intent.putExtra("story", (Story)parent.getItemAtPosition(position));;			
+            intent.putExtra("story", (Story)parent.getItemAtPosition(position));
+			intent.putExtra("position", position);
 			startActivity(intent);
 		}
 	};
@@ -190,29 +178,16 @@ public class StoryListFragment extends Fragment {
 	};
 	
     
-	/***************************************************************************************
-	 *
-	 *                                Misc functions
-	 * 
-	 ***************************************************************************************/
-	private Object getExtra(String id)
-    {
-    	if (this.getActivity().getIntent().getExtras() != null)
-			return this.getActivity().getIntent().getExtras().get(id);
-    	else
-    		return null;
-    }
-    
     
 	/***************************************************************************************
 	 *
-	 *                                DownloadEventsTask Class
+	 *                                DownloadStoriesTask Class
 	 * 
 	 ***************************************************************************************/
 	private class DownloadStoriesTask extends AsyncTask<String, Integer, List<Story>>
     {
           protected void onPreExecute()
-          {     //super.onPreExecute();
+          {
           		pg = ProgressDialog.show(getActivity(), "", "Loading stories...", true);
           } 
 
@@ -233,15 +208,16 @@ public class StoryListFragment extends Fragment {
                 }
                 storyList.clear();
                 storyList.addAll(result);
+                activity.sendStoryList(storyList);
             	adapter.notifyDataSetChanged();
             	mPullToRefreshLayout.setRefreshComplete();
-            	firstRun = false;
             	pg.dismiss();
-            	Gen.appendLog("StoryListFragment::DownloadEventsTask::onPostExecute> Nb of stories downloaded : " + storyList.size());
+            	Gen.appendLog("StoryListFragment::DownloadStoriesTask::onPostExecute> Nb of stories downloaded : " + storyList.size());
           }
           
           @Override
   		protected void onCancelled() {
+        	  Toast.makeText(activity, "Operation cancelled", Toast.LENGTH_SHORT).show();
         	  mPullToRefreshLayout.setRefreshComplete();
         	  pg.dismiss();
   		}
@@ -262,22 +238,35 @@ public class StoryListFragment extends Fragment {
 		} 
 
 		protected Boolean doInBackground(List<Story> ...params) {
-			return Communication.deleteStories(params[0]);
+			return Communication.deleteStories(uId, params[0]);
 		}
 
 		protected void onPostExecute(Boolean result) {
-			pg.dismiss();
 			if (!result) {
 				Gen.appendError("StoryEventFragment$DeleteStoryTask::onPostExecute> Error while deleting stories");
 				Toast.makeText(getActivity(), "Stories could not be deleted. Please retry later", Toast.LENGTH_SHORT).show();
 			} else {
 				Toast.makeText(getActivity(), "Stories deleted", Toast.LENGTH_SHORT).show();
-				getActivity().finish();
+				List<Story> list = new ArrayList<Story>();
+				for (Story s : storyList) {
+					if (s.isSelected()) {
+						list.add(s);
+					}
+				}
+				for (Story e : list) {
+					storyList.remove(e);
+				}
+				list = null;
+				activity.sendStoryList(storyList);
+				adapter.notifyDataSetChanged();
+				updateMenu(false);
 			}
+			pg.dismiss();
 		}
      
 		@Override
 		protected void onCancelled() {
+			Toast.makeText(activity, "Operation cancelled", Toast.LENGTH_SHORT).show();
 			pg.dismiss();
 		}
 	}

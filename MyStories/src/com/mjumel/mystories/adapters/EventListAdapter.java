@@ -6,20 +6,32 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
+import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.mjumel.mystories.Event;
+import com.mjumel.mystories.EventListFragment;
 import com.mjumel.mystories.R;
-import com.mjumel.mystories.tools.Gen;
+import com.mjumel.mystories.StoryNewFragment;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 	private LayoutInflater inflater;
-	private Activity context;
+	private List<Event> events;
+	private EventListFragment fragmentEvent;
+	private StoryNewFragment fragmentStory;
+	
+	private Animation animation1;
+	private Animation animation2;
+	private ImageView tvFlip;
+	private int checkedCount = 0;
 	
 	static class ViewHolder {
 		TextView comment;
@@ -27,10 +39,24 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 		ImageView image;
 	}
 
-	public EventListAdapter(Activity context, List<Event> events) {
+	public EventListAdapter(Activity context, EventListFragment fragment, List<Event> events) {
 		super(context, R.layout.fragment_my_events_item, events);
-		this.context = context;
 		this.inflater = LayoutInflater.from(context);
+		this.events = events;
+		this.fragmentEvent = fragment;
+		
+		animation1 = AnimationUtils.loadAnimation(context, R.anim.to_middle);
+        animation2 = AnimationUtils.loadAnimation(context, R.anim.from_middle);
+	}
+	
+	public EventListAdapter(Activity context, StoryNewFragment fragment, List<Event> events) {
+		super(context, R.layout.fragment_my_events_item, events);
+		this.inflater = LayoutInflater.from(context);
+		this.events = events;
+		this.fragmentStory = fragment;
+		
+		animation1 = AnimationUtils.loadAnimation(context, R.anim.to_middle);
+        animation2 = AnimationUtils.loadAnimation(context, R.anim.from_middle);
 	}
 
 	@Override
@@ -51,11 +77,6 @@ public class EventListAdapter extends ArrayAdapter<Event> {
             holder = (ViewHolder) rowView.getTag();
         }
 		
-		if (position%2 == 0)
-			rowView.setBackgroundColor(context.getResources().getColor(R.color.item_background_1));
-		else
-			rowView.setBackgroundColor(context.getResources().getColor(R.color.item_background_2));
-		
 		Event event = this.getItem(position);
 		//Gen.appendLog("EventListAdapter::getView> event#" + position + " / eventid#" + event.getEventId());
 		
@@ -69,39 +90,97 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 			holder.rating.setProgress(event.getRating());
 		}
 		
-		if (event.getThumbMediaPath() != null) {
-			Gen.appendLog("EventListAdapter::getView> Image loading for event#" + position + " (" + event.getThumbMediaPath() + ")");
-			holder.image.setVisibility(ImageView.VISIBLE);
-			ImageLoader.getInstance().displayImage(event.getThumbMediaPath(), holder.image);
-		} else {
-			holder.image.setImageBitmap(null);
-			holder.image.setVisibility(ImageView.INVISIBLE);
-		}
-			
-		// Change layout display in function of the position of the view in the list
-		/*LayoutParams lpRow = new LayoutParams(LayoutParams.MATCH_PARENT, 80);
-		LayoutParams lpImage = new LayoutParams(80,LayoutParams.MATCH_PARENT);
-		LayoutParams lpText = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-		LayoutParams lpRating = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-		if (position%2 == 0) {
-			lpImage.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, -1);
-			lpText.addRule(RelativeLayout.ALIGN_PARENT_TOP, -1);
-			lpText.addRule(RelativeLayout.LEFT_OF, R.id.event_item_imageView);
-			lpRating.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, -1);
-			lpRating.addRule(RelativeLayout.ALIGN_PARENT_LEFT, -1);
-		} else {
-			lpImage.addRule(RelativeLayout.ALIGN_PARENT_LEFT, -1);
-			lpText.addRule(RelativeLayout.ALIGN_PARENT_TOP, -1);
-			lpText.addRule(RelativeLayout.RIGHT_OF, R.id.event_item_imageView);
-			lpRating.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, -1);
-			lpRating.addRule(RelativeLayout.RIGHT_OF, R.id.event_item_imageView);
-		}
-		//rowView.setLayoutParams(lpRow);
-		holder.image.setLayoutParams(lpImage);
-		holder.comment.setLayoutParams(lpText);
-		holder.rating.setLayoutParams(lpRating);*/
+		holder.image.setTag(position);
+		holder.image.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            	tvFlip = (ImageView) v;
+            	tvFlip.clearAnimation();
+            	tvFlip.setAnimation(animation1);
+            	tvFlip.startAnimation(animation1);
+            	setAnimListeners(events.get((Integer)v.getTag()));
+            }
+         });
 		
-        //Gen.appendLog("EventListAdapter::getView> Ending event#"+position);
+		setImage(holder.image, event, true);
+			
 		return rowView;
 	}
+	
+	private void setImage(ImageView tv, Event event, boolean firstDisplay) {
+		boolean selected = event.isSelected();
+		selected=firstDisplay?!selected:selected;
+		
+		if (selected) {
+			if (event.getThumbMediaPath() != null) {
+				ImageLoader.getInstance().displayImage(event.getThumbMediaPath(), tv);
+			} else {
+				tv.setImageBitmap(null);
+				tv.setImageResource(R.drawable.ms_event_text);
+				//holder.image.setBackgroundColor(context.getResources().getColor(R.color.purple));
+			}
+        } else {
+        	tv.setImageResource(R.drawable.ms_icon_accept);
+        }
+	}
+	
+	private void setAnimListeners(final Event event) {
+        AnimationListener animListener;
+        animListener = new AnimationListener() {
+ 
+            @Override
+            public void onAnimationStart(Animation animation) {
+                if (animation == animation1) {
+                	setImage(tvFlip, event, false);
+                    tvFlip.clearAnimation();
+                    tvFlip.setAnimation(animation2);
+                    tvFlip.startAnimation(animation2);
+                } else {
+                	event.setSelected(!event.isSelected());
+                    setCount();
+                    setActionBar();
+                }
+            }
+ 
+            // Set selected count
+            private void setCount() {
+                if (event.isSelected()) {
+                    checkedCount++;
+                } else {
+                    if (checkedCount != 0) {
+                        checkedCount--;
+                    }
+                }
+            }
+ 
+            // Show/Hide action buttons
+            private void setActionBar() {
+            	if (checkedCount > 0) {
+            		if (fragmentEvent != null)
+            			fragmentEvent.updateMenu(true);
+            		else
+            			fragmentStory.updateMenu(true);
+            	} else {
+            		if (fragmentEvent != null)
+            			fragmentEvent.updateMenu(false);
+            		else
+            			fragmentStory.updateMenu(false);
+            	}
+                notifyDataSetChanged();
+            }
+ 
+            @Override
+            public void onAnimationRepeat(Animation arg0) {
+                // TODO Auto-generated method stub
+            }
+ 
+            @Override
+            public void onAnimationEnd(Animation arg0) {
+                // TODO Auto-generated method stub
+            }
+        };
+ 
+        animation1.setAnimationListener(animListener);
+        animation2.setAnimationListener(animListener);
+    }
 }

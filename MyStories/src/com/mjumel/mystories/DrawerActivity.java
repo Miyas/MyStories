@@ -44,6 +44,7 @@ public class DrawerActivity extends FragmentActivity {
     private boolean isFirstCall = false;
     private List<Event> eventList;
     private List<Story> storyList;
+    private String uid;
  
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,13 +106,27 @@ public class DrawerActivity extends FragmentActivity {
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+        
+        // Getting events and stories lists
+        if (getIntent().getExtras() != null) {
+        	Gen.appendLog("DrawerActivity::onCreate> Getting extras");
+        	eventList = getIntent().getParcelableArrayListExtra("events");
+        	storyList = getIntent().getParcelableArrayListExtra("stories");
+        	uid = getIntent().getStringExtra("uid");
+        	Gen.appendLog("DrawerActivity::onCreate> Nb of events : " + eventList.size());
+        	Gen.appendLog("DrawerActivity::onCreate> Nb of stories : " + storyList.size());
+        	Gen.appendLog("DrawerActivity::onCreate> User ID : " + uid);
+        } else {
+        	eventList = new ArrayList<Event>();
+        	storyList = new ArrayList<Story>();
+        }
+        	
  
         if (savedInstanceState == null) {
         	// TODO
         	// Don't forget to change this value to 0 when debug is done
         	isFirstCall = true;
             displayView(0);
-            
         }
     }
     
@@ -254,13 +269,7 @@ public class DrawerActivity extends FragmentActivity {
     }
     
     public List<Event> getEventList() {
-    	if (eventList != null) {
-	    	List<Event> events = new ArrayList<Event>();
-	    	events.addAll(eventList);
-	    	eventList = null;
-	    	return events;
-    	} else
-    		return null;
+    	return eventList;
     }
     
     public void sendStoryList(List<Story> storyList) {
@@ -268,13 +277,11 @@ public class DrawerActivity extends FragmentActivity {
     }
     
     public List<Story> getStoryList() {
-    	if (storyList != null) {
-	    	List<Story> stories = new ArrayList<Story>();
-	    	stories.addAll(storyList);
-	    	storyList = null;
-	    	return stories;
-    	} else
-    		return null;
+    	return storyList;
+    }
+    
+    public String getUserId() {
+    	return uid;
     }
     
     

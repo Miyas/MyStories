@@ -1,5 +1,8 @@
 package com.mjumel.mystories;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
@@ -62,6 +65,9 @@ public class SplashActivity extends Activity {
 	public static class PlaceholderFragment extends Fragment {
 
 		private TextView textView;
+		private int userId;
+		private ArrayList<Event> eventList;
+		private ArrayList<Story> storyList;
 		
 		public PlaceholderFragment() {
 		}
@@ -100,11 +106,47 @@ public class SplashActivity extends Activity {
 			return rootView;
 		}
 		
-		/**
-		 * Represents an asynchronous login/registration task used to authenticate
-		 * the user.
-		 */
-		public class UserLoginTask extends AsyncTask<String, Void, Integer> {
+		private void redirectToLogin() {
+			Gen.appendError("SplashActivity::redirectToLogin> Error while login, redirecting to login screen");
+			
+			Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
+			intent.putExtras(getActivity().getIntent());
+			intent.putExtra("origin", "splash");
+			
+			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+			//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+			
+			startActivity(intent);
+			getActivity().finish();
+		}
+		
+		private void redirectToDrawer() {
+			Gen.appendLog("SplashActivity::redirectToDrawer> Login OK, redirecting to drawer");
+			
+			Prefs.putString(getActivity(), MS_PREFS_UID, String.valueOf(userId));
+		    
+		    Intent intent = new Intent(getActivity(), DrawerActivity.class);
+    		intent.putExtra("uid", String.valueOf(userId));
+    		intent.putExtra("origin", "splash");
+    		intent.putParcelableArrayListExtra("events", eventList);
+    		intent.putParcelableArrayListExtra("stories", storyList);
+    		
+    		intent.putExtras(getActivity().getIntent());
+			
+			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+			//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+			
+			Gen.appendLog("SplashActivity::UserLoginTask> uid = " + userId);
+			startActivity(intent);
+			getActivity().finish();
+		}
+		
+		/***************************************************************************************
+		 *
+		 *                                UserLoginTask Class
+		 * 
+		 ***************************************************************************************/
+		private class UserLoginTask extends AsyncTask<String, Void, Integer> {
 			@Override
 			protected void onPreExecute() {
 				textView.setText("Login in...");
@@ -112,49 +154,103 @@ public class SplashActivity extends Activity {
 			
 			@Override
 			protected Integer doInBackground(String... params) {
-				if(!Communication.checkNetState(getActivity())) return -2;
+				if(!Communication.checkNetState(getActivity())) return -99;
 				return Communication.login(params[0], params[1], getActivity());
 			}
 
 			@Override
 			protected void onPostExecute(final Integer uid) {
-				if (uid > 0) {
-					textView.setText("Login successful");
-					Prefs.putString(getActivity(), MS_PREFS_UID, String.valueOf(uid));
-				    
-				    Intent intent = new Intent(getActivity(), DrawerActivity.class);
-		    		intent.putExtra("uid", String.valueOf(uid));
-		    		intent.putExtra("origin", "splash");
-		    		
-		    		intent.putExtras(getActivity().getIntent());
-					
-					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-					//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-					
-					Gen.appendLog("SplashActivity::UserLoginTask> uid = " + uid);
-					startActivity(intent);
-					getActivity().finish();				    
-				} else if (uid == -2) {
-					textView.setText("Communication error, check your internet connexion");
-					Gen.appendError("SplashActivity::UserLoginTask> Communication error, check your internet connexion");
-				} else {
-					textView.setText("Error while login, redirecting to login screen");
-					Gen.appendError("SplashActivity::UserLoginTask> Error while login, redirecting to login screen");
-					
-					Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
-					intent.putExtras(getActivity().getIntent());
-					intent.putExtra("origin", "splash");
-					
-					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-					//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-					
-					startActivity(intent);
-					getActivity().finish();
-				} 
+				switch(uid) {
+					case (-99):
+						textView.setText("Communication error, check your internet connexion");
+						Gen.appendError("SplashActivity$UserLoginTask::onPostExecute> Communication error, check your internet connexion");
+						break;
+					case (-1):
+						textView.setText("Error while login, redirecting to login screen");
+						redirectToLogin();
+						break;
+					case (-2):
+						textView.setText("Incorrect password");
+						redirectToLogin();
+						break;
+					case (-3):
+						textView.setText("Incorrect login");
+						redirectToLogin();
+						break;
+					default:
+						textView.setText("Login successful");
+						userId = uid;
+						new DownloadEventsTask().execute((String)null);
+						break;
+				}
 			}
 
 			@Override
 			protected void onCancelled() {
+			}
+		}
+		
+		/***************************************************************************************
+		 *
+		 *                                DownloadEventsTask Class
+		 * 
+		 ***************************************************************************************/
+		private class DownloadEventsTask extends AsyncTask<String, Integer, List<Event>>
+	    {
+	          protected void onPreExecute() {     
+	        	  textView.setText("Downloading personal events...");
+	          } 
+
+	          protected List<Event> doInBackground(String ...params) {
+	        	  Gen.appendLog("SplashActivity$DownloadEventsTask::doInBackground> Downloading events");
+	              return Communication.getUserEvents(String.valueOf(userId));
+	          } 
+
+	          protected void onPostExecute(List<Event> result) {     
+	        	  eventList = new ArrayList<Event>();
+					if(result != null) {
+						eventList.addAll(result);
+					}
+	                textView.setText("Downloading personal events... OK");
+	            	Gen.appendLog("SplashActivity$DownloadEventsTask::onPostExecute> Nb of events downloaded : " + eventList.size());
+	            	new DownloadStoriesTask().execute((String)null);
+	          }
+	          
+	          @Override
+	  		protected void onCancelled() {
+	        	  textView.setText("Downloading personal events... Cancelled");
+	  		}
+	     }
+		
+		/***************************************************************************************
+		 *
+		 *                                DownloadStoriesTask Class
+		 * 
+		 ***************************************************************************************/
+		private class DownloadStoriesTask extends AsyncTask<String, Integer, List<Story>>
+		{
+	        protected void onPreExecute() {
+	        	textView.setText("Downloading personal stories...");
+	        } 
+
+	        protected List<Story> doInBackground(String ...params) {
+	        	Gen.appendLog("SplashActivity$DownloadStoriesTask::doInBackground> Downloading stories");
+	        	return Communication.getUserStories(String.valueOf(userId));
+	        } 
+
+			protected void onPostExecute(List<Story> result) {
+				storyList = new ArrayList<Story>();
+				if(result != null) {
+					storyList.addAll(result);
+				}
+				textView.setText("Downloading personal stories... OK");
+				Gen.appendLog("SplashActivity::DownloadStoriesTask::onPostExecute> Nb of stories downloaded : " + storyList.size());
+				redirectToDrawer();
+			}
+	         
+			@Override
+			protected void onCancelled() {
+				textView.setText("Downloading personal stories... Cancelled");
 			}
 		}
 	}

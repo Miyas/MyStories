@@ -1,12 +1,13 @@
 package com.mjumel.mystories;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.ExifInterface;
@@ -21,6 +22,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -38,6 +40,8 @@ import com.mjumel.mystories.tools.ImageWorker;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class EventNewFragment extends Fragment {
+	
+	private DrawerActivity activity;
 
 	private Spinner spnCats;
 	private Button btnRemember;
@@ -49,7 +53,7 @@ public class EventNewFragment extends Fragment {
 	private Uri mediaUri;
 	private Uri mImageCaptureUri;
 	private String uId;
-	private ArrayList<Event> eventList = null;
+	private List<Event> eventList = null;
 	
 	private Intent pictureActionIntent = null;
 	
@@ -59,6 +63,19 @@ public class EventNewFragment extends Fragment {
     	Gen.appendLog("EventNewFragment::onCreate> Starting");
     	super.onCreate(savedInstanceState);
     	setHasOptionsMenu(true);
+    	
+    	activity = (DrawerActivity) getActivity();
+    	
+		eventList = activity.getEventList();
+		uId = activity.getUserId();
+    	
+    	mediaUri = (Uri)getExtra(Intent.EXTRA_STREAM);
+    	activity.getIntent().putExtra(Intent.EXTRA_STREAM, (String)null);
+
+		Gen.appendLog("EventNewFragment::onCreate> mediaUri = " + mediaUri);
+		Gen.appendLog("EventNewFragment::onCreate> uid = " + uId);
+		Gen.appendLog("EventNewFragment::onCreate> eventsList nb = " + (eventList == null ? 0 : eventList.size()));
+		
     	Gen.appendLog("EventNewFragment::onCreate> Ending");
     }
 
@@ -67,18 +84,6 @@ public class EventNewFragment extends Fragment {
                 Bundle savedInstanceState) {
     	
     	Gen.appendLog("EventNewFragment::onCreateView> Starting");
-
-    	mediaUri = (Uri)getExtra(Intent.EXTRA_STREAM);
-		uId = (String)getExtra("uid");
-		eventList = getArguments().getParcelableArrayList("events"); 
-		getActivity().getIntent().putExtra(Intent.EXTRA_STREAM, (String)null);
-		
-		if (eventList == null)
-			eventList = new ArrayList<Event>();
-
-		Gen.appendLog("EventNewFragment::onCreateView> mediaUri = " + mediaUri);
-		Gen.appendLog("EventNewFragment::onCreateView> uid = " + uId);
-		Gen.appendLog("EventNewFragment::onCreateView> eventsList nb = " + (eventList == null ? 0 : eventList.size()));
 		
 		View view = inflater.inflate(R.layout.fragment_new_event,container, false);
 		spnCats = (Spinner) view.findViewById(R.id.event_cats);
@@ -88,7 +93,7 @@ public class EventNewFragment extends Fragment {
 		rbRating  = (RatingBar) view.findViewById(R.id.event_rating);
 		imageText = (TextView) view.findViewById(R.id.event_imageView_text);
 		
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this.getActivity(), R.array.nav_spinner_cats, android.R.layout.simple_spinner_item);
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(activity, R.array.nav_spinner_cats, android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		spnCats.setPrompt("Select your category");
 		spnCats.setAdapter(
@@ -96,7 +101,7 @@ public class EventNewFragment extends Fragment {
 		        adapter,
 		        R.layout.cats_spinner_row_nothing_selected,
 		        // R.layout.contact_spinner_nothing_selected_dropdown, // Optional
-		        this.getActivity()));
+		        activity));
 		
 		if (mediaUri != null)
 			setImage(mediaUri);
@@ -129,7 +134,7 @@ public class EventNewFragment extends Fragment {
     	Gen.appendLog("EventNewFragment::onActivityResult> Starting");
     	super.onActivityResult(requestCode, resultCode, data);
     	
-    	if (resultCode != getActivity().RESULT_OK) {
+    	if (resultCode != activity.RESULT_OK) {
     		Gen.appendLog("EventNewFragment::onActivityResult> RESULT_KO (Cancelled?)");
     		return;
     	}
@@ -150,20 +155,20 @@ public class EventNewFragment extends Fragment {
 	    		break;
 	    	case(MyStoriesApp.CAMERA_REQUEST):
 	    		Gen.appendLog("EventNewFragment::onActivityResult> Case CAMERA_REQUEST");
-	    		mediaUri = ImageWorker.getCameraImagePath(getActivity(), data);
+	    		mediaUri = ImageWorker.getCameraImagePath(activity, data);
                 break;
     	}
     	if (mediaUri != null) {
     		setImage(mediaUri);
     	} else {
-    		Toast.makeText(getActivity(), "Problem getting back the image", Toast.LENGTH_SHORT).show();
+    		Toast.makeText(activity, "Problem getting back the image", Toast.LENGTH_SHORT).show();
     		Gen.appendError("EventNewFragment::onActivityResult> Problem getting back the image");
     	}
     }
     
     private void startDialog() {
     	Gen.appendLog("EventNewFragment::startDialog> Starting");
-        AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(activity);
         myAlertDialog.setTitle("Get Pictures Option");
         myAlertDialog.setMessage("Where do you want to get your picture from?");
 
@@ -193,7 +198,7 @@ public class EventNewFragment extends Fragment {
                             String filename = System.currentTimeMillis() + ".jpg";
                             ContentValues values = new ContentValues();
                             values.put(MediaStore.Images.Media.TITLE, filename);
-                            mImageCaptureUri = getActivity().getContentResolver().insert(
+                            mImageCaptureUri = activity.getContentResolver().insert(
                                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                                     values);
 
@@ -207,7 +212,7 @@ public class EventNewFragment extends Fragment {
                                 e.printStackTrace();
                             }
                         } else {
-                            Toast.makeText(getActivity(), "SD Card required", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(activity, "SD Card required", Toast.LENGTH_SHORT).show();
                             Gen.appendLog("EventNewFragment::startDialog> SD Card is required", "E");
                         }
 
@@ -237,51 +242,24 @@ public class EventNewFragment extends Fragment {
     
     private Object getExtra(String id)
     {
-    	if (this.getActivity().getIntent().getExtras() != null)
-			return this.getActivity().getIntent().getExtras().get(id);
+    	if (activity.getIntent().getExtras() != null)
+			return activity.getIntent().getExtras().get(id);
     	else
     		return null;
     }
     
-    @Override
-	public void onStart() {
-    	Gen.appendLog("EventNewFragment::onStart> Starting");
-        super.onStart();
-        // The activity is about to become visible.
-        Gen.appendLog("EventNewFragment::onStart> Ending");
+    private void hideKeyboard()
+    {
+    	// Hide keyboard from other fragments
+    	InputMethodManager inputManager = (InputMethodManager) activity
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+    	//check if no view has focus:
+        View v = activity.getCurrentFocus();
+        if(v==null)
+            return;
+        inputManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
     }
-    @Override
-    public void onResume() {
-    	Gen.appendLog("EventNewFragment::onResume> Starting");
-        super.onResume();
-        // The activity has become visible (it is now "resumed").
-        Gen.appendLog("EventNewFragment::onResume> Ending");
-    }
-    @Override
-    public void onPause() {
-    	Gen.appendLog("EventNewFragment::onPause> Starting");
-        super.onPause();
-        // Another activity is taking focus (this activity is about to be "paused").
-        Gen.appendLog("EventNewFragment::onPause> Ending");
-    }
-    @Override
-    public void onStop() {
-    	Gen.appendLog("EventNewFragment::onStop> Starting");
-        super.onStop();
-        // The activity is no longer visible (it is now "stopped")
-        Gen.appendLog("EventNewFragment::onStop> Ending");
-    }
-    @Override
-    public void onDestroy() {
-    	Gen.appendLog("EventNewFragment::onDestroy> Starting");
-        super.onDestroy();
-        // The activity is about to be destroyed.
-        Gen.appendLog("EventNewFragment::onDestroy> Ending");
-    }
-    @Override
-    public void onSaveInstanceState(Bundle bundle) {
-    	Gen.appendLog("EventNewFragment::onSaveInstanceState> Starting");
-    }
+    
     
     /***************************************************************************************
 	 *
@@ -301,16 +279,17 @@ public class EventNewFragment extends Fragment {
 		 private String imagePath = null;
 		
          protected void onPreExecute() {
-        	 pg = ProgressDialog.show(getActivity(), "", "Posting event...", true);
+        	 pg = ProgressDialog.show(activity, "", "Posting event...", true);
+        	 hideKeyboard();
          } 
 
          protected Integer doInBackground(String ...params) {
-        	 imagePath = mediaUri==null?null:ImageWorker.getPath(getActivity(), mediaUri);
+        	 imagePath = mediaUri==null?null:ImageWorker.getPath(activity, mediaUri);
         	 
         	 Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> uId = " + uId);
              Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> comment = " + etComment.getText().toString());
              Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> rating = " + rbRating.getProgress());
-             Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> mediaPath = " + imagePath);
+             Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> imagePath = " + imagePath);
              Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> cat = " + spnCats.getSelectedItemPosition());
              
              return Communication.newEvent(
@@ -329,25 +308,25 @@ public class EventNewFragment extends Fragment {
                			 etComment.getText().toString(), 
                			 rbRating.getProgress(), 
                			 spnCats.getSelectedItemPosition(), 
-               			 new String[] {
+               			 (imagePath == null ? null : new String[] {
                				imagePath.substring(imagePath.lastIndexOf("/")+1),
                				imagePath.substring(imagePath.lastIndexOf("/")+1),
                				imagePath.substring(imagePath.lastIndexOf("/")+1)
-               			 },
+               			 }),
                			 uId, 
                			 (String)null, 
                			 String.valueOf(result));
                	 if (eventList != null) {
                		Gen.appendLog("EventNewFragment$PostEventTask::onPostExecute> Adding new event and going back to list");
-               		Toast.makeText(getActivity(), "Event created successfully", Toast.LENGTH_SHORT).show();
+               		Toast.makeText(activity, "Event created successfully", Toast.LENGTH_SHORT).show();
                		eventList.add(0, event);
-               		((DrawerActivity)getActivity()).sendEventList(eventList);
-               		getActivity().getSupportFragmentManager().popBackStackImmediate();
+               		activity.sendEventList(eventList);
+               		activity.getSupportFragmentManager().popBackStackImmediate();
                	 }
              } else {
                	Gen.appendError("EventNewFragment$PostEventTask::onPostExecute> Error while creating event");
                	Gen.appendError("EventNewFragment$PostEventTask::onPostExecute> result" + result);
-               	Toast.makeText(getActivity(), "Error while creating event", Toast.LENGTH_SHORT).show();
+               	Toast.makeText(activity, "Error while creating event", Toast.LENGTH_SHORT).show();
              }
          }
          

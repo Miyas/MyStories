@@ -1,5 +1,8 @@
 package com.mjumel.mystories;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -45,6 +48,11 @@ public class LoginActivity extends Activity {
 	private View mLoginFormView;
 	private View mLoginStatusView;
 	private TextView mLoginStatusMessageView;
+	
+	// Bundle values
+	private int userId;
+	private ArrayList<Event> eventList;
+	private ArrayList<Story> storyList;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +61,9 @@ public class LoginActivity extends Activity {
 		setContentView(R.layout.activity_login);
 
 		// Set up the login form.
-		mEmailView = (EditText) findViewById(R.id.email);
+		mEmailView = (EditText) findViewById(R.id.sign_in_email);
 
-		mPasswordView = (EditText) findViewById(R.id.password);
+		mPasswordView = (EditText) findViewById(R.id.sign_in_password);
 		mPasswordView
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 					@Override
@@ -69,15 +77,25 @@ public class LoginActivity extends Activity {
 					}
 				});
 
-		mLoginFormView = findViewById(R.id.login_form);
-		mLoginStatusView = findViewById(R.id.login_status);
-		mLoginStatusMessageView = (TextView) findViewById(R.id.login_status_message);
+		mLoginFormView = findViewById(R.id.sign_in_login_form);
+		mLoginStatusView = findViewById(R.id.sign_in_login_status);
+		mLoginStatusMessageView = (TextView) findViewById(R.id.sign_in_login_status_message);
 
-		findViewById(R.id.sign_in_button).setOnClickListener(
+		findViewById(R.id.sign_in_login_button).setOnClickListener(
 				new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
 						attemptLogin();
+					}
+				});
+		
+		findViewById(R.id.sign_in_register_button).setOnClickListener(
+				new View.OnClickListener() {
+					@Override
+					public void onClick(View view) {
+						Intent intent = new Intent(getApplicationContext(), RegisterActivity.class);
+						intent.putExtras(getIntent());
+						startActivity(intent);
 					}
 				});
 	}
@@ -85,7 +103,7 @@ public class LoginActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		getMenuInflater().inflate(R.menu.login, menu);
+		//getMenuInflater().inflate(R.menu.login, menu);
 		return true;
 	}
 
@@ -187,6 +205,27 @@ public class LoginActivity extends Activity {
 			mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
 		}
 	}
+	
+	private void redirectToDrawer() {
+		Gen.appendLog("LoginActivity::redirectToDrawer> Login OK, redirecting to drawer");
+		
+		Prefs.putString(getApplicationContext(), MS_PREFS_LOGIN, mEmail);
+		Prefs.putString(getApplicationContext(), MS_PREFS_PWD, Gen.md5Encrypt(mPassword));
+		Prefs.putString(getApplicationContext(), MS_PREFS_UID, String.valueOf(userId));
+	    
+	    Intent intent = new Intent(getApplicationContext(), DrawerActivity.class);
+		intent.putExtra("uid", String.valueOf(userId));
+		intent.putExtra("origin", "login");
+		intent.putParcelableArrayListExtra("events", eventList);
+		intent.putParcelableArrayListExtra("stories", storyList);
+		intent.putExtras(getIntent());
+		
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+		
+		startActivity(intent);
+		finish();
+	}
 
 	/**
 	 * Represents an asynchronous login/registration task used to authenticate
@@ -195,7 +234,8 @@ public class LoginActivity extends Activity {
 	public class UserLoginTask extends AsyncTask<Void, Void, Integer> {
 		@Override
 		protected Integer doInBackground(Void... params) {
-			if(!Communication.checkNetState(getApplicationContext())) return -2;
+			Gen.appendLog("LoginActivity$UserLoginTask::doInBackground> Logging in");
+			if(!Communication.checkNetState(getApplicationContext())) return -99;
 			return Communication.login(mEmail, Gen.md5Encrypt(mPassword), getApplicationContext());
 		}
 
@@ -205,27 +245,20 @@ public class LoginActivity extends Activity {
 			showProgress(false);
 
 			if (uid > 0) {
-				Prefs.putString(getApplicationContext(), MS_PREFS_LOGIN, mEmail);
-				Prefs.putString(getApplicationContext(), MS_PREFS_PWD, Gen.md5Encrypt(mPassword));
-				Prefs.putString(getApplicationContext(), MS_PREFS_UID, String.valueOf(uid));
-			    
-			    Intent intent = new Intent(getApplicationContext(), DrawerActivity.class);
-	    		intent.putExtra("uid", String.valueOf(uid));
-	    		intent.putExtra("origin", "login");
-	    		intent.putExtras(getIntent());
-	    		
-	    		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-				intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-				
-				startActivity(intent);
-				finish();
-			    
+				userId = uid;
+				new DownloadEventsTask().execute((String)null);
+			} else if (uid == -99) {
+				mEmailView.setError(getString(R.string.error_invalid_connection));
+				mEmailView.requestFocus();
 			} else if (uid == -2) {
-				mPasswordView.setError(getString(R.string.error_invalid_connection));
-				mPasswordView.requestFocus();
-			} else {
 				mPasswordView.setError(getString(R.string.error_incorrect_password));
 				mPasswordView.requestFocus();
+			} else if (uid == -3) {
+				mEmailView.setError("Incorrect login");
+				mEmailView.requestFocus();
+			} else {
+				mEmailView.setError("Error while login in. Please retry");
+				mEmailView.requestFocus();
 			} 
 		}
 
@@ -233,6 +266,70 @@ public class LoginActivity extends Activity {
 		protected void onCancelled() {
 			mAuthTask = null;
 			showProgress(false);
+		}
+	}
+	
+	/***************************************************************************************
+	 *
+	 *                                DownloadEventsTask Class
+	 * 
+	 ***************************************************************************************/
+	private class DownloadEventsTask extends AsyncTask<String, Integer, List<Event>>
+   {
+         protected void onPreExecute() {     
+        	 mLoginStatusMessageView.setText("Downloading personal events...");
+         } 
+
+         protected List<Event> doInBackground(String ...params) {
+       	  Gen.appendLog("LoginActivity$DownloadEventsTask::doInBackground> Downloading events");
+             return Communication.getUserEvents(String.valueOf(userId));
+         } 
+
+         protected void onPostExecute(List<Event> result) {     
+       	  eventList = new ArrayList<Event>();
+				if(result != null) {
+					eventList.addAll(result);
+				}
+				mLoginStatusMessageView.setText("Downloading personal events... OK");
+           	Gen.appendLog("LoginActivity$DownloadEventsTask::onPostExecute> Nb of events downloaded : " + eventList.size());
+           	new DownloadStoriesTask().execute((String)null);
+         }
+         
+         @Override
+ 		protected void onCancelled() {
+        	 mLoginStatusMessageView.setText("Downloading personal events... Cancelled");
+ 		}
+    }
+	
+	/***************************************************************************************
+	 *
+	 *                                DownloadStoriesTask Class
+	 * 
+	 ***************************************************************************************/
+	private class DownloadStoriesTask extends AsyncTask<String, Integer, List<Story>>
+	{
+       protected void onPreExecute() {
+    	   mLoginStatusMessageView.setText("Downloading personal stories...");
+       } 
+
+       protected List<Story> doInBackground(String ...params) {
+       	Gen.appendLog("LoginActivity$DownloadStoriesTask::doInBackground> Downloading stories");
+       	return Communication.getUserStories(String.valueOf(userId));
+       } 
+
+		protected void onPostExecute(List<Story> result) {
+			storyList = new ArrayList<Story>();
+			if(result != null) {
+				storyList.addAll(result);
+			}
+			mLoginStatusMessageView.setText("Downloading personal stories... OK");
+			Gen.appendLog("LoginActivity::DownloadStoriesTask::onPostExecute> Nb of stories downloaded : " + storyList.size());
+			redirectToDrawer();
+		}
+        
+		@Override
+		protected void onCancelled() {
+			mLoginStatusMessageView.setText("Downloading personal stories... Cancelled");
 		}
 	}
 }
