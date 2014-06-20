@@ -114,12 +114,11 @@ public class StoryListFragment extends Fragment {
         	bundle.putParcelableArrayList("stories", new ArrayList<Story>(storyList));
             ((DrawerActivity)getActivity()).changeFragment(new StoryNewFragment(), bundle);
             return true;
-        case R.id.my_stories_cancel:
-        	updateMenu(false);
-        	return true;
         case R.id.my_stories_delete:
-        	Toast.makeText(getActivity(), "Delete action", Toast.LENGTH_SHORT).show();
         	new DeleteStoryTask().execute(storyList);
+        	return true;
+        case R.id.my_stories_share:
+        	Toast.makeText(getActivity(), "Share action", Toast.LENGTH_SHORT).show();
         	return true;
         case R.id.my_stories_search:
         	Toast.makeText(getActivity(), "Search action", Toast.LENGTH_SHORT).show();
@@ -155,7 +154,7 @@ public class StoryListFragment extends Fragment {
     public void updateMenu(boolean delete)
     {
    		mMenu.findItem(R.id.my_stories_delete).setVisible(delete);
-   		mMenu.findItem(R.id.my_stories_cancel).setVisible(delete);
+   		mMenu.findItem(R.id.my_stories_share).setVisible(delete);
    		mMenu.findItem(R.id.my_stories_search).setVisible(!delete);
    		mMenu.findItem(R.id.my_stories_filters).setVisible(!delete);
    		mMenu.findItem(R.id.my_stories_add).setVisible(!delete);
@@ -206,7 +205,7 @@ public class StoryListFragment extends Fragment {
     
 	/***************************************************************************************
 	 *
-	 *                                DownloadEventsTask Class
+	 *                                DownloadStoriesTask Class
 	 * 
 	 ***************************************************************************************/
 	private class DownloadStoriesTask extends AsyncTask<String, Integer, List<Story>>
@@ -237,7 +236,7 @@ public class StoryListFragment extends Fragment {
             	mPullToRefreshLayout.setRefreshComplete();
             	firstRun = false;
             	pg.dismiss();
-            	Gen.appendLog("StoryListFragment::DownloadEventsTask::onPostExecute> Nb of stories downloaded : " + storyList.size());
+            	Gen.appendLog("StoryListFragment::DownloadStoriesTask::onPostExecute> Nb of stories downloaded : " + storyList.size());
           }
           
           @Override
@@ -262,7 +261,7 @@ public class StoryListFragment extends Fragment {
 		} 
 
 		protected Boolean doInBackground(List<Story> ...params) {
-			return Communication.deleteStories(params[0]);
+			return Communication.deleteStories(uId, params[0]);
 		}
 
 		protected void onPostExecute(Boolean result) {

@@ -28,6 +28,11 @@
             android:windowSoftInputMode="adjustResize|stateVisible" >
         </activity>
         <activity
+            android:name="com.mjumel.mystories.RegisterActivity"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
+        </activity>
+        <activity
             android:name="com.mjumel.mystories.SplashActivity"
             android:label="@string/app_name" >
             <intent-filter>

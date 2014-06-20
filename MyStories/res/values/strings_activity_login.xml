@@ -1,8 +1,6 @@
 <resources>
 
     <string name="title_activity_login">Sign in</string>
-
-    <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in_register"><b>Sign in</b> or register</string>
@@ -13,5 +11,12 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
+    
+	<string name="title_activity_register">Register</string>
+    <string name="prompt_firstname">First name</string>
+    <string name="prompt_lastname">Last name</string>
+    <string name="prompt_phone_number">Phone number</string>
+    <string name="action_register">Register</string>
+    <string name="register_progress_signing_in">Registering&#8230;</string>
 
 </resources>

@@ -53,9 +53,9 @@ public class LoginActivity extends Activity {
 		setContentView(R.layout.activity_login);
 
 		// Set up the login form.
-		mEmailView = (EditText) findViewById(R.id.email);
+		mEmailView = (EditText) findViewById(R.id.sign_in_email);
 
-		mPasswordView = (EditText) findViewById(R.id.password);
+		mPasswordView = (EditText) findViewById(R.id.sign_in_password);
 		mPasswordView
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 					@Override
@@ -69,15 +69,25 @@ public class LoginActivity extends Activity {
 					}
 				});
 
-		mLoginFormView = findViewById(R.id.login_form);
-		mLoginStatusView = findViewById(R.id.login_status);
-		mLoginStatusMessageView = (TextView) findViewById(R.id.login_status_message);
+		mLoginFormView = findViewById(R.id.sign_in_login_form);
+		mLoginStatusView = findViewById(R.id.sign_in_login_status);
+		mLoginStatusMessageView = (TextView) findViewById(R.id.sign_in_login_status_message);
 
-		findViewById(R.id.sign_in_button).setOnClickListener(
+		findViewById(R.id.sign_in_login_button).setOnClickListener(
 				new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
 						attemptLogin();
+					}
+				});
+		
+		findViewById(R.id.sign_in_register_button).setOnClickListener(
+				new View.OnClickListener() {
+					@Override
+					public void onClick(View view) {
+						Intent intent = new Intent(getApplicationContext(), RegisterActivity.class);
+						intent.putExtras(getIntent());
+						startActivity(intent);
 					}
 				});
 	}
@@ -85,7 +95,7 @@ public class LoginActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		getMenuInflater().inflate(R.menu.login, menu);
+		//getMenuInflater().inflate(R.menu.login, menu);
 		return true;
 	}
 
@@ -195,7 +205,7 @@ public class LoginActivity extends Activity {
 	public class UserLoginTask extends AsyncTask<Void, Void, Integer> {
 		@Override
 		protected Integer doInBackground(Void... params) {
-			if(!Communication.checkNetState(getApplicationContext())) return -2;
+			if(!Communication.checkNetState(getApplicationContext())) return -99;
 			return Communication.login(mEmail, Gen.md5Encrypt(mPassword), getApplicationContext());
 		}
 
@@ -220,12 +230,18 @@ public class LoginActivity extends Activity {
 				startActivity(intent);
 				finish();
 			    
+			} else if (uid == -99) {
+				mEmailView.setError(getString(R.string.error_invalid_connection));
+				mEmailView.requestFocus();
 			} else if (uid == -2) {
-				mPasswordView.setError(getString(R.string.error_invalid_connection));
-				mPasswordView.requestFocus();
-			} else {
 				mPasswordView.setError(getString(R.string.error_incorrect_password));
 				mPasswordView.requestFocus();
+			} else if (uid == -3) {
+				mEmailView.setError("Incorrect login");
+				mEmailView.requestFocus();
+			} else {
+				mEmailView.setError("Error while login in. Please retry");
+				mEmailView.requestFocus();
 			} 
 		}
 

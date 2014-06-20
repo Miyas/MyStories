@@ -310,7 +310,7 @@ public class EventNewFragment extends Fragment {
         	 Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> uId = " + uId);
              Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> comment = " + etComment.getText().toString());
              Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> rating = " + rbRating.getProgress());
-             Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> mediaPath = " + imagePath);
+             Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> imagePath = " + imagePath);
              Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> cat = " + spnCats.getSelectedItemPosition());
              
              return Communication.newEvent(
@@ -329,11 +329,11 @@ public class EventNewFragment extends Fragment {
                			 etComment.getText().toString(), 
                			 rbRating.getProgress(), 
                			 spnCats.getSelectedItemPosition(), 
-               			 new String[] {
+               			 (imagePath == null ? null : new String[] {
                				imagePath.substring(imagePath.lastIndexOf("/")+1),
                				imagePath.substring(imagePath.lastIndexOf("/")+1),
                				imagePath.substring(imagePath.lastIndexOf("/")+1)
-               			 },
+               			 }),
                			 uId, 
                			 (String)null, 
                			 String.valueOf(result));

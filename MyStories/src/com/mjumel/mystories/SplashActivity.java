@@ -100,6 +100,20 @@ public class SplashActivity extends Activity {
 			return rootView;
 		}
 		
+		private void redirectToLogin() {
+			Gen.appendError("SplashActivity::UserLoginTask> Error while login, redirecting to login screen");
+			
+			Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
+			intent.putExtras(getActivity().getIntent());
+			intent.putExtra("origin", "splash");
+			
+			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+			//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+			
+			startActivity(intent);
+			getActivity().finish();
+		}
+		
 		/**
 		 * Represents an asynchronous login/registration task used to authenticate
 		 * the user.
@@ -112,45 +126,49 @@ public class SplashActivity extends Activity {
 			
 			@Override
 			protected Integer doInBackground(String... params) {
-				if(!Communication.checkNetState(getActivity())) return -2;
+				if(!Communication.checkNetState(getActivity())) return -99;
 				return Communication.login(params[0], params[1], getActivity());
 			}
 
 			@Override
 			protected void onPostExecute(final Integer uid) {
-				if (uid > 0) {
-					textView.setText("Login successful");
-					Prefs.putString(getActivity(), MS_PREFS_UID, String.valueOf(uid));
-				    
-				    Intent intent = new Intent(getActivity(), DrawerActivity.class);
-		    		intent.putExtra("uid", String.valueOf(uid));
-		    		intent.putExtra("origin", "splash");
-		    		
-		    		intent.putExtras(getActivity().getIntent());
-					
-					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-					//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-					
-					Gen.appendLog("SplashActivity::UserLoginTask> uid = " + uid);
-					startActivity(intent);
-					getActivity().finish();				    
-				} else if (uid == -2) {
-					textView.setText("Communication error, check your internet connexion");
-					Gen.appendError("SplashActivity::UserLoginTask> Communication error, check your internet connexion");
-				} else {
-					textView.setText("Error while login, redirecting to login screen");
-					Gen.appendError("SplashActivity::UserLoginTask> Error while login, redirecting to login screen");
-					
-					Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
-					intent.putExtras(getActivity().getIntent());
-					intent.putExtra("origin", "splash");
-					
-					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-					//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-					
-					startActivity(intent);
-					getActivity().finish();
-				} 
+				Intent intent = null;
+				
+				switch(uid) {
+					case (-99):
+						textView.setText("Communication error, check your internet connexion");
+						Gen.appendError("SplashActivity::UserLoginTask> Communication error, check your internet connexion");
+						break;
+					case (-1):
+						textView.setText("Error while login, redirecting to login screen");
+						redirectToLogin();
+						break;
+					case (-2):
+						textView.setText("Incorrect password");
+						redirectToLogin();
+						break;
+					case (-3):
+						textView.setText("Incorrect login");
+						redirectToLogin();
+						break;
+					default:
+						textView.setText("Login successful");
+						Prefs.putString(getActivity(), MS_PREFS_UID, String.valueOf(uid));
+					    
+					    intent = new Intent(getActivity(), DrawerActivity.class);
+			    		intent.putExtra("uid", String.valueOf(uid));
+			    		intent.putExtra("origin", "splash");
+			    		
+			    		intent.putExtras(getActivity().getIntent());
+						
+						intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+						//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+						
+						Gen.appendLog("SplashActivity::UserLoginTask> uid = " + uid);
+						startActivity(intent);
+						getActivity().finish();
+						break;
+				}
 			}
 
 			@Override

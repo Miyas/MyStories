@@ -8,6 +8,7 @@ import java.util.List;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import android.net.Uri;
 import android.util.Xml;
 
 import com.mjumel.mystories.Event;
@@ -109,7 +110,7 @@ public class XmlParser {
                     	storyId = parser.getAttributeValue(null, "id");
                     	currentStory.setStoryId(storyId);
                     } else if (name.equals("title") && currentStory != null)
-                    	currentStory.setTitle(parser.nextText());
+                    	currentStory.setTitle(Uri.decode(parser.nextText()));
                     else if (name.equals("event")) {
                     	//Gen.appendLog("XmlParser::parseStories> Adding new event 1");
                     	currentEvent = readEvent(parser);
@@ -161,7 +162,7 @@ public class XmlParser {
             } else if (event != null){
             	//Gen.appendLog("XmlParser::readEvent> Here 2");
                 if (name.equals("comment")){
-                	event.setComment(parser.nextText());
+                	event.setComment(Uri.decode(parser.nextText()));
                 } else if (name.equals("rating")){
                 	event.setRating(readInt(parser));
                 } else if (name.equals("category")){

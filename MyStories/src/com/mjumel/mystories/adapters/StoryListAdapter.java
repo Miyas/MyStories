@@ -15,7 +15,6 @@ import android.widget.ArrayAdapter;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.mjumel.mystories.DrawerActivity;
 import com.mjumel.mystories.R;
 import com.mjumel.mystories.Story;
 import com.mjumel.mystories.StoryListFragment;
@@ -101,14 +100,17 @@ public class StoryListAdapter extends ArrayAdapter<Story> {
 		selected=firstDisplay?!selected:selected;
 		
 		if (selected) {
-			if (story.getRating() < 0)
+			if (story.getRating() < 0) {
 				tv.setText(String.valueOf("No Review"));
-			else
+				tv.setBackgroundColor(context.getResources().getColor(R.color.background_dark));
+			}
+			else {
 				tv.setText(String.valueOf(story.getRating()));
-			tv.setBackgroundColor(context.getResources().getColor(R.color.background_dark));
+				setRatingColor(tv, story);
+			}
         } else {
-        	tv.setText("X");
-        	setRatingColor(tv, story);
+        	tv.setText("");
+        	tv.setBackgroundResource(R.drawable.ms_icon_accept);
         }
 	}
 	
@@ -143,7 +145,7 @@ public class StoryListAdapter extends ArrayAdapter<Story> {
                 } else {
                 	story.setSelected(!story.isSelected());
                     setCount();
-                    setActionMode();
+                    setActionBar();
                 }
             }
  
@@ -158,29 +160,13 @@ public class StoryListAdapter extends ArrayAdapter<Story> {
                 }
             }
  
-            // Show/Hide action mode
-            private void setActionMode() {
-                if (checkedCount > 0) {
-                    if (!isActionModeShowing) {
-                        mMode = ((DrawerActivity) context).getActionBar();
-                        isActionModeShowing = true;
-                    }
-                } else if (mMode != null) {
-                    //mMode.finish();
-                    isActionModeShowing = false;
-                }
- 
-                // Set action mode title
-                if (mMode != null) {
-                	if (checkedCount > 0) {
-                		mMode.setTitle(String.valueOf(checkedCount));
-                		fragment.updateMenu(true);
-                	} else {
-                		mMode.setTitle("My Stories");
-                		fragment.updateMenu(false);
-                	}
-                }
- 
+            // Show/Hide action buttons
+            private void setActionBar() {
+            	if (checkedCount > 0) {
+            		fragment.updateMenu(true);
+            	} else {
+            		fragment.updateMenu(false);
+            	}
                 notifyDataSetChanged();
             }
  
