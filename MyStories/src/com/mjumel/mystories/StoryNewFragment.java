@@ -68,7 +68,7 @@ public class StoryNewFragment extends Fragment {
     	
     	View view = inflater.inflate(R.layout.fragment_new_story,container, false);
     	te = (EditText) view.findViewById(R.id.new_story_title);
-    	lv = (ListView) view.findViewById(R.id.new_story_listView);
+    	lv = (ListView) view.findViewById(R.id.share_story_contacts);
 		lv.setAdapter(adapter);
 		
 		Gen.appendLog("NewStoryFragment::onCreateView> Ending");

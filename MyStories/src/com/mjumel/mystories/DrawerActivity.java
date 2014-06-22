@@ -1,13 +1,17 @@
 package com.mjumel.mystories;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
@@ -19,13 +23,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.mjumel.mystories.adapters.NavDrawerItem;
 import com.mjumel.mystories.adapters.NavDrawerListAdapter;
+import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
 import com.mjumel.mystories.tools.Prefs;
 
 public class DrawerActivity extends FragmentActivity {
+	
+	private Context context;
+	
 	private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -45,6 +57,13 @@ public class DrawerActivity extends FragmentActivity {
     private List<Event> eventList;
     private List<Story> storyList;
     private String uid;
+    
+    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    private GoogleCloudMessaging gcm;
+    private String regid;
+    private String SENDER_ID = "177254290088";
+    AtomicInteger msgId = new AtomicInteger();
+
  
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +71,7 @@ public class DrawerActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         
         setContentView(R.layout.activity_drawer);
+        context = getApplicationContext();
  
         mTitle = getTitle();
  
@@ -127,6 +147,17 @@ public class DrawerActivity extends FragmentActivity {
         	// Don't forget to change this value to 0 when debug is done
         	isFirstCall = true;
             displayView(0);
+        }
+        
+        // Check device for Play Services APK.
+        if (checkPlayServices()) {
+            gcm = GoogleCloudMessaging.getInstance(this);
+            regid = Prefs.getRegistrationId(context);
+            if (regid.isEmpty()) {
+                registerInBackground();
+            }
+        } else {
+            Gen.appendLog("DrawerActivity::onCreate> No valid Google Play Services APK found");
         }
     }
     
@@ -291,6 +322,26 @@ public class DrawerActivity extends FragmentActivity {
         mTitle = title;
         getActionBar().setTitle(mTitle);
     }
+    
+    /**
+     * Check the device to make sure it has the Google Play Services APK. If
+     * it doesn't, display a dialog that allows users to download the APK from
+     * the Google Play Store or enable it in the device's system settings.
+     */
+    private boolean checkPlayServices() {
+        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
+                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
+            } else {
+            	Gen.appendLog("DrawerActivity::checkPlayServices> This device is not supported.");
+                finish();
+            }
+            return false;
+        }
+        return true;
+    }
  
     /**
      * When using the ActionBarDrawerToggle, you must call it during
@@ -345,6 +396,47 @@ public class DrawerActivity extends FragmentActivity {
         myAlertDialog.show();
     }
     
+    /**
+     * Registers the application with GCM servers asynchronously.
+     * <p>
+     * Stores the registration ID and the app versionCode in the application's
+     * shared preferences.
+     */
+    private void registerInBackground() {
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                String msg = "";
+                try {
+                    if (gcm == null) {
+                        gcm = GoogleCloudMessaging.getInstance(context);
+                    }
+                    regid = gcm.register(SENDER_ID);
+                    msg = "Device registered, registration ID=" + regid;
+
+                    // You should send the registration ID to your server over HTTP, so it
+                    // can use GCM/HTTP or CCS to send messages to your app.
+                    Communication.sendRegId(uid, regid);
+
+                    // Persist the regID - no need to register again.
+                    Prefs.storeRegistrationId(context, regid);
+                } catch (IOException ex) {
+                    msg = "Error :" + ex.getMessage();
+                    // If there is an error, don't just keep trying to register.
+                    // Require the user to click a button again, or perform
+                    // exponential back-off.
+                }
+                return msg;
+            }
+
+            @Override
+            protected void onPostExecute(String msg) {
+                Gen.appendLog("DrawerActivity::registerInBackground> " + msg);
+            }
+        }.execute(null, null, null);
+    }
+    
+    
     @Override
     protected void onStart() {
     	Gen.appendLog("DrawerActivity::onStart> Starting");
@@ -357,6 +449,7 @@ public class DrawerActivity extends FragmentActivity {
     	Gen.appendLog("DrawerActivity::onResume> Starting");
         super.onResume();
         // The activity has become visible (it is now "resumed").
+        checkPlayServices();
         Gen.appendLog("DrawerActivity::onResume> Ending");
     }
     @Override

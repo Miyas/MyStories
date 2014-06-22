@@ -87,8 +87,8 @@ public class Communication {
 	{
 		Gen.appendLog("Communication::deleteEvents> Starting");
 		
-		
 		String sEvents = eventsToString(events, true);
+		Gen.appendLog("Communication::deleteEvents> sEvents = " + sEvents);
 		
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("action", "7"));
@@ -286,6 +286,46 @@ public class Communication {
         return false;
 	}
 	
+	public static boolean sendRegId(String sUserId, String regId)
+	{
+		Gen.appendLog("Communication::sendRegId> Starting");
+		
+		Gen.appendLog("Communication::sendRegId> sUserId = " + sUserId);
+		Gen.appendLog("Communication::sendRegId> regId = " + regId);
+		
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("action", "9"));
+        params.add(new BasicNameValuePair("ui", sUserId));
+        params.add(new BasicNameValuePair("regid", regId));
+        
+        String[] res = postText(POST_URI, params);
+		if (res[0].equals("200"))
+			return true;
+        return false;
+	}
+	
+	public static boolean sendNotif(String sUserId, String to, String msg, Story story)
+	{
+		Gen.appendLog("Communication::sendNotif> Starting");
+		
+		Gen.appendLog("Communication::sendNotif> sUserId = " + sUserId);
+		Gen.appendLog("Communication::sendNotif> to = " + to);
+		Gen.appendLog("Communication::sendNotif> msg = " + msg);
+		Gen.appendLog("Communication::sendNotif> story = " + story.getStoryId());
+		
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("action", "10"));
+        params.add(new BasicNameValuePair("ui", sUserId));
+        params.add(new BasicNameValuePair("to", to));
+        params.add(new BasicNameValuePair("msg", msg));
+        params.add(new BasicNameValuePair("sid", story.getStoryId()));
+        
+        String[] res = postText(POST_URI, params);
+		if (res[0].equals("200"))
+			return true;
+        return false;
+	}
+	
 	private static String[] postText(String uri, List<NameValuePair> params)
 	{
 		Gen.appendLog("Communication::postText> Starting for uri = " + uri);
@@ -404,6 +444,7 @@ public class Communication {
 	private static String eventsToString(List<Event> events, boolean selectedOnly) {
 		String sEvents = null;
 		for (Event event : events) {
+			Gen.appendLog("Communication::eventsToString> event : " + event.getEventId() + "(Selected:" + event.isSelected() + ")");
 			if (event.isSelected() || !selectedOnly) {
 				if (sEvents == null) {
 					sEvents = event.getEventId();
@@ -415,7 +456,7 @@ public class Communication {
 		return sEvents;
 	}
 	
-	private static String storiesToString(List<Story> stories, boolean selectedOnly) {
+	public static String storiesToString(List<Story> stories, boolean selectedOnly) {
 		String sStories = null;
 		for (Story story : stories) {
 			Gen.appendLog("Communication::storiesToString> Story : " + story.getTitle() + "(Selected:" + story.isSelected() + ")");

@@ -55,7 +55,7 @@ public class StoryEventFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
     	
-		View view = inflater.inflate(R.layout.fragment_view_story_event,container, false);
+		View view = inflater.inflate(R.layout.fragment_view_story_item,container, false);
 		comment = (TextView) view.findViewById(R.id.story_event_comment);
 		image = (ImageView) view.findViewById(R.id.story_event_image);
 		rating = (RatingBar) view.findViewById(R.id.story_event_rating);

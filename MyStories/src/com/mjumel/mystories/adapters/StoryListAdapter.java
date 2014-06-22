@@ -162,11 +162,7 @@ public class StoryListAdapter extends ArrayAdapter<Story> {
  
             // Show/Hide action buttons
             private void setActionBar() {
-            	if (checkedCount > 0) {
-            		fragment.updateMenu(true);
-            	} else {
-            		fragment.updateMenu(false);
-            	}
+            	fragment.updateMenu(checkedCount);
                 notifyDataSetChanged();
             }
  

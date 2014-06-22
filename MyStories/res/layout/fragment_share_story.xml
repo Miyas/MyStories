@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <ListView
+        android:id="@+id/share_story_contacts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/share_story_tv_contacts"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp" >
+
+    </ListView>
+
+    <TextView
+        android:id="@+id/share_story_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:background="@color/background_dark"
+        android:text="Title"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/dark_bg_text_color" />
+
+    <TextView
+        android:id="@+id/share_story_tv_contacts"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/share_story_text"
+        android:layout_marginTop="10dp"
+        android:background="@color/background_dark"
+        android:text="Contacts list"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/dark_bg_text_color" />
+
+    <LinearLayout
+        android:id="@+id/share_story_linear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/share_story_title"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp" >
+
+        <ImageView
+            android:id="@+id/share_story_iv1"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/ab_background_textured_msstyle_bluev" />
+
+        <ImageView
+            android:id="@+id/share_story_iv2"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/ab_bottom_solid_msstyle_orange" />
+
+        <ImageView
+            android:id="@+id/share_story_iv3"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/abc_ab_bottom_solid_dark_holo" />
+
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/share_story_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/share_story_linear"
+        android:layout_marginTop="10dp"
+        android:ems="10"
+        android:inputType="textMultiLine"
+        android:lines="2"
+        android:maxLines="2"
+        android:minLines="2" >
+
+        <requestFocus />
+    </EditText>
+
+</RelativeLayout>

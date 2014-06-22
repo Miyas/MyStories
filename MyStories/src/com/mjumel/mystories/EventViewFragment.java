@@ -508,6 +508,7 @@ public class EventViewFragment extends Fragment {
        } 
 
        protected Boolean doInBackground(String ...params) {
+    	   event.setSelected(true);
        	   return Communication.deleteEvent(uId, event);
        }
 
@@ -522,6 +523,7 @@ public class EventViewFragment extends Fragment {
 	    	   activity.sendEventList(eventList);
 	    	   activity.getSupportFragmentManager().popBackStackImmediate();
 	       }
+	       event.setSelected(false);
 	       pg.dismiss();
        }
        
@@ -550,6 +552,7 @@ public class EventViewFragment extends Fragment {
 			List<Story> stories = new ArrayList<Story>();
 			for(int i : params[0])
 				stories.add(storyList.get(i));
+			event.setSelected(true);
 			return Communication.linkEvent(uId, event, stories);
 		}
 
@@ -560,6 +563,7 @@ public class EventViewFragment extends Fragment {
 			} else {
 				Toast.makeText(getActivity(), "Event linked", Toast.LENGTH_SHORT).show();
 			}
+			event.setSelected(false);
 			activity.sendEventList(eventList);
 			pg.dismiss();
 		}

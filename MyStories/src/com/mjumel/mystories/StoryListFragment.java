@@ -102,7 +102,18 @@ public class StoryListFragment extends Fragment {
         	new DeleteStoryTask().execute(storyList);
         	return true;
         case R.id.my_stories_share:
-        	Toast.makeText(getActivity(), "Share action", Toast.LENGTH_SHORT).show();
+        	Gen.appendLog("StoryListFragment::onOptionsItemSelected> Share story fragment");
+        	Bundle bundle = new Bundle();
+        	int pos = -1;
+        	for(int i = 0; i < storyList.size(); i++)
+        		if (storyList.get(i).isSelected())
+        			pos = i;
+        	if (pos >= 0) {
+        		bundle.putInt("position", pos);
+            	((DrawerActivity)getActivity()).changeFragment(new StoryShareFragment(), bundle);
+        	} else {
+        		Toast.makeText(getActivity(), "You can't share more than one story at a time", Toast.LENGTH_SHORT).show();
+        	}
         	return true;
         case R.id.my_stories_search:
         	Toast.makeText(getActivity(), "Search action", Toast.LENGTH_SHORT).show();
@@ -139,10 +150,11 @@ public class StoryListFragment extends Fragment {
     	Gen.appendLog("StoryListFragment::onResume> Ending");
     }
     
-    public void updateMenu(boolean delete)
+    public void updateMenu(int state)
     {
+    	boolean delete = (state > 0?true:false);
    		mMenu.findItem(R.id.my_stories_delete).setVisible(delete);
-   		mMenu.findItem(R.id.my_stories_share).setVisible(delete);
+   		mMenu.findItem(R.id.my_stories_share).setVisible(state==1);
    		mMenu.findItem(R.id.my_stories_search).setVisible(!delete);
    		mMenu.findItem(R.id.my_stories_filters).setVisible(!delete);
    		mMenu.findItem(R.id.my_stories_add).setVisible(!delete);
@@ -259,7 +271,7 @@ public class StoryListFragment extends Fragment {
 				list = null;
 				activity.sendStoryList(storyList);
 				adapter.notifyDataSetChanged();
-				updateMenu(false);
+				updateMenu(0);
 			}
 			pg.dismiss();
 		}
