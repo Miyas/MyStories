@@ -23,7 +23,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -31,6 +30,7 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.mjumel.mystories.adapters.NavDrawerItem;
 import com.mjumel.mystories.adapters.NavDrawerListAdapter;
 import com.mjumel.mystories.tools.Communication;
+import com.mjumel.mystories.tools.Contacts;
 import com.mjumel.mystories.tools.Gen;
 import com.mjumel.mystories.tools.Prefs;
 
@@ -56,6 +56,7 @@ public class DrawerActivity extends FragmentActivity {
     private boolean isFirstCall = false;
     private List<Event> eventList;
     private List<Story> storyList;
+    private List<Contact> contactList;
     private String uid;
     
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
@@ -132,13 +133,20 @@ public class DrawerActivity extends FragmentActivity {
         	Gen.appendLog("DrawerActivity::onCreate> Getting extras");
         	eventList = getIntent().getParcelableArrayListExtra("events");
         	storyList = getIntent().getParcelableArrayListExtra("stories");
+        	contactList = getIntent().getParcelableArrayListExtra("contacts");
         	uid = getIntent().getStringExtra("uid");
+        	
+        	if (contactList == null)
+        		contactList = Contacts.getContacts(context);
+        	
         	Gen.appendLog("DrawerActivity::onCreate> Nb of events : " + eventList.size());
         	Gen.appendLog("DrawerActivity::onCreate> Nb of stories : " + storyList.size());
+        	Gen.appendLog("DrawerActivity::onCreate> Nb of contacts : " + contactList.size());
         	Gen.appendLog("DrawerActivity::onCreate> User ID : " + uid);
         } else {
         	eventList = new ArrayList<Event>();
         	storyList = new ArrayList<Story>();
+        	contactList = new ArrayList<Contact>();
         }
         	
  

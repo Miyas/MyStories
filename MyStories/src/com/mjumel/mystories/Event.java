@@ -27,7 +27,7 @@ public class Event implements Parcelable {
 	private final String baseUrl = "http://anizoo.info/mystories/"; 
 	
 	public Event() {
-		Gen.appendLog("Event::Event> Creating empty event");
+		//Gen.appendLog("Event::Event> Creating empty event");
 		this.eventId = "-1";
     }
 	
@@ -51,7 +51,7 @@ public class Event implements Parcelable {
 	public Event(String comment, int rating, int category, 
 			String[] mediaPath, String uId, String storyId, String eventId) 
     {
-		Gen.appendLog("Event::Event> Creating new event");
+		//Gen.appendLog("Event::Event> Creating new event");
 		this.comment = comment;
 		this.rating = rating;
 		this.category = category;

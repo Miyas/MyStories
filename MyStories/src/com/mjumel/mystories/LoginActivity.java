@@ -94,6 +94,13 @@ public class LoginActivity extends Activity {
 					@Override
 					public void onClick(View view) {
 						Intent intent = new Intent(getApplicationContext(), RegisterActivity.class);
+						if (mEmailView.getText().length() > 0)
+						{
+							intent.putExtra("login_email", mEmailView.getText());
+							Gen.appendLog("LoginActivity::registerOnClick> here (" + mEmailView.getText() + ")");
+						}
+						if (mPasswordView.getText().length() > 0)
+							intent.putExtra("login_pass", mPasswordView.getText());
 						intent.putExtras(getIntent());
 						startActivity(intent);
 					}
@@ -218,6 +225,7 @@ public class LoginActivity extends Activity {
 		intent.putExtra("origin", "login");
 		intent.putParcelableArrayListExtra("events", eventList);
 		intent.putParcelableArrayListExtra("stories", storyList);
+		//intent.putParcelableArrayListExtra("contacts", contactList);
 		intent.putExtras(getIntent());
 		
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

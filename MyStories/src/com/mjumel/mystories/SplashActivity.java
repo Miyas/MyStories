@@ -17,6 +17,7 @@ import android.view.Window;
 import android.widget.TextView;
 
 import com.mjumel.mystories.tools.Communication;
+import com.mjumel.mystories.tools.Contacts;
 import com.mjumel.mystories.tools.Gen;
 import com.mjumel.mystories.tools.Prefs;
 
@@ -68,6 +69,7 @@ public class SplashActivity extends Activity {
 		private int userId;
 		private ArrayList<Event> eventList;
 		private ArrayList<Story> storyList;
+		private ArrayList<Contact> contactList;
 		
 		public PlaceholderFragment() {
 		}
@@ -86,21 +88,12 @@ public class SplashActivity extends Activity {
 			String pwd = Prefs.getString(getActivity(), MS_PREFS_PWD);
 			String uid = Prefs.getString(getActivity(), MS_PREFS_UID);
 			
+			new GetContactsTask().execute();
+			
 			if ( login != null && pwd != null && uid != null) {
 	    		(new UserLoginTask()).execute(new String[] { login, pwd, uid });
 			} else {
-				Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
-				intent.putExtras(getActivity().getIntent());
-				intent.putExtra("origin", "splash");
-				
-				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-				//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-				
-				Gen.appendLog("SplashActivity::onCreateView> login = " + login);
-				Gen.appendLog("SplashActivity::onCreateView> pwd = " + pwd);
-				Gen.appendLog("SplashActivity::onCreateView> uid = " + uid);
-				startActivity(intent);
-				getActivity().finish();
+				redirectToLogin();
 			}
 		    
 			return rootView;
@@ -112,6 +105,7 @@ public class SplashActivity extends Activity {
 			Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
 			intent.putExtras(getActivity().getIntent());
 			intent.putExtra("origin", "splash");
+			intent.putParcelableArrayListExtra("contacts", contactList);
 			
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 			//intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
@@ -130,6 +124,7 @@ public class SplashActivity extends Activity {
     		intent.putExtra("origin", "splash");
     		intent.putParcelableArrayListExtra("events", eventList);
     		intent.putParcelableArrayListExtra("stories", storyList);
+    		intent.putParcelableArrayListExtra("contacts", contactList);
     		
     		intent.putExtras(getActivity().getIntent());
 			
@@ -180,7 +175,7 @@ public class SplashActivity extends Activity {
 					default:
 						textView.setText("Login successful");
 						userId = uid;
-						new DownloadEventsTask().execute((String)null);
+						new DownloadEventsTask().execute();
 						break;
 				}
 			}
@@ -213,7 +208,7 @@ public class SplashActivity extends Activity {
 					}
 	                textView.setText("Downloading personal events... OK");
 	            	Gen.appendLog("SplashActivity$DownloadEventsTask::onPostExecute> Nb of events downloaded : " + eventList.size());
-	            	new DownloadStoriesTask().execute((String)null);
+	            	new DownloadStoriesTask().execute();
 	          }
 	          
 	          @Override
@@ -251,6 +246,37 @@ public class SplashActivity extends Activity {
 			@Override
 			protected void onCancelled() {
 				textView.setText("Downloading personal stories... Cancelled");
+			}
+		}
+		
+		/***************************************************************************************
+		 *
+		 *                                GetContactsTask Class
+		 * 
+		 ***************************************************************************************/
+		private class GetContactsTask extends AsyncTask<String, Integer, List<Contact>>
+		{
+	        protected void onPreExecute() {
+	        	textView.setText("Retrieving personal contacts...");
+	        } 
+
+	        protected List<Contact> doInBackground(String ...params) {
+	        	Gen.appendLog("SplashActivity$GetContactsTask::doInBackground> Retrieving contacts");
+	        	return Contacts.getContacts(getActivity().getApplicationContext());
+	        } 
+
+			protected void onPostExecute(List<Contact> result) {
+				contactList = new ArrayList<Contact>();
+				if(result != null) {
+					contactList.addAll(result);
+				}
+				textView.setText("Retrieving personal contacts... OK");
+				Gen.appendLog("SplashActivity::GetContactsTask::onPostExecute> Nb of contacts retrieved : " + contactList.size());
+			}
+	         
+			@Override
+			protected void onCancelled() {
+				textView.setText("Retrieving personal contacts... Cancelled");
 			}
 		}
 	}

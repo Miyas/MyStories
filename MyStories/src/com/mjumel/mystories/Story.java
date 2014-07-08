@@ -23,12 +23,12 @@ public class Story implements Parcelable {
 	private boolean showCategory = true;
 	
 	public Story() {
-		Gen.appendLog("Story::Story> Creating new story with constructor#1");
+		//Gen.appendLog("Story::Story> Creating new story with constructor#1");
     }
 	
 	@SuppressWarnings("unchecked")
 	public Story(Parcel in) {
-		Gen.appendLog("Story::Story> Creating new story with constructor#2");
+		//Gen.appendLog("Story::Story> Creating new story with constructor#2");
 		this.storyId = in.readString();
 		this.title = in.readString();
 		this.rating = in.readDouble();
@@ -38,7 +38,7 @@ public class Story implements Parcelable {
 	
 	public Story(String storyId, String title, double rating, String uId, List<Event> events) 
     {
-		Gen.appendLog("Story::Story> Creating new story with constructor#3");
+		//Gen.appendLog("Story::Story> Creating new story with constructor#3");
 		this.storyId = storyId;
 		this.title = title;
 		this.rating = rating;
@@ -49,7 +49,7 @@ public class Story implements Parcelable {
 	
 	public Story(String title, String uId, List<Event> events) 
     {
-		Gen.appendLog("Story::Story> Creating new story with constructor#4");
+		//Gen.appendLog("Story::Story> Creating new story with constructor#4");
 		this.title = title;
 		this.uId = uId;
 		this.events = events;
@@ -58,7 +58,7 @@ public class Story implements Parcelable {
 	
 	public Story(String storyId, String title, String uId) 
     {
-		Gen.appendLog("Story::Story> Creating new story with constructor#5");
+		//Gen.appendLog("Story::Story> Creating new story with constructor#5");
 		this.title = title;
 		this.uId = uId;
 		this.storyId = storyId;

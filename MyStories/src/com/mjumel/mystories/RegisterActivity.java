@@ -83,17 +83,17 @@ public class RegisterActivity extends Activity {
 		mLoginStatusView = findViewById(R.id.register_status);
 		mLoginStatusMessageView = (TextView) findViewById(R.id.register_status_message);
 
-		findViewById(R.id.register_register_button).setOnClickListener(
+		findViewById(R.id.register_register_button).setOnClickListener (
 				new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
 						//TODO
-						Toast.makeText(getApplicationContext(), "TODO : Registering", Toast.LENGTH_SHORT);
+						Toast.makeText(getApplicationContext(), "TODO : Registering", Toast.LENGTH_SHORT).show();
 						//attemptRegister();
 					}
 				});
 		
-		findViewById(R.id.register_sign_in_button).setOnClickListener(
+		findViewById(R.id.register_sign_in_button).setOnClickListener (
 				new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
@@ -104,6 +104,15 @@ public class RegisterActivity extends Activity {
 		String phoneNumber = Communication.getPhoneNumber(getApplicationContext());
 		if (phoneNumber != "0" && phoneNumber != null)
 			mPhoneView.setText(phoneNumber);
+		
+		if (getIntent().getExtras() != null) {
+			Gen.appendLog("RegisterActivity::onCreate> EXTRASSS");
+			//if (getIntent().getStringExtra("login_email") != null)
+				mEmailView.setText(getIntent().getStringExtra("login_email"));
+				//mEmailView.setText("TOTO");
+			if (getIntent().getStringExtra("login_pass") != null)
+				mPasswordView.setText(getIntent().getStringExtra("login_pass"));
+		}
 	}
 
 	@Override
