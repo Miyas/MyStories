@@ -42,6 +42,15 @@
         <item >Settings</item>
         <item >Disconnect</item>
     </string-array>
+    
+    <string-array name="nav_drawer_titles" translatable="false">
+        <item >myevents</item>
+        <item >mystories</item>
+        <item >myfriends</item>
+        <item >mypublic</item>
+        <item >myconfig</item>
+        <item >goout</item>
+    </string-array>
      
     <!-- Nav Drawer List Item Icons -->
     <!-- Keep them in order as the titles are in -->
@@ -58,5 +67,10 @@
     
     <string name="alert1_gallery" translatable="false">Gallery</string>
     <string name="alert1_camera" translatable="false">Camera</string>
+    
+    <plurals name="story_number_of_events">
+        <item quantity="one">One event. Created on </item>
+        <item quantity="other">%d events. Created on </item>
+    </plurals>
     
 </resources>

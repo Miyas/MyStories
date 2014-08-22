@@ -3,6 +3,9 @@ package com.mjumel.mystories;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONObject;
+
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
@@ -39,7 +42,9 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class EventViewFragment extends Fragment {
 	
-	private DrawerActivity activity;
+	private final static String ACTIONBAR_TITLE = "myevents";
+	
+	private EventViewActivity activity;
 
 	private View view;
 	private Spinner spnCats;
@@ -70,16 +75,19 @@ public class EventViewFragment extends Fragment {
     	super.onCreate(savedInstanceState);
     	setHasOptionsMenu(true);
     	
-    	activity = (DrawerActivity) getActivity();
+    	activity = (EventViewActivity) getActivity();
     	
-		eventList = activity.getEventList();
 		storyList = activity.getStoryList();
-		uId = activity.getUserId();
-    	
-    	position = getArguments().getInt("position");
-    	event = eventList.get(position);
-    	mediaPath = event.getResizedMediaPath();
-    	
+		eventList = activity.getEventList();
+		
+		if (getArguments() != null) {
+			if (getArguments().containsKey("position")) {
+				position = getArguments().getInt("position");
+				event = eventList.get(position);
+		    	mediaPath = event.getResizedMediaPath();
+			}
+		}
+		
 		Gen.appendLog("EventViewFragment::onCreate> uid = " + uId);
 		Gen.appendLog("EventViewFragment::onCreate> eventId = " + event.getEventId());
 		Gen.appendLog("EventViewFragment::onCreate> mediaPath = " + mediaPath);
@@ -110,9 +118,11 @@ public class EventViewFragment extends Fragment {
 		        // R.layout.contact_spinner_nothing_selected_dropdown, // Optional
 		        activity));
 		
-		if (mediaPath != null) {
+		if (mediaPath != null)
 			ImageLoader.getInstance().displayImage(mediaPath, ivImage);
-		}
+		else
+			ivImage.setVisibility(ImageView.GONE);
+		
 		etComment.setText(event.getComment());
 		etCommentRO.setText(event.getComment());
 		rbRating.setProgress(event.getRating());
@@ -144,9 +154,9 @@ public class EventViewFragment extends Fragment {
 	        case R.id.view_event_save:
 	        	new PostEventTask().execute(new String[] {});
 	            return true;
-	        case R.id.view_event_back:
+	        /*case R.id.view_event_back:
 	        	goFullScreen();
-	        	return true;
+	        	return true;*/
 	        case R.id.view_event_delete:
 	        	deleteDialog();
 	        	return true;
@@ -159,17 +169,28 @@ public class EventViewFragment extends Fragment {
     }
     
     @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-    	Gen.appendLog("EventViewFragment::onPrepareOptionsMenu> Starting");
+    public void onResume()
+    {
+    	super.onResume();
+    	Gen.appendLog("EventListFragment::onResume> Starting");
+    	activity.setTitle(ACTIONBAR_TITLE);
+    	Gen.appendLog("EventListFragment::onResume> Ending");
     }
     
+    public static EventViewFragment newInstance(List<Event> eventList, int pos) {
+    	Gen.appendLog("EventViewFragment::newInstance> Starting (pos=" + pos + ")");
+    	EventViewFragment fragment = new EventViewFragment();
+    	Bundle args = new Bundle();
+    	args.putInt("position", pos);
+    	fragment.setArguments(args);
+    	return fragment;
+    }
     
-    @SuppressWarnings("static-access")
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
     	Gen.appendLog("EventNewFragment::onActivityResult> Starting");
     	super.onActivityResult(requestCode, resultCode, data);
     	
-    	if (resultCode != activity.RESULT_OK) {
+    	if (resultCode != Activity.RESULT_OK) {
     		Gen.appendLog("EventNewFragment::onActivityResult> RESULT_KO (Cancelled?)");
     		return;
     	}
@@ -208,23 +229,14 @@ public class EventViewFragment extends Fragment {
     	mediaPath = uri.toString();
     	ImageLoader.getInstance().displayImage(mediaPath, ivImage);
     	
-		/*try {
-			ExifInterface ei = new ExifInterface(mediaUri.toString());
-			int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-			Gen.appendLog("EventNewFragment::setImage> Image orientation = " + orientation);
-		} catch (IOException e) {
-			Gen.appendLog("EventNewFragment::setImage> Image orientation error");
-			Gen.appendLog("EventNewFragment::setImage> " + e.getLocalizedMessage());
-			e.printStackTrace();
-		}     //Since API Level 5
-    	*/
-    	
     	Gen.appendLog("EventNewFragment::setImage>Loading uri=" + ImageLoader.getInstance().getLoadingUriForView(ivImage));
     }
     
     private void goFullScreen()
     {
-    	if (!fullScreenMode) {
+    	fullScreenMode = !fullScreenMode;
+    	
+    	if (fullScreenMode) {
     		spnCats.setVisibility(Spinner.GONE);
     		etComment.setVisibility(EditText.GONE);
     		etCommentRO.setVisibility(TextView.GONE);
@@ -235,14 +247,12 @@ public class EventViewFragment extends Fragment {
     	}
     	
     	if (mMenu != null) {
-    		mMenu.findItem(R.id.view_event_link).setVisible(fullScreenMode);
-    		mMenu.findItem(R.id.view_event_edit).setVisible(fullScreenMode);
-    		mMenu.findItem(R.id.view_event_delete).setVisible(fullScreenMode);
-    		mMenu.findItem(R.id.view_event_back).setVisible(!fullScreenMode);
-    		mMenu.findItem(R.id.view_event_cancel).setVisible(!fullScreenMode);
-    		mMenu.findItem(R.id.view_event_save).setVisible(!fullScreenMode);
+    		mMenu.findItem(R.id.view_event_link).setVisible(!fullScreenMode);
+    		mMenu.findItem(R.id.view_event_edit).setVisible(!fullScreenMode);
+    		mMenu.findItem(R.id.view_event_delete).setVisible(!fullScreenMode);
+    		mMenu.findItem(R.id.view_event_cancel).setVisible(fullScreenMode);
+    		mMenu.findItem(R.id.view_event_save).setVisible(fullScreenMode);
 		}
-    	fullScreenMode = !fullScreenMode;
     	
     	rbRatingMini.setVisibility(RatingBar.VISIBLE);
     	rbRating.setVisibility(RatingBar.GONE);
@@ -252,33 +262,37 @@ public class EventViewFragment extends Fragment {
     
     private void goEditMode()
     {
-    	if (!editMode) {
+    	editMode = !editMode;
+    	
+    	if (editMode) {
     		rbRating.setVisibility(RatingBar.VISIBLE);
     		rbRatingMini.setVisibility(RatingBar.GONE);
     		etComment.setVisibility(EditText.VISIBLE);
     		etCommentRO.setVisibility(TextView.INVISIBLE);
+    		ivImage.setVisibility(ImageView.VISIBLE);
     	} else {
     		rbRating.setVisibility(RatingBar.GONE);
     		rbRatingMini.setVisibility(RatingBar.VISIBLE);
     		etComment.setVisibility(EditText.INVISIBLE);
     		etCommentRO.setVisibility(TextView.VISIBLE);
+    		if (mediaPath != null)
+    			ivImage.setVisibility(ImageView.VISIBLE);
+    		else
+    			ivImage.setVisibility(ImageView.GONE);
     	}
     	
     	if (mMenu != null)
     	{
-    		mMenu.findItem(R.id.view_event_link).setVisible(editMode);
-    		mMenu.findItem(R.id.view_event_edit).setVisible(editMode);
-    		mMenu.findItem(R.id.view_event_delete).setVisible(editMode);
-    		mMenu.findItem(R.id.view_event_back).setVisible(!editMode);
-    		mMenu.findItem(R.id.view_event_cancel).setVisible(!editMode);
-    		mMenu.findItem(R.id.view_event_save).setVisible(!editMode);
+    		mMenu.findItem(R.id.view_event_link).setVisible(!editMode);
+    		mMenu.findItem(R.id.view_event_edit).setVisible(!editMode);
+    		mMenu.findItem(R.id.view_event_delete).setVisible(!editMode);
+    		mMenu.findItem(R.id.view_event_cancel).setVisible(editMode);
+    		mMenu.findItem(R.id.view_event_save).setVisible(editMode);
 		}
     	
-		spnCats.setClickable(!editMode);
-		etComment.setClickable(!editMode);
-		ivImage.setClickable(!editMode);
-		
-		editMode = !editMode;
+		spnCats.setClickable(editMode);
+		etComment.setClickable(editMode);
+		ivImage.setClickable(editMode);
     }
     
     
@@ -380,11 +394,10 @@ public class EventViewFragment extends Fragment {
     
     private void linkDialog() {
     	Gen.appendLog("EventViewFragment::linkDialog> Starting");
-    	final ArrayList<Integer> mSelectedItems = new ArrayList<Integer>();
     	
     	if (storyList == null) {
     		Gen.appendError("EventViewFragment::linkDialog> storyList is empty");
-    		Toast.makeText(getActivity(), "You don't have any story", Toast.LENGTH_SHORT);
+    		Toast.makeText(getActivity(), "You don't have any story", Toast.LENGTH_SHORT).show();
     		return;
     	}
 
@@ -400,19 +413,14 @@ public class EventViewFragment extends Fragment {
 		        @Override
 		        public void onClick(DialogInterface dialog, int pos,
 		            boolean isChecked) {
-		            if (isChecked) {
-		                mSelectedItems.add(pos);
-		            } else if (mSelectedItems.contains(pos)) {
-		                mSelectedItems.remove(Integer.valueOf(pos));
-		            }
+		        	storyList.get(pos).setSelected(isChecked);
 		        }
         });
 
         myAlertDialog.setPositiveButton("OK",
                 new DialogInterface.OnClickListener() {
-                    @SuppressWarnings("unchecked")
 					public void onClick(DialogInterface arg0, int arg1) {
-                    	new LinkEventTask().execute(mSelectedItems);
+                    	new LinkEventTask().execute();
                     }
                 });
         myAlertDialog.setNegativeButton("Cancel", null);
@@ -425,7 +433,7 @@ public class EventViewFragment extends Fragment {
 	 *                                PostEventTask Class
 	 * 
 	 ***************************************************************************************/
-	class PostEventTask extends AsyncTask<String, Integer, Integer>
+	class PostEventTask extends AsyncTask<String, Integer, JSONObject>
     {
 		private ProgressDialog pg;
 		private String imagePath;
@@ -434,20 +442,21 @@ public class EventViewFragment extends Fragment {
         	pg = ProgressDialog.show(activity, "", "Posting event...", true);
         } 
 
-        protected Integer doInBackground(String ...params) {
+        protected JSONObject doInBackground(String ...params) {
         	Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> old imagepath  = " + event.getResizedMediaPath());
-        	if (mediaPath.compareTo(event.getResizedMediaPath()) == 0) {
-        		imagePath = null;
-        	} else if (mediaPath == null) {
+        	Gen.appendLog("EventViewFragment$PostEventTask::doInBackground> new imagepath  = " + mediaPath);
+        	if (mediaPath == null) {
         		imagePath = null;
         		event.setOriginalMediaPath(imagePath);
                 event.setResizedMediaPath(imagePath);
                 event.setThumbMediaPath(imagePath);
+        	} else if (mediaPath.compareTo(event.getResizedMediaPath() == null ? "" : event.getResizedMediaPath()) == 0) {
+        		imagePath = "nochange";
         	} else {
-        		imagePath = ImageWorker.getPath(activity, Uri.parse(imagePath));
-        		event.setOriginalMediaPath(imagePath);
-                event.setResizedMediaPath(imagePath);
-                event.setThumbMediaPath(imagePath);
+        		imagePath = ImageWorker.getPath(activity, Uri.parse(mediaPath));
+        		event.setOriginalMediaPath(mediaPath);
+                event.setResizedMediaPath(mediaPath);
+                event.setThumbMediaPath(mediaPath);
         	}
         	
             event.setComment(etComment.getText().toString());
@@ -471,24 +480,28 @@ public class EventViewFragment extends Fragment {
             );
         }
 
-        protected void onPostExecute(Integer result) {  
+        protected void onPostExecute(JSONObject result) {  
         	pg.dismiss();
-        	if (result <= 0) {
+        	if (result.optString("error_msg", null) != null) {
         		Gen.appendError("EventViewFragment$PostEventTask::onPostExecute> uId = " + uId);
-        		Gen.appendError("EventViewFragment$PostEventTask::onPostExecute> result = " + result);
+        		Gen.appendError("EventViewFragment$PostEventTask::onPostExecute> result = " + result.optString("error_msg"));
         		Toast.makeText(activity, "Event could not be edited. Please retry later", Toast.LENGTH_SHORT).show();
         	} else {
         		Toast.makeText(activity, "Event edited successfully", Toast.LENGTH_SHORT).show();
         		etCommentRO.setText(etComment.getText().toString());
+        		event.setOriginalMediaPath(result.optString("path_original", null));
+                event.setResizedMediaPath(result.optString("path_resized", null));
+                event.setThumbMediaPath(result.optString("path_thumb", null));
         		eventList.set(position, event);
         		activity.sendEventList(eventList);
+        		activity.updateEventOnStories(event);
         		goEditMode();
         	}
         }
         
         @Override
  		protected void onCancelled() {
-        	Toast.makeText(getActivity(), "Openration cancelled", Toast.LENGTH_SHORT).show();
+        	Toast.makeText(getActivity(), "Operation cancelled", Toast.LENGTH_SHORT).show();
         	pg.dismiss();
  		}
     }
@@ -521,7 +534,8 @@ public class EventViewFragment extends Fragment {
 	    	   Toast.makeText(activity, "Event deleted", Toast.LENGTH_SHORT).show();
 	    	   eventList.remove(position);
 	    	   activity.sendEventList(eventList);
-	    	   activity.getSupportFragmentManager().popBackStackImmediate();
+	    	   activity.removeEventFromStories(event.getEventId());
+	    	   activity.getFragmentManager().popBackStackImmediate();
 	       }
 	       event.setSelected(false);
 	       pg.dismiss();
@@ -529,7 +543,7 @@ public class EventViewFragment extends Fragment {
        
        @Override
        protected void onCancelled() {
-    	   Toast.makeText(getActivity(), "Openration cancelled", Toast.LENGTH_SHORT).show();
+    	   Toast.makeText(getActivity(), "Operation cancelled", Toast.LENGTH_SHORT).show();
     	   pg.dismiss();
        }
    }
@@ -540,18 +554,22 @@ public class EventViewFragment extends Fragment {
 	 *                                LinkEventTask Class
 	 * 
 	 ***************************************************************************************/
-	private class LinkEventTask extends AsyncTask<ArrayList<Integer>, Integer, Boolean>
+	private class LinkEventTask extends AsyncTask<Void, Integer, Boolean>
 	{
 		private ProgressDialog pg = null;
 		
 		protected void onPreExecute() {
 			pg = ProgressDialog.show(getActivity(), "", "Linking event...", true);
-		} 
+		}
 
-		protected Boolean doInBackground(ArrayList<Integer> ...params) {
+		protected Boolean doInBackground(Void ...params) {
 			List<Story> stories = new ArrayList<Story>();
-			for(int i : params[0])
-				stories.add(storyList.get(i));
+			for(Story s : storyList) {
+				if (s.isSelected()) {
+					stories.add(s);
+					s.addEvent(event);
+				}
+			}
 			event.setSelected(true);
 			return Communication.linkEvent(uId, event, stories);
 		}
@@ -563,14 +581,18 @@ public class EventViewFragment extends Fragment {
 			} else {
 				Toast.makeText(getActivity(), "Event linked", Toast.LENGTH_SHORT).show();
 			}
+			
+			for(Story s : storyList)
+				s.setSelected(false);
 			event.setSelected(false);
 			activity.sendEventList(eventList);
+			activity.sendStoryList(storyList);
 			pg.dismiss();
 		}
   
 		@Override
 		protected void onCancelled() {
-			Toast.makeText(getActivity(), "Openration cancelled", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getActivity(), "Operation cancelled", Toast.LENGTH_SHORT).show();
 			pg.dismiss();
 		}
 	}

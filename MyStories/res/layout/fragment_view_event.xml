@@ -23,7 +23,8 @@
 	    android:layout_marginTop="5dp"
 	    android:ellipsize="end"
 	    android:hint="Put your comment here"
-	    android:inputType="textMultiLine"
+	    android:imeOptions="actionDone"
+        android:singleLine="true"
 	    android:maxLines="3"
 	    android:minLines="1"
 	    android:visibility="invisible" />

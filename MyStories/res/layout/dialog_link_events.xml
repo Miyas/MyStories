@@ -6,7 +6,7 @@
     android:background="@color/background_light" >
 
     <TextView
-        android:id="@+id/tvContacts"
+        android:id="@+id/dialog_link_events_new_story_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"
@@ -26,13 +26,14 @@
     </EditText>
     
     <View
+        android:id="@+id/dialog_link_events_separator"
         android:layout_width="fill_parent"
         android:layout_height="1dp"
         android:layout_marginTop="10dp"
         android:background="#c0c0c0" />
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/dialog_link_events_list_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"

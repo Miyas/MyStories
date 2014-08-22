@@ -1,6 +1,7 @@
 package com.mjumel.mystories;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import android.os.Parcel;
@@ -11,10 +12,15 @@ import com.mjumel.mystories.tools.Gen;
 public class Contact implements Parcelable {
 	
 	private String id = null;
+	private String msId = null;
 	private String regId = null;
 	private String name = null;
+	private String firstName = null;
+	private String lastName = null;
 	private HashSet<String> phones = new HashSet<String>();
 	private HashSet<String> mails = new HashSet<String>();
+	private boolean isSection = false;
+	private boolean sendNotifThroughMail = true; //if false, sms will be used
 	
 	// Display options
 	private boolean isSelected = false;
@@ -41,10 +47,13 @@ public class Contact implements Parcelable {
 	public Contact(Parcel in) {
 		//Gen.appendLog("Contact::Contact> Creating new Contact with constructor#2");
 		this.id = in.readString();
+		this.msId = in.readString();
 		this.regId = in.readString();
 		this.name = in.readString();
 		this.phones = (HashSet<String>) in.readSerializable();
 		this.mails = (HashSet<String>) in.readSerializable();
+		this.isSection = in.readInt()==1?true:false;
+		this.sendNotifThroughMail = in.readInt()==1?true:false;
 	}
 	
 	public Contact(String id, String name, List<Phone> phones, List<Mail> mails) 
@@ -63,8 +72,15 @@ public class Contact implements Parcelable {
     {
 		//Gen.appendLog("Contact::Contact> Creating new Contact with constructor#4");
 		this.id = id;
-		//this.phones = new ArrayList<Phone>();
-		//this.mails = new ArrayList<Mail>();
+		//print();
+    }
+	
+	public Contact(String name, boolean isSection, boolean hasRegId) 
+    {
+		//Gen.appendLog("Contact::Contact> Creating new Contact with constructor#4");
+		this.name = name;
+		this.isSection = isSection;
+		this.regId = (hasRegId?"":null);
 		//print();
     }
 	
@@ -81,6 +97,9 @@ public class Contact implements Parcelable {
 	
 	public String getId() { return id; }
 	
+	public String getMyStoriesId() { return msId; }
+    public void setMyStoriesId(String value) { msId = value; }
+	
 	public String getRegId() { return regId; }
     public void setRegId(String value) { regId = value; }
     
@@ -90,6 +109,13 @@ public class Contact implements Parcelable {
     public HashSet<String> getPhoneNumbers() { 
     	return phones;
     }
+    public String getFirstPhoneNumber() {
+    	Iterator<String> it = phones.iterator();
+    	if (it.hasNext())
+    		return it.next();
+    	else
+    		return null;
+    }
     public void addPhoneNumber(String number) {
     	if (number != null)
     		phones.add(number); 
@@ -98,13 +124,32 @@ public class Contact implements Parcelable {
     public HashSet<String> getMails() { 
     	return mails;
     }
+    public String getFirstMail() {
+    	Iterator<String> it = mails.iterator();
+    	if (it.hasNext())
+    		return it.next();
+    	else
+    		return null;
+    }
     public void addMail(String mail) {
     	if (mail != null)
     		mails.add(mail);
     }
     
+    public String getFirstName() {return firstName; }
+    public void setFirstName(String value) {firstName = value; }
+    
+    public String getLastName() {return lastName; }
+    public void setLastName(String value) {lastName = value; }
+    
     public boolean isSelected() {return isSelected; }
     public void setSelected(boolean value) {isSelected = value; }
+    
+    public boolean isSection() {return isSection; }
+    public void setSection(boolean value) {isSection = value; }
+    
+    public boolean getSendNotifThroughMail() {return sendNotifThroughMail; }
+    public void setSendNotifThroughMail(boolean value) {sendNotifThroughMail = value; }
     
     @Override
 	public int describeContents() {
@@ -114,10 +159,13 @@ public class Contact implements Parcelable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(id);
+		dest.writeString(msId);
 		dest.writeString(regId);
 		dest.writeString(name);
 		dest.writeSerializable(phones);
 		dest.writeSerializable(mails);
+		dest.writeInt(this.isSection?1:0);
+		dest.writeInt(this.sendNotifThroughMail?1:0);
 	}
 	
 	public static final Parcelable.Creator<Contact> CREATOR = new Parcelable.Creator<Contact>()

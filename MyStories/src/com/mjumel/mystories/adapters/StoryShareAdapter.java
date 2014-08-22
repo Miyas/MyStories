@@ -1,56 +1,43 @@
 package com.mjumel.mystories.adapters;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
-import android.database.Cursor;
-import android.support.v4.widget.SimpleCursorAdapter;
+import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Switch;
+import android.widget.TextView;
 
+import com.mjumel.mystories.Contact;
 import com.mjumel.mystories.R;
 import com.mjumel.mystories.StoryShareFragment;
-import com.mjumel.mystories.tools.Gen;
 
-public class StoryShareAdapter extends SimpleCursorAdapter {
+public class StoryShareAdapter extends ArrayAdapter<Contact> {
 	private LayoutInflater inflater;
-	private Context context;
+	private List<Contact> contactList;
 	private StoryShareFragment fragment;
-	private Cursor cursor;
-	private String[] from;
-	private int[] to;
-	private int flags;
-	private List<Boolean> checked;
 	
-	private int nameIdx;
+	private int checkedCount = 0;
 	
-    int checkedCount = 0;
-    
-    static class ViewHolder {
+	static class ViewHolder {
 		CheckBox cb;
+		Switch sw;
+		TextView tv;
+		int pos;
+		boolean isSection;
 	}
-    
-	public StoryShareAdapter(Context context, StoryShareFragment fragment, Cursor cursor, String[] from, int[] to, int flags) {
-		super(context, R.layout.fragment_share_story_item, cursor, from, to, flags);
+
+	public StoryShareAdapter(Activity context, StoryShareFragment fragment, List<Contact> contacts) {
+		super(context, R.layout.dialog_link_events_item, contacts);
 		this.inflater = LayoutInflater.from(context);
-		this.context = context;
 		this.fragment = fragment;
-		this.cursor = cursor;
-		this.from = from;
-		this.to = to;
-		this.flags = flags;
-		
-		Gen.appendLog("StoryShareAdapter::getView> Cursor size#"+cursor.getCount());
-		Gen.appendLog("StoryShareAdapter::getView> Cursor ColumnCount#"+cursor.getColumnCount());
-		Gen.appendLog("StoryShareAdapter::getView> From[0]: "+ from[0]);
-		for(int i = 0;i<cursor.getColumnCount();i++)
-			Gen.appendLog("StoryShareAdapter::getView> Column["+i+"]: "+ cursor.getColumnName(i));
-		nameIdx = cursor.getColumnIndexOrThrow(from[0]);
-		checked = new ArrayList<Boolean>();
+		this.contactList = contacts;
 	}
 	
 	@Override
@@ -58,53 +45,76 @@ public class StoryShareAdapter extends SimpleCursorAdapter {
 		View rowView = convertView;
 		ViewHolder holder;
 		
-		Gen.appendLog("StoryShareAdapter::getView> Starting event#"+position);
-		expandList(position);
+		Contact contact = this.getItem(position);
 		
-		if ( rowView == null ) {
-			rowView = inflater.inflate(R.layout.dialog_link_events_item, null);
+		if ( rowView == null || ((ViewHolder) rowView.getTag()).isSection != contact.isSection() ) {
 			holder = new ViewHolder();
-            holder.cb = (CheckBox) rowView.findViewById(R.id.dialog_link_events_cb);
+			holder.pos = position;
+			holder.isSection = contact.isSection();
+			if (contact.isSection()) {
+				rowView = inflater.inflate(R.layout.fragment_share_story_section, null);
+	            holder.tv = (TextView) rowView.findViewById(R.id.share_story_section_name);
+	            holder.cb = null;
+	            holder.sw = null;
+			} else {
+				rowView = inflater.inflate(R.layout.fragment_share_story_item, null);
+	            holder.cb = (CheckBox) rowView.findViewById(R.id.share_story_item_name);
+	            holder.sw = (Switch) rowView.findViewById(R.id.share_story_item_switch);
+	            holder.tv = null;
+			}
             rowView.setTag(holder);
         } else {
             holder = (ViewHolder) rowView.getTag();
         }
 		
-		holder.cb.setTag(position);
-		holder.cb.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            	CheckBox cb = (CheckBox)v;
-            	checked.set((Integer)cb.getTag(), cb.isChecked());
-            	checkedCount = cb.isChecked() ? checkedCount + 1 : checkedCount - 1;
-            	fragment.updateMenu(checkedCount > 0);
-            }
-        });
-		holder.cb.setChecked(checked.get(position));
+		if (contact.isSection()) {
+			holder.tv.setTag(position);
+			holder.tv.setText(contact.getName());
+		} else {
+			
+			// Switch management
+			if (contact.getRegId() != null)
+				holder.sw.setVisibility(Switch.GONE);
+			else {
+				holder.sw.setTag(position);
+				holder.sw.setVisibility(Switch.VISIBLE);
+				holder.sw.setChecked(!contact.getSendNotifThroughMail());
+				holder.sw.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+					@Override
+					public void onCheckedChanged(CompoundButton v, boolean isChecked) {
+						Contact c = contactList.get((Integer)v.getTag());
+						c.setSendNotifThroughMail(!isChecked);
+						notifyDataSetChanged();
+					}
+				});
+			}
+			
+			// Checkbox management
+			holder.cb.setTag(position);
+			holder.cb.setText(contact.getName());
+			holder.cb.setChecked(contact.isSelected());
+			holder.cb.setOnClickListener(new OnClickListener() {
+	            @Override
+	            public void onClick(View v) {
+	            	Contact c = contactList.get((Integer)v.getTag());
+	            	c.setSelected(!c.isSelected());
+	            	fragment.setNbContactsChecked(setCount(c));
+	            	notifyDataSetChanged();
+	            }
+	        });
+		}
 		
-		Cursor c = (Cursor) getItem(position);
-		holder.cb.setText(c.getString(nameIdx));
-		
-		//bindView(rowView, context, cursor);
 		return rowView;
 	}
-
-    /*@Override
-    public void bindView(View view, Context context, Cursor cursor) {
-    	ViewHolder holder  =   (ViewHolder)    view.getTag();
-    	if (cursor != null)
-    		holder.cb.setText(cursor.getString(cursor.getColumnIndexOrThrow(from[0])));
-        
-        //((CheckBox)view).setText(cursor.getString(cursor.getColumnIndexOrThrow(from[0])));        
-    }*/
-    
-    private void expandList(int pos) {
-    	Gen.appendLog("StoryShareAdapter::expandList> pos:" + pos + " / size:" + checked.size());
-    	if (pos >= checked.size()) {
-    		for (int i = checked.size() ; i <= pos ; i++) {
-    			Gen.appendLog("StoryShareAdapter::expandList> Adding pos#" + i);
-    			checked.add(false);
-    		}
-    	}
+	
+    private int setCount(Contact c) {
+        if (c.isSelected()) {
+            checkedCount++;
+        } else {
+            if (checkedCount != 0) {
+                checkedCount--;
+            }
+        }
+        return checkedCount;
     }
 }

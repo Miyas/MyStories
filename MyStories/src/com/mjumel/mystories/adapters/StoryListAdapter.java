@@ -180,4 +180,8 @@ public class StoryListAdapter extends ArrayAdapter<Story> {
         animation1.setAnimationListener(animListener);
         animation2.setAnimationListener(animListener);
     }
+	
+	public void resetSelected() {
+		checkedCount = 0;
+	}
 }

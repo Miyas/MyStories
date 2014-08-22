@@ -10,9 +10,13 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
+import android.text.SpannableString;
+import android.text.style.ImageSpan;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,19 +26,24 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mjumel.mystories.adapters.DialogLinkAdapter;
 import com.mjumel.mystories.adapters.EventListAdapter;
+import com.mjumel.mystories.tools.BetterPopupWindow;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
+import com.mjumel.mystories.tools.Prefs;
 
 public class EventListFragment extends Fragment {
 
 	private DrawerActivity activity;
+	private String title = MyStoriesApp.APPLICATION_NAME;
 	
+	private View view;
 	private ListView lv;
 	private ProgressDialog pg;
 	private EventListAdapter adapter;
@@ -44,12 +53,12 @@ public class EventListFragment extends Fragment {
 	private String uId = null;
 	private List<Event> eventList = null;
 	private List<Story> storyList = null;
+	private boolean createStory = false;
 	
 	private Menu mMenu;
 	
 	// LinkDialog variables
-	private ListView dlv;
-	private TextView dtv;
+	private EditText det; 
 	private int storiesChecked = 0;
 	
     
@@ -66,6 +75,13 @@ public class EventListFragment extends Fragment {
 		
 		adapter = new EventListAdapter(activity, this, eventList);
 		
+		if (getArguments() != null) {
+			if (getArguments().containsKey("createStory"))
+				createStory = getArguments().getBoolean("createStory");
+			if (getArguments().containsKey("title"))
+				title = getArguments().getString("title");
+		}
+		
 		Gen.appendLog("EventListFragment::onCreate> uId=" + uId);
     }
 
@@ -75,7 +91,7 @@ public class EventListFragment extends Fragment {
     	
     	Gen.appendLog("EventListFragment::onCreateView> Starting");
     	
-    	View view = inflater.inflate(R.layout.fragment_my_events_pull,container, false);
+    	view = inflater.inflate(R.layout.fragment_my_events_pull,container, false);
     	
     	mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.ptr_layout);
         ActionBarPullToRefresh.from(activity)
@@ -85,7 +101,9 @@ public class EventListFragment extends Fragment {
 		
 		lv = (ListView) view.findViewById(R.id.my_events_listView_pull);
 		lv.setAdapter(adapter);
-		lv.setOnItemClickListener(viewEvent);
+		
+		if (!createStory)
+			lv.setOnItemClickListener(viewEvent);
 		
 		Gen.appendLog("EventListFragment::onCreateView> Ending");
 		return view;
@@ -94,9 +112,34 @@ public class EventListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_my_events, menu);
-        menu.findItem(R.id.my_events_search).getActionView();
+        
+        Gen.appendLog("EventListFragment::onCreateOptionsMenu> Starting");
+        if (createStory) {
+        	inflater.inflate(R.menu.fragment_my_events_light, menu);
+        } else {
+        	inflater.inflate(R.menu.fragment_my_events, menu);
+        	menu.findItem(R.id.my_events_search).getActionView();
+        }
         mMenu = menu;
+        
+        if (Prefs.getFirstRunNewEvent(activity)) {
+        //if (true) {
+	        ImageSpan is = new ImageSpan(activity, R.drawable.ic_action_new_event_dark);
+			SpannableString text = new SpannableString("To add a new event, click on the button            in the upper right corner");
+			text.setSpan(is, 41, 41 + 10, 0);
+	        BetterPopupWindow dw = new BetterPopupWindow(lv, text, Gravity.RIGHT);
+	        dw.showLikeQuickAction(Gravity.RIGHT, Gravity.TOP);
+	        Prefs.storeFirstRunNewEvent(activity, false);
+        }
+        if (Prefs.getFirstRunNewStory(activity) && eventList.size() > 0 && !Prefs.getFirstRunNewEvent(activity)) {
+        //if (true) {
+	        //ImageSpan is = new ImageSpan(activity, R.drawable.ic_action_new_event_dark);
+			SpannableString text = new SpannableString("To create a story, select events by touching the icon on the right of each event and then click on the button xxx");
+			//text.setSpan(is, 41, 41 + 10, 0);
+	        BetterPopupWindow dw = new BetterPopupWindow(lv, text, Gravity.RIGHT);
+	        dw.showLikeQuickAction(Gravity.RIGHT, Gravity.CENTER);
+	        Prefs.storeFirstRunNewStory(activity, false);
+        }
     }
     
 	@Override
@@ -122,21 +165,31 @@ public class EventListFragment extends Fragment {
     {
     	super.onResume();
     	Gen.appendLog("EventListFragment::onResume> Starting");
-    	activity.setTitle("My Events");
+    	activity.setTitle(title);
     	lv.setAdapter(adapter);
     	    	
-    	eventList = activity.getEventList(); 
-   		adapter.notifyDataSetChanged();
+    	eventList = activity.getEventList();
+    	for (Event e : eventList)
+    		e.setSelected(false);
     	
+    	updateMenu(false);
+   		adapter.notifyDataSetChanged();
+   		
     	Gen.appendLog("EventListFragment::onResume> Ending");
     }
     
     public void updateMenu(boolean delete)
     {
-   		mMenu.findItem(R.id.my_events_delete).setVisible(delete);
-   		mMenu.findItem(R.id.my_events_link).setVisible(delete);
-   		mMenu.findItem(R.id.my_events_search).setVisible(!delete);
-   		mMenu.findItem(R.id.my_events_add).setVisible(!delete);
+    	try {
+	    	mMenu.findItem(R.id.my_events_link).setVisible(delete);
+			if (!createStory) {
+				mMenu.findItem(R.id.my_events_add).setVisible(!delete);
+				mMenu.findItem(R.id.my_events_delete).setVisible(delete);
+				mMenu.findItem(R.id.my_events_search).setVisible(!delete);
+			}
+    	} catch (Exception e) {
+    		Gen.appendError("EventListFragment::updateMenu> ", e);
+    	}
     }
     
     private void hideKeyboard()
@@ -146,7 +199,7 @@ public class EventListFragment extends Fragment {
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
     	//check if no view has focus:
         View v = activity.getCurrentFocus();
-        if(v==null)
+        if(v == null)
             return;
         inputManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
     }
@@ -161,9 +214,14 @@ public class EventListFragment extends Fragment {
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             Gen.appendLog("EventListFragment::viewEvent> Display event#" + ((Event)parent.getItemAtPosition(position)).getEventId());
             Gen.appendLog("EventListFragment::viewEvent> Display event#" + eventList.get(position).getEventId());
-            Bundle bundle = new Bundle();
-            bundle.putInt("position", position);
-            ((DrawerActivity)activity).changeFragment(new EventViewFragment(), bundle);
+            //Bundle bundle = new Bundle();
+            //bundle.putInt("position", position);
+            //((DrawerActivity)activity).changeFragment(new EventViewFragment(), bundle);
+            Intent intent = new Intent(activity.getApplicationContext(), EventViewActivity.class);
+            intent.putParcelableArrayListExtra("eventList", Gen.eventListToArrayList(eventList));
+            intent.putParcelableArrayListExtra("storyList", Gen.storyListToArrayList(storyList));
+            intent.putExtra("position", position);
+            startActivityForResult(intent, 1);
 		}
 	};
 	
@@ -194,28 +252,38 @@ public class EventListFragment extends Fragment {
     	Gen.appendLog("EventViewFragment::linkDialog> Here");
     	AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(activity);
         myAlertDialog.setTitle("Stories to link to");
-
-        DialogLinkAdapter dAdapter = new DialogLinkAdapter(activity, this, storyList);
         
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View dView = inflater.inflate(R.layout.dialog_link_events, null);
-        dtv = (TextView) dView.findViewById(R.id.dialog_link_events_title);
-        dlv = (ListView) dView.findViewById(R.id.dialog_link_events_listView);
-        dlv.setAdapter(dAdapter);
-        //dlv.setOnItemClickListener();
-		
+        det = (EditText) dView.findViewById(R.id.dialog_link_events_title);
+        TextView dtv = (TextView) dView.findViewById(R.id.dialog_link_events_list_title);
+        ListView dlv = (ListView) dView.findViewById(R.id.dialog_link_events_listView);
+        View dsp = (View) dView.findViewById(R.id.dialog_link_events_separator);
+        
+        if (storyList.size() > 0) {
+        	dtv.setVisibility(TextView.VISIBLE);
+        	dlv.setVisibility(ListView.VISIBLE);
+        	dsp.setVisibility(View.VISIBLE);
+        	DialogLinkAdapter dAdapter = new DialogLinkAdapter(activity, this, storyList);
+        	dlv.setAdapter(dAdapter);
+        } else {
+        	dtv.setVisibility(TextView.GONE);
+        	dlv.setVisibility(ListView.GONE);
+        	dsp.setVisibility(View.GONE);
+        }
+
 		myAlertDialog.setView(dView);
 
         myAlertDialog.setPositiveButton("OK",
                 new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface arg0, int arg1) {
-                    	if (storiesChecked <= 0 && dtv.getText().length() <= 0) {
+                    	if (storiesChecked <= 0 && det.getText().length() <= 0) {
                     		Toast.makeText(activity, "You have to enter a title or choose at least on existing story", Toast.LENGTH_SHORT).show();
-                    	} else if (storiesChecked > 0 && dtv.getText().length() > 0) {
+                    	} else if (storiesChecked > 0 && det.getText().length() > 0) {
                     		Toast.makeText(activity, "You have to choose between creating a new story or linking to existing one", Toast.LENGTH_SHORT).show();
                     	} else if (storiesChecked > 0)
                     		new LinkEventsTask().execute();
-                    	else if (dtv.getText().length() > 0)
+                    	else if (det.getText().length() > 0)
                     		new CreateStoryTask().execute();
                     }
                 });
@@ -388,7 +456,7 @@ public class EventListFragment extends Fragment {
 					selEvents.add(event);
 				}
 			}
-			story = new Story(dtv.getText().toString(), uId, selEvents);
+			story = new Story(det.getText().toString(), uId, selEvents);
 			return Communication.addStory(story);
 		}
 		
@@ -400,7 +468,8 @@ public class EventListFragment extends Fragment {
 				default:
 					Toast.makeText(activity, "Story successfully created", Toast.LENGTH_SHORT).show();
 					if (storyList != null) {
-						Gen.appendLog("EventListFragment$CreateStoryTask::onPostExecute> Creating new story");
+						Gen.appendLog("EventListFragment$CreateStoryTask::onPostExecute> Creating new story #" + result);
+						story.setStoryId(String.valueOf(result));
 						storyList.add(0, story);
 						activity.sendStoryList(storyList);
 					}
@@ -409,6 +478,8 @@ public class EventListFragment extends Fragment {
 					}
 					adapter.notifyDataSetChanged();
 					updateMenu(false);
+					if (createStory)
+						activity.getFragmentManager().popBackStackImmediate();
 					break;
 			}
 			pg.dismiss();

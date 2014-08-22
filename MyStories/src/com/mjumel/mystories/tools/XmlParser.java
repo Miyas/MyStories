@@ -3,6 +3,7 @@ package com.mjumel.mystories.tools;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -11,6 +12,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import android.net.Uri;
 import android.util.Xml;
 
+import com.mjumel.mystories.Contact;
 import com.mjumel.mystories.Event;
 import com.mjumel.mystories.Story;
 
@@ -140,6 +142,55 @@ public class XmlParser {
         return stories;
 	}
     
+    public HashMap<String,String> parseContacts(Reader in) throws XmlPullParserException, IOException {
+    	//Gen.appendLog("XmlParser::parseContacts> Starting");
+        try {
+            XmlPullParser parser = Xml.newPullParser();
+            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+            parser.setInput(in);
+            //parser.nextTag();
+            return parseContacts(parser);
+        } finally {
+            in.close();
+        }
+    }
+
+    private HashMap<String,String> parseContacts(XmlPullParser parser) throws XmlPullParserException,IOException
+	{
+		HashMap<String,String> contacts = new HashMap<String,String>();
+        int eventType = parser.getEventType();
+        String phoneId = null;
+        String regId = null;
+
+        //Gen.appendLog("XmlParser::parseContacts> Private Starting");
+        while (eventType != XmlPullParser.END_DOCUMENT){
+            String name = null;
+            //Gen.appendLog("XmlParser::parseContacts> Reading new node = " + eventType);
+            switch (eventType){
+                case XmlPullParser.START_TAG:
+                    name = parser.getName();
+                    //Gen.appendLog("XmlParser::parseContacts> START_TAG = " + name);
+                    if (name.equalsIgnoreCase("pid"))
+                    	phoneId = parser.nextText();
+                    else if (name.equalsIgnoreCase("rid"))
+                    	regId = parser.nextText();
+                    break;
+                case XmlPullParser.END_TAG:
+                    name = parser.getName();
+                    if (name.equalsIgnoreCase("contact")) {
+                    	//Gen.appendLog("XmlParser::parseContacts> Adding new contact link");
+                    	if (phoneId != null && regId != null)
+                    		contacts.put(phoneId, regId);
+                    	phoneId = null;
+                    	regId = null;
+                    }
+                    break;
+            }
+            eventType = parser.next();
+        }
+        return contacts;
+	}
+    
     private Event readEvent(XmlPullParser parser) throws IOException, XmlPullParserException {
     	Event event = null;
     	String name = null;
@@ -226,5 +277,15 @@ public class XmlParser {
 	    	Gen.appendLog("XmlParser::readInt> NumberFormatException : " + parser.nextText(), "E");
 	    	return -1;
 	    }
+	}
+	
+	
+	public static String constructContactsXml(List<Contact> contacts){
+		StringBuilder sb = new StringBuilder();
+		for(Contact c : contacts) {
+			for(String m : c.getMails())
+				sb.append("<contact id=\"" + c.getId() +"\" mail=\"" + m + "\" />");
+		}
+		return sb.toString();
 	}
 }

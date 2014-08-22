@@ -17,10 +17,6 @@
 package com.mjumel.mystories.tools;
 
 
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.mjumel.mystories.DrawerActivity;
-import com.mjumel.mystories.R;
-
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -29,7 +25,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
+
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.mjumel.mystories.R;
+import com.mjumel.mystories.SplashActivity;
 
 /**
  * This {@code IntentService} does the actual handling of the GCM message.
@@ -46,10 +45,10 @@ public class GcmIntentService extends IntentService {
     public GcmIntentService() {
         super("GcmIntentService");
     }
-    public static final String TAG = "GCM Demo";
 
     @Override
     protected void onHandleIntent(Intent intent) {
+    	Gen.appendLog("GcmIntentService::onHandleIntent> Starting");
         Bundle extras = intent.getExtras();
         GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
         // The getMessageType() intent parameter must be the intent you received
@@ -63,24 +62,29 @@ public class GcmIntentService extends IntentService {
              * not interested in, or that you don't recognize.
              */
             if (GoogleCloudMessaging.MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
-                sendNotification("Send error: " + extras.toString());
+                //sendNotification("Send error: " + extras.toString());
+                Gen.appendError("GcmIntentService::onHandleIntent> Send error: " + extras.toString());
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) {
-                sendNotification("Deleted messages on server: " + extras.toString());
+                //sendNotification("Deleted messages on server: " + extras.toString());
+                Gen.appendError("GcmIntentService::onHandleIntent> Deleted messages on server: " + extras.toString());
             // If it's a regular GCM message, do some work.
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
                 // This loop represents the service doing some work.
                 for (int i = 0; i < 5; i++) {
-                    Log.i(TAG, "Working... " + (i + 1)
+                	Gen.appendLog("GcmIntentService::onHandleIntent> Working... " + (i + 1)
                             + "/5 @ " + SystemClock.elapsedRealtime());
                     try {
                         Thread.sleep(5000);
                     } catch (InterruptedException e) {
                     }
                 }
-                Log.i(TAG, "Completed work @ " + SystemClock.elapsedRealtime());
+                Gen.appendLog("GcmIntentService::onHandleIntent> Completed work @ " + SystemClock.elapsedRealtime());
                 // Post notification of received message.
-                sendNotification("Received: " + extras.toString());
-                Log.i(TAG, "Received: " + extras.toString());
+                Intent splashIntent = new Intent(this, SplashActivity.class);
+                String msg = extras.getString("msg","New message received");
+                splashIntent.putExtras(extras);
+                sendNotification(msg, splashIntent);
+                Gen.appendLog("GcmIntentService::onHandleIntent> Received: " + extras.toString());
             }
         }
         // Release the wake lock provided by the WakefulBroadcastReceiver.
@@ -90,17 +94,19 @@ public class GcmIntentService extends IntentService {
     // Put the message into a notification and post it.
     // This is just one simple example of what you might choose to do with
     // a GCM message.
-    private void sendNotification(String msg) {
+    private void sendNotification(String msg, Intent intent) {
+    	Gen.appendLog("GcmIntentService::sendNotification> Starting");
+    	
         mNotificationManager = (NotificationManager)
                 this.getSystemService(Context.NOTIFICATION_SERVICE);
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, DrawerActivity.class), 0);
+        		intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
         .setSmallIcon(R.drawable.ic_stat_gcm)
-        .setContentTitle("GCM Notification")
+        .setContentTitle("New Event!")
         .setStyle(new NotificationCompat.BigTextStyle()
         .bigText(msg))
         .setContentText(msg);

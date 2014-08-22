@@ -88,6 +88,7 @@ public class Story implements Parcelable {
     
     public List<Event> getEvents() { return events; }
     public void setEvents(List<Event> value) { events = value; }
+    public void addEvent(Event e) { events.add(e); }
     public int getEventsCount() { return events.size(); }
     
     public boolean isSelected() { return isSelected; }

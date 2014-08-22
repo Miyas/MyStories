@@ -1,11 +1,13 @@
 package com.mjumel.mystories;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import android.app.ActionBar;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,9 +16,6 @@ import android.content.res.TypedArray;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,17 +23,15 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.mjumel.mystories.adapters.NavDrawerItem;
 import com.mjumel.mystories.adapters.NavDrawerListAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Contacts;
 import com.mjumel.mystories.tools.Gen;
 import com.mjumel.mystories.tools.Prefs;
+import com.mjumel.mystories.tools.SQLQuery;
 
-public class DrawerActivity extends FragmentActivity {
+public class DrawerActivity extends Activity {
 	
 	private Context context;
 	
@@ -46,7 +43,7 @@ public class DrawerActivity extends FragmentActivity {
     private CharSequence mTitle;
  
     // slide menu items
-    private String[] navMenuTitles;
+    private String[] navMenuTitles, navMenuItems;
     private TypedArray navMenuIcons;
  
     private ArrayList<NavDrawerItem> navDrawerItems;
@@ -54,16 +51,18 @@ public class DrawerActivity extends FragmentActivity {
     
     private int drawerPosition;
     private boolean isFirstCall = false;
+    private boolean isNotif = false;
     private List<Event> eventList;
     private List<Story> storyList;
+    private List<Story> sharedStoryList;
     private List<Contact> contactList;
     private String uid;
     
-    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private GoogleCloudMessaging gcm;
+    
     private String regid;
-    private String SENDER_ID = "177254290088";
-    AtomicInteger msgId = new AtomicInteger();
+    
+    private SQLQuery sqlQuery;
+    
 
  
     @Override
@@ -77,7 +76,10 @@ public class DrawerActivity extends FragmentActivity {
         mTitle = getTitle();
  
         // load slide menu items
-        navMenuTitles = getResources().getStringArray(R.array.nav_drawer_items);
+        navMenuItems = getResources().getStringArray(R.array.nav_drawer_items);
+        
+        // load slide menu titles
+        navMenuTitles = getResources().getStringArray(R.array.nav_drawer_titles);
  
         // nav drawer icons from resources
         navMenuIcons = getResources().obtainTypedArray(R.array.nav_drawer_icons);
@@ -88,12 +90,12 @@ public class DrawerActivity extends FragmentActivity {
         navDrawerItems = new ArrayList<NavDrawerItem>();
  
         // adding nav drawer items to array
-        navDrawerItems.add(new NavDrawerItem(navMenuTitles[0], navMenuIcons.getResourceId(0, -1)));
-        navDrawerItems.add(new NavDrawerItem(navMenuTitles[1], navMenuIcons.getResourceId(1, -1)));
-        navDrawerItems.add(new NavDrawerItem(navMenuTitles[2], navMenuIcons.getResourceId(2, -1)));
-        navDrawerItems.add(new NavDrawerItem(navMenuTitles[3], navMenuIcons.getResourceId(3, -1), true, "2"));
-        navDrawerItems.add(new NavDrawerItem(navMenuTitles[4], navMenuIcons.getResourceId(4, -1)));
-        navDrawerItems.add(new NavDrawerItem(navMenuTitles[5], navMenuIcons.getResourceId(5, -1)));
+        navDrawerItems.add(new NavDrawerItem(navMenuItems[0], navMenuIcons.getResourceId(0, -1)));
+        navDrawerItems.add(new NavDrawerItem(navMenuItems[1], navMenuIcons.getResourceId(1, -1)));
+        navDrawerItems.add(new NavDrawerItem(navMenuItems[2], navMenuIcons.getResourceId(2, -1)));
+        navDrawerItems.add(new NavDrawerItem(navMenuItems[3], navMenuIcons.getResourceId(3, -1), true, "2"));
+        navDrawerItems.add(new NavDrawerItem(navMenuItems[4], navMenuIcons.getResourceId(4, -1)));
+        navDrawerItems.add(new NavDrawerItem(navMenuItems[5], navMenuIcons.getResourceId(5, -1)));
  
         // Recycle the typed array
         navMenuIcons.recycle();
@@ -105,68 +107,75 @@ public class DrawerActivity extends FragmentActivity {
                 navDrawerItems);
         mDrawerList.setAdapter(adapter);
  
-        // enabling action bar app icon and behaving it as toggle button
-        getActionBar().setDisplayHomeAsUpEnabled(true);
-        getActionBar().setHomeButtonEnabled(true);
- 
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+        mDrawerToggle = new ActionBarDrawerToggle(
+        		this, 
+        		mDrawerLayout,
                 R.drawable.ic_drawer, //nav menu toggle icon
                 R.string.app_name, // nav drawer open - description for accessibility
                 R.string.app_name // nav drawer close - description for accessibility
         ) {
             public void onDrawerClosed(View view) {
-                getActionBar().setTitle(mTitle);
-                // calling onPrepareOptionsMenu() to show action bar icons
+            	super.onDrawerClosed(view);
                 invalidateOptionsMenu();
             }
  
-            public void onDrawerOpened(View drawerView) {
-                //getActionBar().setTitle(mDrawerTitle);
-                // calling onPrepareOptionsMenu() to hide action bar icons
+            public void onDrawerOpened(View view) {
+            	super.onDrawerOpened(view);
                 invalidateOptionsMenu();
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
         
+        ActionBar actionBar = getActionBar();    
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setDisplayShowHomeEnabled(false);
+        actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setDisplayUseLogoEnabled(false);
+        setTitle("storiesme");
+        
+        eventList = new ArrayList<Event>();
+    	storyList = new ArrayList<Story>();
+    	sharedStoryList = new ArrayList<Story>();
+    	
+    	sqlQuery = new SQLQuery(context);
+    	sqlQuery.open();
+        
         // Getting events and stories lists
         if (getIntent().getExtras() != null) {
         	Gen.appendLog("DrawerActivity::onCreate> Getting extras");
-        	eventList = getIntent().getParcelableArrayListExtra("events");
-        	storyList = getIntent().getParcelableArrayListExtra("stories");
-        	contactList = getIntent().getParcelableArrayListExtra("contacts");
         	uid = getIntent().getStringExtra("uid");
+        	//if (getIntent().getStringExtra("origin").compareToIgnoreCase("splash") == 0) {
+        	//	eventList = sqlQuery.getEvents(uid, null, null);
+        	//	storyList = sqlQuery.getStories(uid, null, null);
+        	//} else {
+        		eventList = getIntent().getParcelableArrayListExtra("events");
+        		storyList = getIntent().getParcelableArrayListExtra("stories");
+        	//}
+        	sharedStoryList = getIntent().getParcelableArrayListExtra("shared_stories");
+        	contactList = getIntent().getParcelableArrayListExtra("contacts");
         	
-        	if (contactList == null)
-        		contactList = Contacts.getContacts(context);
-        	
-        	Gen.appendLog("DrawerActivity::onCreate> Nb of events : " + eventList.size());
-        	Gen.appendLog("DrawerActivity::onCreate> Nb of stories : " + storyList.size());
-        	Gen.appendLog("DrawerActivity::onCreate> Nb of contacts : " + contactList.size());
-        	Gen.appendLog("DrawerActivity::onCreate> User ID : " + uid);
-        } else {
-        	eventList = new ArrayList<Event>();
-        	storyList = new ArrayList<Story>();
-        	contactList = new ArrayList<Contact>();
-        }
-        	
- 
-        if (savedInstanceState == null) {
-        	// TODO
-        	// Don't forget to change this value to 0 when debug is done
-        	isFirstCall = true;
-            displayView(0);
+        	isNotif = getIntent().hasExtra("story_id");
         }
         
-        // Check device for Play Services APK.
-        if (checkPlayServices()) {
-            gcm = GoogleCloudMessaging.getInstance(this);
-            regid = Prefs.getRegistrationId(context);
-            if (regid.isEmpty()) {
-                registerInBackground();
-            }
-        } else {
-            Gen.appendLog("DrawerActivity::onCreate> No valid Google Play Services APK found");
+    	if (contactList == null)
+    		contactList = Contacts.getContacts(context);
+        
+    	Gen.appendLog("DrawerActivity::onCreate> Nb of events : " + eventList.size());
+    	Gen.appendLog("DrawerActivity::onCreate> Nb of stories : " + storyList.size());
+    	Gen.appendLog("DrawerActivity::onCreate> Nb of contacts : " + contactList.size());
+    	Gen.appendLog("DrawerActivity::onCreate> User ID : " + uid);
+
+        if (savedInstanceState == null) {
+        	isFirstCall = true;
+        	if (isNotif)
+        		displayView(2);
+        	else
+        		displayView(0);
         }
+ 
+        regid = Prefs.getRegistrationId(context);
+        if (regid == null)
+        	registerInBackground();
     }
     
     @Override
@@ -218,8 +227,6 @@ public class DrawerActivity extends FragmentActivity {
         // if nav drawer is opened, hide the action items
         //boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
         //menu.findItem(R.id.action_settings).setVisible(!drawerOpen);
-        
-        
     	Gen.appendLog("DrawerActivity::onPrepareOptionsMenu> Starting");
         return super.onPrepareOptionsMenu(menu);
     }
@@ -233,11 +240,12 @@ public class DrawerActivity extends FragmentActivity {
         Fragment fragment = null;
         Bundle bundle = new Bundle();
         bundle.putString("origin", "DrawerActivity");
+        bundle.putString("title", navMenuTitles[position]);
         drawerPosition = position;
         switch (position) {
         case 0:
         	if (getIntent().getExtras() != null) {
-        		bundle = getIntent().getExtras(); 
+        		bundle.putAll(getIntent().getExtras()); 
         		if (bundle.get(Intent.EXTRA_STREAM) != null)
         		{
         			fragment = new EventNewFragment();
@@ -250,6 +258,10 @@ public class DrawerActivity extends FragmentActivity {
             break;
         case 1:
             fragment = new StoryListFragment();
+            changeFragment(fragment, bundle);
+            break;
+        case 2:
+            fragment = new SharedStoryListFragment();
             changeFragment(fragment, bundle);
             break;
         case 5:
@@ -268,7 +280,8 @@ public class DrawerActivity extends FragmentActivity {
     	Gen.appendLog("DrawerActivity::changeFragment> drawerPosition = " + drawerPosition);
     	if (fragment != null) {
     		if (bundle != null) fragment.setArguments(bundle);
-    		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+    		FragmentTransaction transaction = getFragmentManager().beginTransaction();
+    		transaction.setCustomAnimations(R.anim.slide_in_right, 0, 0, R.anim.slide_in_left);
     		transaction.replace(R.id.frame_container, fragment, navMenuTitles[drawerPosition]);
     		if (isFirstCall) {
     			isFirstCall = false;
@@ -277,19 +290,13 @@ public class DrawerActivity extends FragmentActivity {
     			transaction.addToBackStack(navMenuTitles[drawerPosition]);
     			Gen.appendLog("DrawerActivity::changeFragment> Other call, back stack");
     		}
-    		transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-    		//}
-    			
+    		
     		transaction.commit();
  
             // Update selected item and title, then close the drawer
             mDrawerList.setItemChecked(drawerPosition, true);
             mDrawerList.setSelection(drawerPosition);
             setTitle(navMenuTitles[drawerPosition]);
-            
-            Gen.appendLog("DrawerActivity::changeFragment> Changing icon");
-            //getActionBar().setIcon(navMenuIcons.getResourceId(drawerPosition, -1));
-            Gen.appendLog("DrawerActivity::changeFragment> End Changing icon");
             mDrawerLayout.closeDrawer(mDrawerList);
         } else {
             // Error in creating fragment
@@ -319,62 +326,84 @@ public class DrawerActivity extends FragmentActivity {
     	return storyList;
     }
     
+    public void sendSharedStoryList(List<Story> sharedStoryList) {
+    	this.sharedStoryList = storyList;
+    }
+    
+    public List<Story> getSharedStoryList() {
+    	return sharedStoryList;
+    }
+    
     public String getUserId() {
     	return uid;
     }
+    
+    public void sendContactList(List<Contact> contactList) {
+    	this.contactList = contactList;
+    }
+    
+    public List<Contact> getContactList() {
+    	return contactList;
+    }
+    
+    public void removeEventFromStories(String eventId) {
+    	for (Story s : storyList) {
+    		for (Event e : s.getEvents()) {
+    			if (e.getEventId().compareTo(eventId) == 0) {
+    				s.getEvents().remove(e);
+    				break;
+    			}
+    		}
+    	}
+    }
+    
+    public void updateEventOnStories(Event event) {
+    	String eventId = event.getEventId();
+    	Event eventTmp = null;
+    	for (Story s : storyList) {
+    		for (Event e : s.getEvents()) {
+    			if (e.getEventId().compareTo(eventId) == 0) {
+    				Gen.appendLog("DrawerActivity::updateEventOnStories> Update on story " + s.getTitle());
+    				eventTmp = e;
+    				break;
+    			}
+    		}
+    		if (eventTmp != null) {
+    			int pos = s.getEvents().indexOf(eventTmp);
+    			s.getEvents().remove(pos);
+    			s.getEvents().add(pos, event);
+    			eventTmp = null;
+    		}
+    	}
+    }
+    
     
     
  
     @Override
     public void setTitle(CharSequence title) {
+    	Gen.appendLog("DrawerActivity::setTitle> Setting title " + title);
         mTitle = title;
-        getActionBar().setTitle(mTitle);
+        getActionBar().setTitle(Gen.bicolorSpan(mTitle.toString(), 2));
     }
     
     /**
-     * Check the device to make sure it has the Google Play Services APK. If
-     * it doesn't, display a dialog that allows users to download the APK from
-     * the Google Play Store or enable it in the device's system settings.
-     */
-    private boolean checkPlayServices() {
-        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
-                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
-            } else {
-            	Gen.appendLog("DrawerActivity::checkPlayServices> This device is not supported.");
-                finish();
-            }
-            return false;
-        }
-        return true;
-    }
- 
-    /**
      * When using the ActionBarDrawerToggle, you must call it during
      * onPostCreate() and onConfigurationChanged()...
-     */
+    */
  
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
         mDrawerToggle.syncState();
     }
  
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-    	Gen.appendLog("DrawerActivity::onConfigurationChanged> Starting");
         super.onConfigurationChanged(newConfig);
-        // Pass any configuration change to the drawer toggls
         mDrawerToggle.onConfigurationChanged(newConfig);
-        Gen.appendLog("DrawerActivity::onConfigurationChanged> Ending");
     }
     
-    private static final String MS_PREFS_LOGIN = "MyStories_login";
-	private static final String MS_PREFS_PWD = "MyStories_pwd";
-	private static final String MS_PREFS_UID = "MyStories_uid";
     private void discoDialog() {
     	Gen.appendLog("DrawerActivity::discoDialog> Starting");
         AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(this);
@@ -384,9 +413,7 @@ public class DrawerActivity extends FragmentActivity {
         myAlertDialog.setPositiveButton("OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        Prefs.remove(getApplicationContext(), MS_PREFS_LOGIN);
-                        Prefs.remove(getApplicationContext(), MS_PREFS_PWD);
-                        Prefs.remove(getApplicationContext(), MS_PREFS_UID);
+                        Prefs.removeAllExceptFirstRun(getApplicationContext());
                         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
     		    		intent.putExtra("origin", "DrawerActivity");
     					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -404,45 +431,7 @@ public class DrawerActivity extends FragmentActivity {
         myAlertDialog.show();
     }
     
-    /**
-     * Registers the application with GCM servers asynchronously.
-     * <p>
-     * Stores the registration ID and the app versionCode in the application's
-     * shared preferences.
-     */
-    private void registerInBackground() {
-        new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... params) {
-                String msg = "";
-                try {
-                    if (gcm == null) {
-                        gcm = GoogleCloudMessaging.getInstance(context);
-                    }
-                    regid = gcm.register(SENDER_ID);
-                    msg = "Device registered, registration ID=" + regid;
-
-                    // You should send the registration ID to your server over HTTP, so it
-                    // can use GCM/HTTP or CCS to send messages to your app.
-                    Communication.sendRegId(uid, regid);
-
-                    // Persist the regID - no need to register again.
-                    Prefs.storeRegistrationId(context, regid);
-                } catch (IOException ex) {
-                    msg = "Error :" + ex.getMessage();
-                    // If there is an error, don't just keep trying to register.
-                    // Require the user to click a button again, or perform
-                    // exponential back-off.
-                }
-                return msg;
-            }
-
-            @Override
-            protected void onPostExecute(String msg) {
-                Gen.appendLog("DrawerActivity::registerInBackground> " + msg);
-            }
-        }.execute(null, null, null);
-    }
+    
     
     
     @Override
@@ -457,7 +446,6 @@ public class DrawerActivity extends FragmentActivity {
     	Gen.appendLog("DrawerActivity::onResume> Starting");
         super.onResume();
         // The activity has become visible (it is now "resumed").
-        checkPlayServices();
         Gen.appendLog("DrawerActivity::onResume> Ending");
     }
     @Override
@@ -484,6 +472,7 @@ public class DrawerActivity extends FragmentActivity {
     @Override
     protected void onDestroy() {
     	Gen.appendLog("DrawerActivity::onDestroy> Starting");
+    	sqlQuery.close();
         super.onDestroy();
         // The activity is about to be destroyed.
         Gen.appendLog("DrawerActivity::onDestroy> Ending");
@@ -495,5 +484,25 @@ public class DrawerActivity extends FragmentActivity {
     @Override
     protected void onRestoreInstanceState (Bundle bundle) {
     	Gen.appendLog("DrawerActivity::onRestoreInstanceState> Starting");
+    }
+    
+    /**
+     * Registers the application with GCM servers asynchronously.
+     * <p>
+     * Stores the registration ID and the app versionCode in the application's
+     * shared preferences.
+     */
+    private void registerInBackground() {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... params) {
+                return Communication.sendRegId(uid, regid);
+            }
+
+            @Override
+            protected void onPostExecute(Boolean msg) {
+                Gen.appendLog("DrawerActivity::registerInBackground> " + msg);
+            }
+        }.execute(null, null, null);
     }
 }

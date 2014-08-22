@@ -3,7 +3,6 @@ package com.mjumel.mystories.adapters;
 import java.util.List;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -23,6 +22,7 @@ import com.mjumel.mystories.StoryNewFragment;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class EventListAdapter extends ArrayAdapter<Event> {
+	
 	private LayoutInflater inflater;
 	private List<Event> events;
 	private EventListFragment fragmentEvent;
@@ -33,8 +33,11 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 	private ImageView tvFlip;
 	private int checkedCount = 0;
 	
+	private String[] cats;
+	
 	static class ViewHolder {
 		TextView comment;
+		TextView cat;
 		RatingBar rating;
 		ImageView image;
 	}
@@ -45,6 +48,8 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 		this.events = events;
 		this.fragmentEvent = fragment;
 		
+		cats = context.getResources().getStringArray(R.array.nav_spinner_cats);
+		
 		animation1 = AnimationUtils.loadAnimation(context, R.anim.to_middle);
         animation2 = AnimationUtils.loadAnimation(context, R.anim.from_middle);
 	}
@@ -54,6 +59,8 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 		this.inflater = LayoutInflater.from(context);
 		this.events = events;
 		this.fragmentStory = fragment;
+		
+		cats = context.getResources().getStringArray(R.array.nav_spinner_cats);
 		
 		animation1 = AnimationUtils.loadAnimation(context, R.anim.to_middle);
         animation2 = AnimationUtils.loadAnimation(context, R.anim.from_middle);
@@ -70,6 +77,7 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 			rowView = inflater.inflate(R.layout.fragment_my_events_item, null);
 			holder = new ViewHolder();
             holder.comment = (TextView) rowView.findViewById(R.id.my_stories_item_title);
+            holder.cat = (TextView) rowView.findViewById(R.id.my_stories_item_cat);
             holder.rating = (RatingBar) rowView.findViewById(R.id.my_stories_item_ratingBar);
             holder.image = (ImageView) rowView.findViewById(R.id.event_item_imageView);
             rowView.setTag(holder);
@@ -81,7 +89,8 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 		//Gen.appendLog("EventListAdapter::getView> event#" + position + " / eventid#" + event.getEventId());
 		
 		holder.comment.setText(event.getComment());
-		holder.comment.setTextColor(Color.BLACK);
+		//holder.comment.setTextColor(Color.BLACK);
+		holder.cat.setText(cats[event.getCategoryId()-1]);
 		
 		if (event.getRating() < 0)
 			holder.rating.setVisibility(RatingBar.INVISIBLE);

@@ -10,7 +10,7 @@
     tools:context="com.mjumel.mystories.SplashActivity$PlaceholderFragment" >
 
     <TextView
-        android:id="@+id/event_imageView_text"
+        android:id="@+id/splash_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -19,12 +19,28 @@
         android:textColor="@color/dark_bg_text_color"
         android:textColorHint="@color/dark_bg_text_color" />
 
-    <ImageView
-        android:id="@+id/story_event_rating_overlay"
+    <TextView
+        android:id="@+id/splash_version"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/event_imageView_text"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/logo" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:text="version"
+        android:textColor="@color/dark_bg_text_color"
+        android:textColorHint="@color/dark_bg_text_color" />
+
+    <TextView
+        android:id="@+id/splash_logo_stories"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/splash_desc"
+        android:layout_weight="0.21"
+        android:gravity="center"
+        android:shadowColor="@color/transparentGrey"
+        android:shadowDx="3"
+        android:shadowDy="3"
+        android:shadowRadius="2"
+        android:text="1"
+        android:textSize="48dp" />
 
 </RelativeLayout>

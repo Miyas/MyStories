@@ -3,6 +3,9 @@ package com.mjumel.mystories;
 import java.io.IOException;
 import java.util.List;
 
+import org.json.JSONObject;
+
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
@@ -16,7 +19,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -71,7 +74,7 @@ public class EventNewFragment extends Fragment {
     	
     	mediaUri = (Uri)getExtra(Intent.EXTRA_STREAM);
     	activity.getIntent().putExtra(Intent.EXTRA_STREAM, (String)null);
-
+    	
 		Gen.appendLog("EventNewFragment::onCreate> mediaUri = " + mediaUri);
 		Gen.appendLog("EventNewFragment::onCreate> uid = " + uId);
 		Gen.appendLog("EventNewFragment::onCreate> eventsList nb = " + (eventList == null ? 0 : eventList.size()));
@@ -129,12 +132,11 @@ public class EventNewFragment extends Fragment {
         inflater.inflate(R.menu.fragment_new_event, menu);
     }
     
-    @SuppressWarnings("static-access")
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
     	Gen.appendLog("EventNewFragment::onActivityResult> Starting");
     	super.onActivityResult(requestCode, resultCode, data);
     	
-    	if (resultCode != activity.RESULT_OK) {
+    	if (resultCode != Activity.RESULT_OK) {
     		Gen.appendLog("EventNewFragment::onActivityResult> RESULT_KO (Cancelled?)");
     		return;
     	}
@@ -273,7 +275,7 @@ public class EventNewFragment extends Fragment {
 	 *                                PostEventTask Class
 	 * 
 	 ***************************************************************************************/
-	class PostEventTask extends AsyncTask<String, Integer, Integer>
+	class PostEventTask extends AsyncTask<String, Integer, JSONObject>
     {
 		 private ProgressDialog pg;
 		 private String imagePath = null;
@@ -283,7 +285,7 @@ public class EventNewFragment extends Fragment {
         	 hideKeyboard();
          } 
 
-         protected Integer doInBackground(String ...params) {
+         protected JSONObject doInBackground(String ...params) {
         	 imagePath = mediaUri==null?null:ImageWorker.getPath(activity, mediaUri);
         	 
         	 Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> uId = " + uId);
@@ -292,45 +294,47 @@ public class EventNewFragment extends Fragment {
              Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> imagePath = " + imagePath);
              Gen.appendLog("EventNewFragment$PostEventTask::doInBackground> cat = " + spnCats.getSelectedItemPosition());
              
-             return Communication.newEvent(
-            		uId, 
-            		etComment.getText().toString(), 
-            		rbRating.getProgress(), 
-            		imagePath,
-            		spnCats.getSelectedItemPosition()
+             JSONObject event = Communication.newEvent(
+             		uId, 
+             		etComment.getText().toString(), 
+             		rbRating.getProgress(), 
+             		imagePath,
+             		spnCats.getSelectedItemPosition()
              );
-         } 
+             
+             return event;
+        } 
 
-         protected void onPostExecute(Integer result) {  
-        	 pg.dismiss();
-        	 if (result > 0) {
-               	 Event event = new Event(
-               			 etComment.getText().toString(), 
-               			 rbRating.getProgress(), 
-               			 spnCats.getSelectedItemPosition(), 
-               			 (imagePath == null ? null : new String[] {
-               				imagePath.substring(imagePath.lastIndexOf("/")+1),
-               				imagePath.substring(imagePath.lastIndexOf("/")+1),
-               				imagePath.substring(imagePath.lastIndexOf("/")+1)
-               			 }),
-               			 uId, 
-               			 (String)null, 
-               			 String.valueOf(result));
-               	 if (eventList != null) {
+        protected void onPostExecute(JSONObject result) {  
+        	pg.dismiss();
+        	if (result.optString("error_msg", null) != null) {
+        		Gen.appendError("EventNewFragment$PostEventTask::onPostExecute> Error while creating event");
+        		Gen.appendError("EventNewFragment$PostEventTask::onPostExecute> " + result.opt("error_msg"));
+        		Toast.makeText(activity, "Error while creating event", Toast.LENGTH_SHORT).show();
+        	}
+        	else {
+        		Event event = new Event(
+        			etComment.getText().toString(), 
+               		rbRating.getProgress(), 
+               		spnCats.getSelectedItemPosition(), 
+               		result.optString("path_thumb", null),
+               		result.optString("path_resized", null),
+               		result.optString("path_original", null),
+               		uId,
+               		(String)null,
+               		result.optString("event_id")
+               	);
+               	if (eventList != null) {
                		Gen.appendLog("EventNewFragment$PostEventTask::onPostExecute> Adding new event and going back to list");
                		Toast.makeText(activity, "Event created successfully", Toast.LENGTH_SHORT).show();
                		eventList.add(0, event);
                		activity.sendEventList(eventList);
-               		activity.getSupportFragmentManager().popBackStackImmediate();
-               	 }
-             } else {
-               	Gen.appendError("EventNewFragment$PostEventTask::onPostExecute> Error while creating event");
-               	Gen.appendError("EventNewFragment$PostEventTask::onPostExecute> result" + result);
-               	Toast.makeText(activity, "Error while creating event", Toast.LENGTH_SHORT).show();
-             }
-         }
+               		activity.getFragmentManager().popBackStackImmediate();
+               	}
+            }
+        }
          
-         @Override
+        @Override
  		protected void onCancelled() {
        	  pg.dismiss();
  		}

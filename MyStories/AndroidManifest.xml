@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mjumel.mystories"
-    android:versionCode="7"
-    android:versionName="0.0.20" >
+    android:versionCode="13"
+    android:versionName="0.0.26" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -14,32 +14,28 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/> 
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+	
+    <!--  Permissions for GCM exchanges -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <permission android:name="com.mjumel.mystories.permission.C2D_MESSAGE" android:protectionLevel="signature" />
 	<uses-permission android:name="com.mjumel.mystories.permission.C2D_MESSAGE" />
+	<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+	<uses-permission android:name="android.permission.VIBRATE" />
+	
 
     <application
         android:name=".MyStoriesApp"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.Msstyle_bluev" 
-        android:screenOrientation="portrait">
-        <activity
-            android:name="com.mjumel.mystories.LoginActivity"
-            android:label="@string/app_name"
-            android:windowSoftInputMode="adjustResize|stateVisible" >
-        </activity>
-        <activity
-            android:name="com.mjumel.mystories.RegisterActivity"
-            android:label="@string/app_name"
-            android:windowSoftInputMode="adjustResize|stateVisible" >
-        </activity>
+        android:screenOrientation="portrait" >
+        
         <activity
             android:name="com.mjumel.mystories.SplashActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" 
+            android:noHistory="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -50,29 +46,56 @@
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name="com.mjumel.mystories.LoginActivity"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize|stateVisible"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"  >
+        </activity>
+        
+        <activity
+            android:name="com.mjumel.mystories.RegisterActivity"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize|stateVisible"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"  >
+        </activity>
+        
         <activity
             android:name="com.mjumel.mystories.DrawerActivity"
             android:label="@string/app_name" 
-            android:configChanges="orientation|keyboardHidden"
-    		android:screenOrientation="portrait" >
+            android:configChanges="keyboardHidden"
+            android:theme="@style/StoriesMeActionBarTheme" >
         </activity>
+        
         <activity
             android:name="com.mjumel.mystories.StoryViewFragment"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:theme="@style/StoriesMeActionBarTheme" >
+        </activity>
+        
+        <activity
+            android:name="com.mjumel.mystories.EventViewActivity"
+            android:label="@string/app_name"
+            android:theme="@style/StoriesMeActionBarTheme" >
         </activity>
         
         <receiver
-            android:name=".GcmBroadcastReceiver"
+            android:name=".tools.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
+                <!-- Receives the actual messages. -->
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <!-- Receives the registration id. -->
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
                 <category android:name="com.mjumel.mystories" />
             </intent-filter>
         </receiver>
-        <service android:name=".GcmIntentService" />
+        <service android:name=".tools.GcmIntentService" />
+        
         <meta-data
-        android:name="com.google.android.gms.version"
-        android:value="@integer/google_play_services_version" />
+        	android:name="com.google.android.gms.version"
+        	android:value="@integer/google_play_services_version" />
         
     </application>
 

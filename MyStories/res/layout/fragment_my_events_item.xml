@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="80dp"
+    android:layout_height="120dp"
     android:background="@drawable/list_selector"
-    android:maxHeight="80dp"
-    android:minHeight="80dp" >
+    android:maxHeight="120dp"
+    android:minHeight="120dp" >
 
     <ImageView
         android:id="@+id/event_item_imageView"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginTop="10dp"
-        android:maxHeight="60dp"
-        android:minHeight="60dp"
+        android:maxHeight="100dp"
+        android:minHeight="100dp"
         android:scaleType="centerCrop"
         android:src="@drawable/abc_ab_bottom_solid_dark_holo" />
 
@@ -26,13 +26,14 @@
         style="?android:attr/ratingBarStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:paddingBottom="10dp"
+        android:layout_alignParentTop="true"
         android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
         android:isIndicator="true"
         android:max="5"
         android:numStars="5"
+        android:paddingBottom="10dp"
         android:stepSize="1" />
     
     <TextView
@@ -40,12 +41,30 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="false"
+        android:layout_below="@id/my_stories_item_ratingBar"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_toLeftOf="@id/event_item_imageView"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:text="Title" />
+    
+    <TextView
+        android:id="@+id/my_stories_item_cat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="false"
         android:layout_alignParentTop="true"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="10dp"
         android:layout_toLeftOf="@id/event_item_imageView"
-        android:maxLines="2"
+        android:background="@drawable/round_purple_background"
         android:ellipsize="end"
-        android:text="Title" />
+        android:gravity="right"
+        android:maxLines="1"
+        android:maxWidth="80dp"
+        android:text="Cat"
+        android:textColor="@color/white" />
 
 </RelativeLayout>

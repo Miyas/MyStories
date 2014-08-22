@@ -30,13 +30,14 @@
         <item name="actionModeSplitBackground">@drawable/cab_background_bottom_msstyle_bluev</item>
         <item name="actionModeCloseButtonStyle">@style/ActionButton.CloseMode.Msstyle_bluev</item>
 
-                <!-- Light.DarkActionBar specific -->
+        <!-- Light.DarkActionBar specific -->
         <item name="actionBarWidgetTheme">@style/Theme.Msstyle_bluev.Widget</item>
 
     </style>
 
     <style name="ActionBar.Solid.Msstyle_bluev" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
-        <item name="background">@drawable/ab_solid_msstyle_bluev</item>
+        <!-- <item name="background">@drawable/ab_solid_msstyle_bluev</item> -->
+        <item name="background">@color/purple1</item>
         <item name="backgroundStacked">@drawable/ab_stacked_solid_msstyle_bluev</item>
         <item name="backgroundSplit">@drawable/ab_bottom_solid_msstyle_bluev</item>
         <item name="progressBarStyle">@style/ProgressBar.Msstyle_bluev</item>

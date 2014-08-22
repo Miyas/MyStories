@@ -1,6 +1,8 @@
 package com.mjumel.mystories;
 
 
+import org.json.JSONObject;
+
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -12,19 +14,23 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mjumel.mystories.adapters.StoryPagerAdapter;
 import com.mjumel.mystories.tools.Communication;
 import com.mjumel.mystories.tools.Gen;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class StoryEventFragment extends Fragment {
+	
+	StoryViewFragment activity;
+	StoryPagerAdapter adapter;
 	
 	private Story story = null;
 	private Event event = null;
@@ -42,6 +48,9 @@ public class StoryEventFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	setHasOptionsMenu(false);
+    	
+    	activity = (StoryViewFragment)getActivity();
+    	
     	getActivity().getActionBar().hide();
     	
     	Gen.appendLog("StoryEventFragment::onCreate> Starting");
@@ -77,10 +86,10 @@ public class StoryEventFragment extends Fragment {
             @Override
             public void onClick(View v) {
             	setHasOptionsMenu(true);
-            	if (getActivity().getActionBar().isShowing())
-            		getActivity().getActionBar().hide();
+            	if (activity.getActionBar().isShowing())
+            		activity.getActionBar().hide();
             	else
-            		getActivity().getActionBar().show();
+            		activity.getActionBar().show();
             }
          });
 		
@@ -103,7 +112,7 @@ public class StoryEventFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_view_story, menu);
-        getActivity().setTitle("Event #" + eventPos);
+        activity.setTitle("Event #" + eventPos);
         mMenu = menu;
     }
     
@@ -144,14 +153,14 @@ public class StoryEventFragment extends Fragment {
     
     private void deleteDialog() {
     	Gen.appendLog("StoryEventFragment::deleteDialog> Starting");
-        AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(getActivity());
-        myAlertDialog.setTitle("Delete story");
-        myAlertDialog.setMessage("Are you sure, nobody will be able to see this story again!");
+        AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(activity);
+        myAlertDialog.setTitle("Are you sure?");
+        myAlertDialog.setMessage("This event will disappear from this story!");
 
         myAlertDialog.setPositiveButton("Yes",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface arg0, int arg1) {
-                    	new DeleteStoryTask().execute(new String[] {});
+                    	new RemoveLinkEventStoryTask().execute(new String[] {});
                     }
                 });
         myAlertDialog.setNegativeButton("No", null);
@@ -161,30 +170,34 @@ public class StoryEventFragment extends Fragment {
     
     /***************************************************************************************
 	 *
-	 *                                DeleteStoryTask Class
+	 *                                RemoveLinkEventStoryTask Class
 	 * 
 	 ***************************************************************************************/
-	class DeleteStoryTask extends AsyncTask<String, Integer, Boolean>
+	class RemoveLinkEventStoryTask extends AsyncTask<String, Integer, JSONObject>
 	{
 		private ProgressDialog pg;
 		 
 		protected void onPreExecute() {
-			pg = ProgressDialog.show(getActivity(), "", "Deleting story...", true);
+			pg = ProgressDialog.show(activity, "", "Removing link...", true);
 		} 
 
-		protected Boolean doInBackground(String ...params) {
-			return Communication.deleteStory(uId, story);
+		protected JSONObject doInBackground(String ...params) {
+			return Communication.removeLink(uId, event, story);
 		}
 
-		protected void onPostExecute(Boolean result) {
+		protected void onPostExecute(JSONObject result) {
 			pg.dismiss();
-			if (!result) {
-				Gen.appendError("StoryEventFragment$DeleteStoryTask::onPostExecute> uId = " + story.getUserId());
-				Gen.appendError("StoryEventFragment$DeleteStoryTask::onPostExecute> storyId = " + story.getStoryId());
-				Toast.makeText(getActivity(), "Story could not be deleted. Please retry later", Toast.LENGTH_SHORT).show();
+			if (result.optString("error_msg", null) != null) {
+				Gen.appendError("StoryEventFragment$RemoveLinkEventStoryTask::onPostExecute> uId = " + story.getUserId());
+				Gen.appendError("StoryEventFragment$RemoveLinkEventStoryTask::onPostExecute> storyId = " + story.getStoryId());
+				Gen.appendError("StoryEventFragment$RemoveLinkEventStoryTask::onPostExecute> eventId = " + event.getEventId());
+				Gen.appendError("StoryEventFragment$RemoveLinkEventStoryTask::onPostExecute> eventId = " + result.optString("error_msg", null));
+				Toast.makeText(activity, result.optString("error_msg", null), Toast.LENGTH_SHORT).show();
 			} else {
-				Toast.makeText(getActivity(), "Story deleted", Toast.LENGTH_SHORT).show();
-				getActivity().finish();
+				Toast.makeText(activity, "Event removed", Toast.LENGTH_SHORT).show();
+				story.getEvents().remove(event);
+				activity.updatePager(story);
+				//activity.finish();
 			}
 		}
       

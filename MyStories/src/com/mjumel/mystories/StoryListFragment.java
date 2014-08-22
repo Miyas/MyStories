@@ -6,11 +6,12 @@ import java.util.List;
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,6 +30,7 @@ import com.mjumel.mystories.tools.Gen;
 public class StoryListFragment extends Fragment {
 	
 	private DrawerActivity activity;
+	private String title = MyStoriesApp.APPLICATION_NAME;
 
 	private ListView lv;
 	private ProgressDialog pg;
@@ -54,7 +56,12 @@ public class StoryListFragment extends Fragment {
 		storyList = activity.getStoryList();
 		uId = activity.getUserId();
     	
-		adapter = new StoryListAdapter(getActivity(), this, storyList);
+		adapter = new StoryListAdapter(activity, this, storyList);
+		
+		if (getArguments() != null) {
+			if (getArguments().containsKey("title"))
+				title = getArguments().getString("title");
+		}
 		
 		Gen.appendLog("StoryListFragment::onCreate> uId=" + uId);
     }
@@ -68,7 +75,7 @@ public class StoryListFragment extends Fragment {
     	View view = inflater.inflate(R.layout.fragment_my_stories_pull,container, false);
     	
         mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.my_stories_ptr_layout);
-        ActionBarPullToRefresh.from(getActivity())
+        ActionBarPullToRefresh.from(activity)
                 .allChildrenArePullable()
                 .listener(refreshEvent)
                 .setup(mPullToRefreshLayout);
@@ -89,49 +96,53 @@ public class StoryListFragment extends Fragment {
         this.mMenu = menu;
     }
     
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
 	@Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
+    	Bundle bundle = new Bundle();
         switch (item.getItemId()) {
         case R.id.my_stories_add:
         	Gen.appendLog("StoryListFragment::onOptionsItemSelected> Display new story fragment");
-            ((DrawerActivity)getActivity()).changeFragment(new StoryNewFragment(), null);
+        	bundle = new Bundle();
+        	bundle.putBoolean("createStory", true);
+        	activity.changeFragment(new EventListFragment(), bundle);
             return true;
         case R.id.my_stories_delete:
-        	new DeleteStoryTask().execute(storyList);
+        	new DeleteStoryTask().execute();
         	return true;
         case R.id.my_stories_share:
         	Gen.appendLog("StoryListFragment::onOptionsItemSelected> Share story fragment");
-        	Bundle bundle = new Bundle();
+        	bundle = new Bundle();
         	int pos = -1;
         	for(int i = 0; i < storyList.size(); i++)
         		if (storyList.get(i).isSelected())
         			pos = i;
         	if (pos >= 0) {
+        		Gen.appendLog("StoryListFragment::onOptionsItemSelected> Sharing story #" + pos);
         		bundle.putInt("position", pos);
-            	((DrawerActivity)getActivity()).changeFragment(new StoryShareFragment(), bundle);
+        		activity.changeFragment(new StoryShareFragment(), bundle);
         	} else {
-        		Toast.makeText(getActivity(), "You can't share more than one story at a time", Toast.LENGTH_SHORT).show();
+        		Toast.makeText(activity, "You can't share more than one story at a time", Toast.LENGTH_SHORT).show();
         	}
         	return true;
         case R.id.my_stories_search:
-        	Toast.makeText(getActivity(), "Search action", Toast.LENGTH_SHORT).show();
+        	Toast.makeText(activity, "Search action", Toast.LENGTH_SHORT).show();
         	return true;
         case R.id.my_stories_filters:
-        	Toast.makeText(getActivity(), "Show filters action", Toast.LENGTH_SHORT).show();
+        	Toast.makeText(activity, "Show filters action", Toast.LENGTH_SHORT).show();
         	return true;
         case R.id.my_stories_switch:
-        	Toast.makeText(getActivity(), "Switch display action", Toast.LENGTH_SHORT).show();
+        	Toast.makeText(activity, "Switch display action", Toast.LENGTH_SHORT).show();
         	return true;
         case R.id.my_stories_hide_title:
-        	Toast.makeText(getActivity(), "Hide title action", Toast.LENGTH_SHORT).show();
+        	Toast.makeText(activity, "Hide title action", Toast.LENGTH_SHORT).show();
         	return true;
         case R.id.my_stories_hide_stars:
-        	Toast.makeText(getActivity(), "Hide stars action", Toast.LENGTH_SHORT).show();
+        	Toast.makeText(activity, "Hide stars action", Toast.LENGTH_SHORT).show();
         	return true;
         default:
-        	Toast.makeText(getActivity(), "TODO", Toast.LENGTH_SHORT).show();
+        	Toast.makeText(activity, "TODO", Toast.LENGTH_SHORT).show();
             return super.onOptionsItemSelected(item);
         }
     }
@@ -142,9 +153,13 @@ public class StoryListFragment extends Fragment {
     	super.onResume();
     	Gen.appendLog("StoryListFragment::onResume> Starting");
     	lv.setAdapter(adapter);
-    	getActivity().setTitle("My Stories");
+    	activity.setTitle(title);
     	
     	storyList = activity.getStoryList();
+    	for (Story s : storyList)
+    		s.setSelected(false);
+
+    	adapter.resetSelected();
    		adapter.notifyDataSetChanged();
    		
     	Gen.appendLog("StoryListFragment::onResume> Ending");
@@ -173,10 +188,10 @@ public class StoryListFragment extends Fragment {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             Gen.appendLog("StoryListFragment::viewStory> Display story#" + ((Story)parent.getItemAtPosition(position)).getStoryId());
-            Intent intent = new Intent(getActivity().getApplicationContext(), StoryViewFragment.class);
+            Intent intent = new Intent(activity.getApplicationContext(), StoryViewFragment.class);
             intent.putExtra("story", (Story)parent.getItemAtPosition(position));
 			intent.putExtra("position", position);
-			startActivity(intent);
+			startActivityForResult(intent, 1);
 		}
 	};
 	
@@ -189,6 +204,32 @@ public class StoryListFragment extends Fragment {
 		}
 	};
 	
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    	Gen.appendLog("StoryListFragment::onActivityResult> Starting");
+    	Gen.appendLog("StoryListFragment::onActivityResult> requestCode : " + requestCode);
+    	Gen.appendLog("StoryListFragment::onActivityResult> resultCode : " + resultCode);
+    	super.onActivityResult(requestCode, resultCode, data);
+    	
+    	if (resultCode == Activity.RESULT_OK) {
+    		Story story = data.getParcelableExtra("story");
+	    	String storyId = story.getStoryId();
+	    	Story storyTmp = null;
+	    	for (Story s : storyList) {
+    			if (s.getStoryId().compareTo(storyId) == 0) {
+    				Gen.appendLog("StoryListFragment::onActivityResult> Update story " + s.getTitle());
+    				storyTmp = s;
+    				break;
+    			}
+	    	}
+    		if (storyTmp != null) {
+    			int pos = storyList.indexOf(storyTmp);
+    			storyList.remove(pos);
+    			storyList.add(pos, story);
+    		}
+	    	activity.sendStoryList(storyList);
+    	}
+	}
+	
     
     
 	/***************************************************************************************
@@ -200,7 +241,7 @@ public class StoryListFragment extends Fragment {
     {
           protected void onPreExecute()
           {
-          		pg = ProgressDialog.show(getActivity(), "", "Loading stories...", true);
+          		pg = ProgressDialog.show(activity, "", "Loading stories...", true);
           } 
 
           protected List<Story> doInBackground(String ...params)
@@ -210,7 +251,6 @@ public class StoryListFragment extends Fragment {
 
           protected void onPostExecute(List<Story> result)
           {     
-                //super.onPostExecute(result);
                 if(result == null)
                 {
                 	result = new ArrayList<Story>();
@@ -241,24 +281,24 @@ public class StoryListFragment extends Fragment {
 	 *                                DeleteStoryTask Class
 	 * 
 	 ***************************************************************************************/
-	private class DeleteStoryTask extends AsyncTask<List<Story>, Integer, Boolean>
+	private class DeleteStoryTask extends AsyncTask<Void, Integer, Boolean>
 	{
 		private ProgressDialog pg;
 		 
 		protected void onPreExecute() {
-			pg = ProgressDialog.show(getActivity(), "", "Deleting stories...", true);
+			pg = ProgressDialog.show(activity, "", "Deleting stories...", true);
 		} 
 
-		protected Boolean doInBackground(List<Story> ...params) {
-			return Communication.deleteStories(uId, params[0]);
+		protected Boolean doInBackground(Void ...params) {
+			return Communication.deleteStories(uId, storyList);
 		}
 
 		protected void onPostExecute(Boolean result) {
 			if (!result) {
 				Gen.appendError("StoryEventFragment$DeleteStoryTask::onPostExecute> Error while deleting stories");
-				Toast.makeText(getActivity(), "Stories could not be deleted. Please retry later", Toast.LENGTH_SHORT).show();
+				Toast.makeText(activity, "Stories could not be deleted. Please retry later", Toast.LENGTH_SHORT).show();
 			} else {
-				Toast.makeText(getActivity(), "Stories deleted", Toast.LENGTH_SHORT).show();
+				Toast.makeText(activity, "Stories deleted", Toast.LENGTH_SHORT).show();
 				List<Story> list = new ArrayList<Story>();
 				for (Story s : storyList) {
 					if (s.isSelected()) {

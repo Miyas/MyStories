@@ -21,6 +21,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:background="@color/background_dark"
+        android:paddingLeft="10dp"
         android:text="Title"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@color/dark_bg_text_color" />
@@ -34,6 +35,7 @@
         android:layout_below="@+id/share_story_text"
         android:layout_marginTop="10dp"
         android:background="@color/background_dark"
+        android:paddingLeft="10dp"
         android:text="Contacts list"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@color/dark_bg_text_color" />
@@ -61,7 +63,7 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_marginRight="10dp"
-            android:src="@drawable/ab_bottom_solid_msstyle_orange" />
+            android:src="@drawable/ab_bottom_solid_msstyle_bluev" />
 
         <ImageView
             android:id="@+id/share_story_iv3"

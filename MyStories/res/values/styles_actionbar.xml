@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- the theme applied to the application or activity -->
+    <style name="StoriesMeActionBarTheme"
+           parent="@android:style/Theme.Holo.Light.DarkActionBar">
+        <item name="android:actionBarStyle">@style/StoriesMeActionBar</item>
+    </style>
+
+    <!-- ActionBar styles -->
+    <style name="StoriesMeActionBar"
+           parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@color/purple1</item>
+        <item name="android:titleTextStyle">@style/StoriesMeActionBarTitleText</item>
+    </style>
+    
+    <!-- ActionBar title text -->
+    <style name="StoriesMeActionBarTitleText"
+           parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">24sp</item>
+    </style>
+    
+    
+
+</resources>

@@ -8,7 +8,9 @@
           android:radius="6dp" />
       <padding
           android:left="32dp"
-          android:right="32dp" />
+          android:right="32dp"
+          android:top="10dp"
+          android:bottom="10dp" />
     </shape>
   </item>
 </selector>

@@ -11,8 +11,7 @@
         android:id="@+id/my_events_listView_pull"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/list_background" >
-
+        android:background="@color/white" >
     </ListView>
 
 </uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout>

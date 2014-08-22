@@ -3,6 +3,7 @@ package com.mjumel.mystories;
 import java.io.File;
 
 import android.app.Application;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Environment;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -13,9 +14,15 @@ public class MyStoriesApp extends Application {
 	public static String LOG_FILENAME;
 	public final static String EXT_DIR = Environment.getExternalStorageDirectory() + "/";
 	public final static String CACHE_DIR = Environment.getExternalStorageDirectory() + ".mystories/";
+	
 	public static final int CAMERA_REQUEST = 0;
 	public static final int GALLERY_PICTURE = 1;
 	public static final int SELECT_PICTURE = 2;
+	
+	public static final String SENDER_ID = "177254290088";
+	public static String VERSION_NAME = null;
+	public static String APPLICATION_NAME = "storiesme";
+	
 	
     @Override
     public void onCreate() {
@@ -37,5 +44,11 @@ public class MyStoriesApp extends Application {
         
         LOG_FILENAME = getString(R.string.log_filename);
         new File(CACHE_DIR).mkdirs();
+        
+        try {
+        	VERSION_NAME = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+		} catch (NameNotFoundException e) {
+			e.printStackTrace();
+		}
     }
 }

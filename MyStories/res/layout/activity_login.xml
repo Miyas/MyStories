@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:background="@color/background_dark"
-        android:gravity="center_horizontal"
+        android:gravity="center_vertical|center_horizontal"
         android:orientation="vertical"
         android:visibility="gone" >
 
@@ -40,16 +40,32 @@
         android:id="@+id/sign_in_login_form"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/purple" >
+        android:background="@color/purple1" >
 
        <RelativeLayout
-            style="@style/LoginFormContainer" >
+           style="@style/LoginFormContainer"
+           android:layout_gravity="center_vertical" >
+
+           <TextView
+               android:id="@+id/sign_in_title"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:layout_alignParentTop="true"
+               android:layout_centerHorizontal="true"
+               android:layout_marginBottom="30dp"
+               android:text="Title"
+               android:shadowColor="@color/transparentGrey"
+		       android:shadowDx="3"
+		       android:shadowDy="3"
+		       android:shadowRadius="2"
+		       android:textSize="40dp"  />
 
             <EditText
                 android:id="@+id/sign_in_email"
                 style="@style/textbox_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_below="@+id/sign_in_title"
                 android:hint="@string/prompt_email"
                 android:inputType="textEmailAddress"
                 android:maxLines="1"
@@ -87,7 +103,7 @@
 	                android:layout_height="wrap_content"
 	                android:layout_marginRight="10dp"
 	                android:layout_weight="1"
-	                android:background="@drawable/button_yellow"
+	                android:background="@drawable/button_choice1"
 	                android:text="@string/action_sign_in_short" />
 	
 	            <Button
@@ -96,7 +112,7 @@
 	                android:layout_width="fill_parent"
 	                android:layout_height="wrap_content"
 	                android:layout_weight="1"
-	                android:background="@drawable/button_yellow_bright"
+	                android:background="@drawable/button_choice2"
 	                android:text="@string/action_register" />
 			
 			</LinearLayout>

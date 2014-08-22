@@ -10,7 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
@@ -27,14 +26,12 @@ import com.mjumel.mystories.tools.Prefs;
  */
 public class RegisterActivity extends Activity {
 	
-	private static final String MS_PREFS_LOGIN = "MyStories_login";
-	private static final String MS_PREFS_PWD = "MyStories_pwd";
-	private static final String MS_PREFS_UID = "MyStories_uid";
+	
 	
 	/**
 	 * Keep track of the login task to ensure we can cancel it if requested.
 	 */
-	private UserLoginTask mAuthTask = null;
+	private UserRegisterTask mAuthTask = null;
 
 	// Values for email and password at the time of the login attempt.
 	private String mEmail;
@@ -87,9 +84,7 @@ public class RegisterActivity extends Activity {
 				new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
-						//TODO
-						Toast.makeText(getApplicationContext(), "TODO : Registering", Toast.LENGTH_SHORT).show();
-						//attemptRegister();
+						attemptRegister();
 					}
 				});
 		
@@ -97,7 +92,12 @@ public class RegisterActivity extends Activity {
 				new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
-						startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+						Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+						Bundle bundle = new Bundle();
+						bundle.putString("login_email", mEmailView.getText().toString());
+						bundle.putString("login_pass", mPasswordView.getText().toString());
+						bundle.putAll(getIntent().getExtras());
+						startActivity(intent, bundle);
 					}
 				});
 		
@@ -105,20 +105,19 @@ public class RegisterActivity extends Activity {
 		if (phoneNumber != "0" && phoneNumber != null)
 			mPhoneView.setText(phoneNumber);
 		
-		if (getIntent().getExtras() != null) {
-			Gen.appendLog("RegisterActivity::onCreate> EXTRASSS");
-			//if (getIntent().getStringExtra("login_email") != null)
-				mEmailView.setText(getIntent().getStringExtra("login_email"));
-				//mEmailView.setText("TOTO");
-			if (getIntent().getStringExtra("login_pass") != null)
-				mPasswordView.setText(getIntent().getStringExtra("login_pass"));
+		Bundle extras = getIntent().getExtras();
+		if (extras != null) {
+			/*Gen.appendLog("RegisterActivity::onCreate> EXTRAS");
+			for (String key : extras.keySet()) {
+			    Object value = extras.get(key);
+			    Gen.writeLog("RegisterActivity::onCreate> " + String.format("%s %s (%s)", key,  
+				        value.toString(), value.getClass().getName()));
+			}*/
+			if (getIntent().getStringExtra("login_email") != null)
+				mEmailView.setText(extras.getString("login_email"));
+			if (extras.getString("login_pass") != null)
+				mPasswordView.setText(extras.getString("login_pass"));
 		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-		return true;
 	}
 
 	
@@ -199,9 +198,9 @@ public class RegisterActivity extends Activity {
 		} else {
 			// Show a progress spinner, and kick off a background task to
 			// perform the user login attempt.
-			mLoginStatusMessageView.setText(R.string.login_progress_signing_in);
+			mLoginStatusMessageView.setText(R.string.register_progress_signing_in);
 			showProgress(true);
-			mAuthTask = new UserLoginTask();
+			mAuthTask = new UserRegisterTask();
 			mAuthTask.execute((Void) null);
 		}
 	}
@@ -251,7 +250,7 @@ public class RegisterActivity extends Activity {
 	 * Represents an asynchronous login/registration task used to authenticate
 	 * the user.
 	 */
-	private class UserLoginTask extends AsyncTask<Void, Void, Integer> {
+	private class UserRegisterTask extends AsyncTask<Void, Void, Integer> {
 		@Override
 		protected Integer doInBackground(Void... params) {
 			if(!Communication.checkNetState(getApplicationContext())) return -99;
@@ -264,10 +263,11 @@ public class RegisterActivity extends Activity {
 			showProgress(false);
 
 			if (uid > 0) {
-				Prefs.putString(getApplicationContext(), MS_PREFS_LOGIN, mEmail);
-				Prefs.putString(getApplicationContext(), MS_PREFS_PWD, Gen.md5Encrypt(mPassword));
-				Prefs.putString(getApplicationContext(), MS_PREFS_UID, String.valueOf(uid));
-			    
+				Prefs.storeUserId(getApplicationContext(), String.valueOf(uid));
+				Prefs.storeUserLogin(getApplicationContext(), mEmail);
+				Prefs.storeUserPassword(getApplicationContext(), Gen.md5Encrypt(mPassword));
+				Prefs.storeUserFirstName(getApplicationContext(), mFirstName);
+				
 			    Intent intent = new Intent(getApplicationContext(), DrawerActivity.class);
 	    		intent.putExtra("uid", String.valueOf(uid));
 	    		intent.putExtra("origin", "login");
@@ -285,6 +285,8 @@ public class RegisterActivity extends Activity {
 			} else if (uid == -1) {
 				mEmailView.setError("User already exists. Please sign in or change your login");
 				mEmailView.requestFocus();
+			} else if (uid == -2) {
+				Toast.makeText(getApplicationContext(), "Problem while registering, please retry", Toast.LENGTH_SHORT).show();
 			} else {
 				mEmailView.setError("Registration error. Please try again later");
 				mEmailView.requestFocus();

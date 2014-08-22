@@ -7,7 +7,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,8 +36,8 @@ public class StoryNewFragment extends Fragment {
 	private List<Story> storyList = null;
 	private List<Event> eventList = null;
 	private boolean checkAllSelected = false;
-	private boolean hideAllText = false;
-	private boolean hideAllStars = false;
+	//private boolean hideAllText = false;
+	//private boolean hideAllStars = false;
 	
 	
     public StoryNewFragment()
@@ -202,7 +202,7 @@ public class StoryNewFragment extends Fragment {
 	               		Gen.appendLog("StoryNewFragment$SaveStoryTask::onPostExecute> Adding new story and going back to list");
 	               		storyList.add(0, story);
 	               		activity.sendStoryList(storyList);
-	               		activity.getSupportFragmentManager().popBackStackImmediate();
+	               		activity.getFragmentManager().popBackStackImmediate();
 	               	 }
 					break;
 			}

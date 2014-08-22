@@ -1,31 +1,33 @@
 package com.mjumel.mystories.tools;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.Color;
 import android.text.Spannable;
-import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 
+import com.mjumel.mystories.Event;
 import com.mjumel.mystories.MyStoriesApp;
+import com.mjumel.mystories.Story;
 
 public class Gen {
 	
@@ -38,66 +40,57 @@ public class Gen {
 	public static void appendLog(String text, String crit) { doWrite(text, crit, true); }
 	
 	public static void appendError(String text) { doWrite(text, "E", true); }
+	public static void appendError(String text, Exception e) {
+		doWrite(text + "Class: " + e.getClass().getName(), "E", true);
+		doWrite(text + "Message: " + e.getMessage(), "E", true);
+		for(StackTraceElement s : e.getStackTrace())
+			doWrite(text + s.toString(), "E", true);
+	}
 	
 	private static void doWrite(String text, String crit, boolean append)
 	{
-	   File logFile = new File(MyStoriesApp.EXT_DIR + MyStoriesApp.LOG_FILENAME);
-	   //Log.e("MAX", "Writing log to " + logFile.getAbsolutePath());
-	   if (!logFile.exists()) {
-	      try {
-	         logFile.createNewFile();
-	      } catch (IOException e) {
-	    	  Log.e("MAX", "Error while creating log file");
-	    	  e.printStackTrace();
-	    	  Log.e("MAX", e.getMessage());
-	      }
-	   }
+		SimpleDateFormat formater = new SimpleDateFormat("yyyyMMdd", Locale.FRANCE);
+		File logFile = new File(MyStoriesApp.EXT_DIR + formater.format(new Date()) + "_" + MyStoriesApp.LOG_FILENAME);
+
+		if (!logFile.exists()) {
+			try {
+				logFile.createNewFile();
+			} catch (IOException e) {
+				Log.e("MAX", "Error while creating log file");
+				e.printStackTrace();
+				Log.e("MAX", e.getMessage());
+			}
+		}
 		   
-	   try {
-	      BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, append));
-	      SimpleDateFormat formater = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ", Locale.FRANCE);
-	      String sText = formater.format(new Date()) + "\t" + crit + "\t" + text;
-	      buf.write(sText);
-	      buf.newLine();
-	      buf.close();
-	   } catch (IOException e) {
-		  Log.e("MAX", "Error while writing in log file");
-	      e.printStackTrace();
-	   }
-	}
-	
-	public static String downloadFile(String string_url)
-	{
-		StringBuilder sBuilder = new StringBuilder();
-		
 		try {
-        	Gen.appendLog( "Gen::downloadFile > Url: " + string_url);
-            URL url = new URL(string_url);
-            URLConnection conexion = url.openConnection(); 
-            conexion.connect();
-            InputStream input = new BufferedInputStream(url.openStream());
-            BufferedReader r = new BufferedReader(new InputStreamReader(input));
-            String line;
-            while ((line = r.readLine()) != null) {
-            	sBuilder.append(line + "\n");
-            }
-            r.close();
-            input.close();
-        }
-		catch (Exception e) 
-        {
-        	Gen.appendError( "Gen::downloadFile > Download url ERROR");
-        	Gen.appendError( e.getMessage());
-        }
-		
-		return sBuilder.toString();
+			BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, append));
+			formater.applyPattern("yyyy-MM-dd HH:mm:ss.SSSZ");
+			String sText = formater.format(new Date()) + "\t" + crit + "\t" + text;
+			buf.write(sText);
+			buf.newLine();
+			buf.close();
+		} catch (IOException e) {
+			Log.e("MAX", "Error while writing in log file");
+			e.printStackTrace();
+		}
 	}
 	
-	public static Spannable textToSpan(String text, int color) 
+	public static void purgeLogFiles(int delay) 
 	{
-		Spannable wordtoSpan = new SpannableString(text);        
-	    wordtoSpan.setSpan(new ForegroundColorSpan(color), 0, text.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-	    return wordtoSpan;	
+		SimpleDateFormat formater = new SimpleDateFormat("yyyyMMdd", Locale.FRANCE);
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DAY_OF_YEAR, delay * -1);
+		String sDate = formater.format(cal.getTime());
+		String fileName = sDate + "_" + MyStoriesApp.LOG_FILENAME;
+
+		File logPath = new File(MyStoriesApp.EXT_DIR);
+		if (logPath.exists()) {
+			File[] files = logPath.listFiles(new Filter("_" + MyStoriesApp.LOG_FILENAME, fileName));
+			for(File f : files) {
+				Gen.appendLog("Gen::purgeLogFiles> Purging file : " + f.getAbsolutePath());
+				f.delete();
+			}
+		}
 	}
 	
 	public static String md5Encrypt(String value)
@@ -119,8 +112,7 @@ public class Gen {
 	        valEncrypted = sb.toString();
 	 
     	} catch (NoSuchAlgorithmException e) {
-    		Gen.appendError( "Gen::md5Encrypt > NoSuchAlgorithmException ERROR");
-        	Gen.appendError( e.getMessage());
+    		Gen.appendError("Gen::md5Encrypt> ", e);
 		}
     	
     	return valEncrypted;
@@ -148,23 +140,17 @@ public class Gen {
         catch(Exception ex){}
     }
 	
-	public static String superTrim(String s) 
+	public static String superTrim(String s)
 	{
 		String sTmp = "";
 		String charToRemove = " \\n\\r";
 		
-		Gen.appendLog( "Gen::superTrim > Input string = " + s);
-		
 		int pos = 0;
-		Gen.appendLog( "Gen::superTrim > Current char(" + pos + ") = \"" + s.subSequence(pos, pos+1) + "\"");
 		while(charToRemove.contains(s.subSequence(pos, pos+1))) {
 			pos++;
-			Gen.appendLog( "Gen::superTrim > Current char(" + pos + ") = \"" + s.subSequence(pos, pos+1) + "\"");
-			Gen.appendLog( "Gen::superTrim > Char removed");
 		}
 		
 		sTmp = s.substring(pos);
-		Gen.appendLog( "Gen::superTrim > Output string = " + sTmp);
 		
 		return sTmp;
 	}
@@ -179,8 +165,45 @@ public class Gen {
             return packageInfo.versionCode;
         } catch (NameNotFoundException e) {
             // should never happen
-            throw new RuntimeException("Could not get package name: " + e);
+            //throw new RuntimeException("Could not get package name: " + e);
+            Gen.appendError("Gen::getAppVersion> ", e);
+            return -1;
         }
     }
-
+	
+	public static SpannableStringBuilder bicolorSpan(String text, int limit) {
+		SpannableStringBuilder stringBuilder = new SpannableStringBuilder();
+		stringBuilder.append(text);
+		stringBuilder.setSpan(new ForegroundColorSpan(Color.parseColor("#EBE3AA")), 0, limit, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+		stringBuilder.setSpan(new ForegroundColorSpan(Color.parseColor("#CAD7B2")), limit, text.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+		return stringBuilder;
+	}
+	
+	public static class Filter implements FilenameFilter {
+	
+		String filterContains;
+		String filterCompare;
+		
+		public Filter(String filterContains, String filterCompare) {
+			this.filterContains = filterContains;
+			this.filterCompare = filterCompare;
+		}
+		
+		@Override
+		public boolean accept(File dir, String filename) {
+			return (filename.contains(filterContains) && filename.compareToIgnoreCase(filterCompare) <= 0);
+		}
+	}
+	
+	public static ArrayList<Event> eventListToArrayList(List<Event> list) {
+		ArrayList<Event> arrayList = new ArrayList<Event>();
+		arrayList.addAll(list);
+		return arrayList;
+	}
+	
+	public static ArrayList<Story> storyListToArrayList(List<Story> list) {
+		ArrayList<Story> arrayList = new ArrayList<Story>();
+		arrayList.addAll(list);
+		return arrayList;
+	}
 }
